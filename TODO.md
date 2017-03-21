@@ -1,11 +1,22 @@
 #### UI
-* Decide between React+{Redux,MobX} or Angular2 for FE stack (leaning React right now)
-* CodeMirror react component -- make it (i.e. under rahulsmehta) and then import if non-existent
-    * CodeMirror code completion? Does this exist? How hard is it to make it a thing
-* Actually play around with Dr. Java to see what other features we need to implement on the front end
+* React+Redux+TypeScript 2 ~~Decide between React+{Redux,MobX} or Angular2 for FE stack (leaning React right now)~~
+* Exists (https://github.com/JedWatson/react-codemirror) ~~CodeMirror react component -- make it (i.e. under rahulsmehta) and then import if non-existent~~
+    * No code completion in DrJava ~~CodeMirror code completion? Does this exist? How hard is it to make it a thing~~
+* ~~Actually play around with DrJava to see what other features we need to implement on the front end~~
     * Shell? How to expose this...
-    * REPL????
-    * Others?
+    * We likely want to figure out how a REPL situation would work
+* PhosphorJS as a "tabbed editor" component?
+
+#### Backend Services
+* Flask as the web framework
+* Code storage DB (Firebase right now) 
+    * "Snapshot"/checkpoint serialization of base64'd code -> SQL?
+    * Store plain text or some encoding of it? Compress-then-base64?
+    * Can we store diffs in firebase and then "replay" to construct a file?
+
+#### General
+* Set up semver
+* Set up all boilerplate + add instructions for SETUP.md
 
 
 
