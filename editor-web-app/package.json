@@ -1,12 +1,12 @@
 {
-  "name": "typescript-react-redux-boilerplate",
-  "version": "1.0.0",
+  "name": "editor-web-app",
+  "version": "0.0.1",
   "private": true,
-  "description": "A frontend boilerplate with React, Redux and Typescript",
+  "description": "PairDE code authoring web app",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "webpack-dev-server -d --history-api-fallback --hot --inline --progress --colors --port 3000 --open",
+    "dev": "webpack-dev-server -d --history-api-fallback --hot --inline --progress --colors --port 3000 --open",
     "build": "webpack -p --progress --colors"
   },
   "license": "MIT",
