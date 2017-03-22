@@ -12,8 +12,10 @@
   "license": "MIT",
   "devDependencies": {
     "@types/classnames": "^0.0.32",
+    "@types/isomorphic-fetch": "0.0.33",
     "@types/node": "^7.0.4",
     "@types/react": "^15.0.6",
+    "@types/react-codemirror": "^0.2.6",
     "@types/react-dom": "^0.14.22",
     "@types/react-redux": "^4.4.36",
     "@types/react-router": "^3.0.0",
@@ -44,7 +46,6 @@
   },
   "dependencies": {
     "@blueprintjs/core": "^1.12.0",
-    "@types/isomorphic-fetch": "0.0.33",
     "classnames": "^2.2.5",
     "isomorphic-fetch": "^2.2.1",
     "react": "^15.4.2",
