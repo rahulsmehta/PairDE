@@ -5,6 +5,7 @@
 * ~~Actually play around with DrJava to see what other features we need to implement on the front end~~
     * Shell? How to expose this...
     * We likely want to figure out how a REPL situation would work
+* Use blueprint.js as component library for general UI stuff
 * PhosphorJS as a "tabbed editor" component?
 
 #### Backend Services
