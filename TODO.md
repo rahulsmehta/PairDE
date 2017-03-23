@@ -6,7 +6,8 @@
     * Shell? How to expose this...
     * We likely want to figure out how a REPL situation would work
 * Use blueprint.js as component library for general UI stuff
-* PhosphorJS as a "tabbed editor" component?
+* ~~PhosphorJS as a "tabbed editor" component?~~ punting on this for now
+* Look into monaco-editor (vscodeish theme) as alternative to CodeMirror (if it has good react component support)
 
 #### Backend Services
 * Flask as the web framework

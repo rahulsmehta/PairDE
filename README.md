@@ -2,7 +2,7 @@
 
 #### Team Information
 
-*Project Manager* - Rahul Mehta ([rahulmehta@princeton.edu](mailto:rahulmehta@princeton.edu)
+*Project Manager* - Rahul Mehta ([rahulmehta@princeton.edu](mailto:rahulmehta@princeton.edu))
 
 *Other Members*
 * Ethan Cohen ([ethanrc@princeton.edu](mailto:ethanrc@princeton.edu))
