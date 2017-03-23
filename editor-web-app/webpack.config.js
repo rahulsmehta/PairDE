@@ -9,6 +9,7 @@ var outPath = path.join(__dirname, './dist');
 // plugins
 var HtmlWebpackPlugin = require('html-webpack-plugin');
 var ExtractTextPlugin = require('extract-text-webpack-plugin');
+var CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   context: sourcePath,
@@ -32,7 +33,7 @@ module.exports = {
   resolve: {
     extensions: ['.js', '.ts', '.tsx'],
     // Fix webpack's default behavior to not load packages with jsnext:main module
-    // https://github.com/Microsoft/TypeScript/issues/11677 
+    // https://github.com/Microsoft/TypeScript/issues/11677
     mainFields: ['main']
   },
   module: {
@@ -47,7 +48,7 @@ module.exports = {
             'awesome-typescript-loader'
           ]
       },
-      // css 
+      // css
       {
         test: /\.css$/,
         loader: ExtractTextPlugin.extract({
@@ -68,13 +69,20 @@ module.exports = {
           ]
         })
       },
-      // static assets 
+      // static assets
       { test: /\.html$/, loader: 'html-loader' },
       { test: /\.png$/, loader: 'url-loader?limit=10000' },
       { test: /\.jpg$/, loader: 'file-loader' },
     ],
   },
   plugins: [
+    new CopyWebpackPlugin([
+      {
+        from: 'node_modules/monaco-editor/min/vs',
+        to: 'vs',
+        context: __dirname
+      }
+    ]),
     new webpack.LoaderOptionsPlugin({
       options: {
         context: sourcePath,
@@ -109,7 +117,7 @@ module.exports = {
     },
   },
   node: {
-    // workaround for webpack-dev-server issue 
+    // workaround for webpack-dev-server issue
     // https://github.com/webpack/webpack-dev-server/issues/60#issuecomment-103411179
     fs: 'empty',
     net: 'empty'
