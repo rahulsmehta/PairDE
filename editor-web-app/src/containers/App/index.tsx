@@ -30,28 +30,21 @@ class App extends React.Component<AppProps, AppState>{
   render() {
     const { todos, actions, children } = this.props;
     const options = {
-      selectOnLineNumbers: true
-    };
-    const requireConfig = {
-      url: 'https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.1/require.min.js',
-      paths: {
-        "vs": 'https://www.mycdn.com/monaco-editor/0.6.1/min/vs'
-      }
+      selectOnLineNumbers: false
     };
     return (
-      <MonacoEditor
-        requireConfig={requireConfig}
-      />
-      /*<div className = {style.default} >
+      <div className = {style.default} >
         <Grid fluid>
           <Row className="show-grid">
             <Col md={2} className = {style.c2}>File Browser</Col>
             <Col md={8}>
               <MonacoEditor
-                language="java"
-                value = "//code here"
-                editorDidMount={this.editorDidMount}
-                options={options}
+                width="800"
+                height="600"
+                value = "// your code here"
+                language = "java"
+                options = {options}
+                editorDidMount = {this.editorDidMount}
               />
             </Col>
             <Col md={2} className = {style.c2}>Tools</Col>

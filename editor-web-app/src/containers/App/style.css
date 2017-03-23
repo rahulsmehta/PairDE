@@ -2,10 +2,13 @@
 @import url("https://maxcdn.bootstrapcdn.com/bootstrap/latest/css/bootstrap.min.css");
 
 html,
-body,
-.default {
+body {
   margin: 0;
   padding: 0;
+}
+
+.default {
+  margin-top: 50px;
 }
 
 .c1 { background-color: grey;}
