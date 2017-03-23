@@ -1,7 +1,5 @@
 @import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500');
 @import url("https://maxcdn.bootstrapcdn.com/bootstrap/latest/css/bootstrap.min.css");
-@import url("https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.25.0/codemirror.css");
-
 
 html,
 body,
@@ -27,7 +25,7 @@ button {
   font-smoothing: antialiased;
 }
 
-body {
+/*body {
   font: 14px 'Helvetica Neue', Helvetica, Arial, sans-serif;
   line-height: 1.4em;
   background: #f5f5f5;
@@ -38,7 +36,7 @@ body {
   -ms-font-smoothing: antialiased;
   font-smoothing: antialiased;
   font-weight: 300;
-}
+}*/
 
 button,
 input[type="checkbox"] {
