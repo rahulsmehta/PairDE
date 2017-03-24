@@ -1,8 +1,4 @@
-@import url('https://fonts.googleapis.com/css?family=Roboto:300,400,500');
-@import url("https://maxcdn.bootstrapcdn.com/bootstrap/latest/css/bootstrap.min.css");
 @import url("https://unpkg.com/@blueprintjs/core@^1.11.0/dist/blueprint.css");
-@import url('https://fonts.googleapis.com/css?family=Roboto');
-/*@import "~@blueprintjs/core";*/
 
 html,
 body {
@@ -19,9 +15,6 @@ body {
   resize: horizontal;
   overflow: hidden;
 }
-
-.c1 { background-color: grey;}
-.c2 { background-color: grey;}
 
 button {
   margin: 0;

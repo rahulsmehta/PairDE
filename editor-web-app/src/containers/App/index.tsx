@@ -4,22 +4,16 @@ import { connect } from 'react-redux';
 import * as classNames from "classnames";
 import { RootState } from '../../reducers';
 import * as TodoActions from '../../actions/todos';
-// import Header from '../../components/Header';
-// import MainSection from '../../components/MainSection';
+
 import * as style from './style.css';
 
 //TODO: Refactor to remove bootstrap-specific code from top level component
 import { Grid, Row, Col } from "react-bootstrap";
 import MonacoEditor from "react-monaco-editor";
-import { Breadcrumb,
-         CollapsibleList,
-         MenuItem,
-         Classes,
-         IMenuItemProps,
-         Button,
-         ITreeNode,
-         Tree
-        } from "@blueprintjs/core";
+const PanelGroup = require("react-panelgroup");
+import { Breadcrumb, CollapsibleList, MenuItem, Classes,
+         IMenuItemProps, Button, ITreeNode, Tree, Tooltip,
+         Position, Intent} from "@blueprintjs/core";
 
 interface AppProps {
   todos: TodoItemData[];
@@ -32,10 +26,10 @@ interface AppState {
 
 class App extends React.Component<AppProps, AppState>{
 
-  editorDidMount(editor, monaco) {
-    console.log('editorDidMount', editor);
-    editor.focus();
-  }
+  // editorDidMount(editor, monaco) {
+  //   console.log('editorDidMount', editor);
+  //   editor.focus();
+  // }
 
   private renderBreadcrumb(props: IMenuItemProps) {
         if (props.href != null) {
@@ -74,9 +68,11 @@ class App extends React.Component<AppProps, AppState>{
             id: 3
           }
         ];
+    const monacoStyle = {overflow: "hidden"};
+    const tooltipStyle = {paddingRight: "10px"};
     return (
       <div className = {classNames(style.default, "pt-app")} >
-        <nav className={classNames("pt-navbar", "pt-dark")}>
+        <nav className={classNames("pt-navbar", "pt-dark")} >
           <div className="pt-navbar-group pt-align-left">
             <div className="pt-navbar-heading">
               <CollapsibleList
@@ -89,34 +85,46 @@ class App extends React.Component<AppProps, AppState>{
               </CollapsibleList>
             </div>
           </div>
-          <div className="pt-navbar-group pt-align-right">
+          <div className="pt-navbar-group pt-align-right" style={tooltipStyle}>
             <button className="pt-button pt-minimal pt-icon-floppy-disk">Save</button>
             <button className="pt-button pt-minimal pt-icon-build">Compile</button>
             <button className="pt-button pt-minimal pt-icon-play">Run</button>
-            <button className="pt-button pt-minimal pt-icon-changes">Switch</button>
             <span className="pt-navbar-divider"></span>
-            <button className="pt-button pt-minimal pt-icon-user"></button>
-            <button className="pt-button pt-minimal pt-icon-cog"></button>
+            <Tooltip
+              content = "You are not the current editor"
+              intent = {Intent.WARNING}
+              position = {Position.BOTTOM}
+             >
+              <button className="pt-button pt-minimal pt-icon-changes pt-disabled">Switch</button>
+            </Tooltip>
+            <span className="pt-navbar-divider"></span>
+            <Tooltip content="My Account" position = {Position.BOTTOM}>
+              <button className="pt-button pt-minimal pt-icon-user"></button>
+            </Tooltip>
+            <Tooltip content="Settings" position = {Position.BOTTOM}>
+              <button className="pt-button pt-minimal pt-icon-cog"></button>
+            </Tooltip>
           </div>
         </nav>
-        <Grid fluid className = {style.default}>
-          <Row>
-            <Col md={2} className = {classNames(style.default, style.resizable)}>
-              <Tree contents = {treeNodes} />
-            </Col>
-            <Col md={10}>
-              <MonacoEditor
-                width="800"
-                height="600"
-                value = "// your code here"
-                language = "java"
-                options = {options}
-                editorDidMount = {this.editorDidMount}
-                theme = "vs-dark"
-              />
-            </Col>
-          </Row>
-        </Grid>
+        <PanelGroup
+          id = "split-panel"
+          borderColor="darkgray"
+          spacing={5}
+          panelWidths={[
+            {size: 0, minSize:0, resize: "dynamic"},
+          ]}
+        >
+          <div>
+            <Tree contents = {treeNodes} />
+          </div>
+          <MonacoEditor
+              height = "600"
+              value = "// your code here"
+              language = "java"
+              options = {options}
+              theme = "vs-dark"
+          />
+        </PanelGroup>
       </div>
     );
   }
