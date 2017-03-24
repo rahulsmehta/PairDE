@@ -55,13 +55,6 @@ class App extends React.Component<AppProps, AppState>{
       selectOnLineNumbers: false
     };
     const treeNodes: ITreeNode[] = [
-      {
-        hasCaret: true,
-        iconName: "folder-close",
-        label: "Assignment 2",
-        id: 0,
-        isExpanded: true,
-        childNodes: [
           {
             hasCaret: false,
             iconName: "code",
@@ -80,14 +73,12 @@ class App extends React.Component<AppProps, AppState>{
             label: "StreamCipher.java",
             id: 3
           }
-        ]
-      },
-    ]
+        ];
     return (
-      <div className = {classNames(style.default, "pt-app", "pt-dark")} >
-        <Grid fluid>
-          <Row className = {classNames(style.default, style.header)}>
-            <Col md={4}>
+      <div className = {classNames(style.default, "pt-app")} >
+        <nav className={classNames("pt-navbar", "pt-dark")}>
+          <div className="pt-navbar-group pt-align-left">
+            <div className="pt-navbar-heading">
               <CollapsibleList
                 className = {Classes.BREADCRUMBS}
                 dropdownTarget={<span className={Classes.BREADCRUMBS_COLLAPSED} />}
@@ -96,20 +87,23 @@ class App extends React.Component<AppProps, AppState>{
                 <MenuItem iconName="folder-close" text="Assignment 2" />
                 <MenuItem iconName="code" text="AuthDecryptor.java" />
               </CollapsibleList>
-            </Col>
-            <Col md={4}>
-                <Button iconName="floppy-disk" text="Save" className = {Classes.MINIMAL} />
-                <Button iconName="build" text="Compile" className = {Classes.MINIMAL} />
-                <Button iconName="play" text="Run" className = {Classes.MINIMAL} />
-                <Button iconName="changes" text="Switch" className = {Classes.MINIMAL} />
-            </Col>
-          </Row>
-          <Row className = {classNames(style.default, style.topSpace)}>
-
-            <Col md={2}>
+            </div>
+          </div>
+          <div className="pt-navbar-group pt-align-right">
+            <button className="pt-button pt-minimal pt-icon-floppy-disk">Save</button>
+            <button className="pt-button pt-minimal pt-icon-build">Compile</button>
+            <button className="pt-button pt-minimal pt-icon-play">Run</button>
+            <button className="pt-button pt-minimal pt-icon-changes">Switch</button>
+            <span className="pt-navbar-divider"></span>
+            <button className="pt-button pt-minimal pt-icon-user"></button>
+            <button className="pt-button pt-minimal pt-icon-cog"></button>
+          </div>
+        </nav>
+        <Grid fluid className = {style.default}>
+          <Row>
+            <Col md={2} className = {classNames(style.default, style.resizable)}>
               <Tree contents = {treeNodes} />
             </Col>
-
             <Col md={10}>
               <MonacoEditor
                 width="800"
