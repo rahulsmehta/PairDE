@@ -13,7 +13,7 @@ import MonacoEditor from "react-monaco-editor";
 const PanelGroup = require("react-panelgroup");
 import { Breadcrumb, CollapsibleList, MenuItem, Classes,
          IMenuItemProps, Button, ITreeNode, Tree, Tooltip,
-         Position, Intent} from "@blueprintjs/core";
+         Position, Intent, Popover} from "@blueprintjs/core";
 
 interface AppProps {
   todos: TodoItemData[];
@@ -49,24 +49,12 @@ class App extends React.Component<AppProps, AppState>{
       selectOnLineNumbers: false
     };
     const treeNodes: ITreeNode[] = [
-          {
-            hasCaret: false,
-            iconName: "code",
-            label: "AuthDecryptor.java",
-            id: 1
-          },
-          {
-            hasCaret: false,
-            iconName: "code",
-            label: "AuthEncryptor.java",
-            id: 2
-          },
-          {
-            hasCaret: false,
-            iconName: "code",
-            label: "StreamCipher.java",
-            id: 3
-          }
+          {hasCaret: false, iconName: "code",
+            label: "AuthDecryptor.java", id: 1},
+          {hasCaret: false, iconName: "code",
+            label: "AuthEncryptor.java", id: 2},
+          {hasCaret: false, iconName: "code",
+            label: "StreamCipher.java", id: 3}
         ];
     const monacoStyle = {overflow: "hidden"};
     const tooltipStyle = {paddingRight: "10px"};
@@ -87,8 +75,19 @@ class App extends React.Component<AppProps, AppState>{
           </div>
           <div className="pt-navbar-group pt-align-right" style={tooltipStyle}>
             <button className="pt-button pt-minimal pt-icon-floppy-disk">Save</button>
-            <button className="pt-button pt-minimal pt-icon-build">Compile</button>
-            <button className="pt-button pt-minimal pt-icon-play">Run</button>
+            <Popover
+              content = {<a><pre>javac Auth.*.java StreamCipher.java</pre></a>}
+              position = {Position.BOTTOM}
+            >
+              <button className="pt-button pt-minimal pt-icon-build">Compile</button>
+            </Popover>
+            <Popover
+              content = {
+                <a><pre>java StreamCipher</pre></a> }
+              position = {Position.BOTTOM}
+            >
+              <button className="pt-button pt-minimal pt-icon-play">Run</button>
+            </Popover>
             <span className="pt-navbar-divider"></span>
             <Tooltip
               content = "You are not the current editor"
