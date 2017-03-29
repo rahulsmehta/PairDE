@@ -1,4 +1,5 @@
 #### UI
+* Replace react-split-panel with react-mosaic (https://palantir.github.io/react-mosaic/)
 * React+Redux+TypeScript 2 ~~Decide between React+{Redux,MobX} or Angular2 for FE stack (leaning React right now)~~
 * Exists (https://github.com/JedWatson/react-codemirror) ~~CodeMirror react component -- make it (i.e. under rahulsmehta) and then import if non-existent~~
     * No code completion in DrJava ~~CodeMirror code completion? Does this exist? How hard is it to make it a thing~~
