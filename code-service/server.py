@@ -32,6 +32,8 @@ Architecture of the code service:
 
 """
 
+from compiler import write_temp_decoded, compile_decoded
+
 # Set endpoint prefix to /v1 for initial API
 app.config["APPLICATION_ROOT"] = "/v1"
 
