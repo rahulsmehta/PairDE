@@ -1,4 +1,6 @@
-from flask import Flask
+from flask import Flask, request
+import json
+from compiler import write_temp_decoded, compile_decoded
 app = Flask(__name__)
 
 """
@@ -24,10 +26,17 @@ TODOs:
       of files with key being UUID. Alternately can use a
       key-value store for this (Redis, etcd?)
 
+
+Architecture of the code service:
+    - (Remote) headless git server that actually stores
+      the source code for the files
+    - Accessed via an API that speaks base64-encoded files
+
 """
 
+
 # Set endpoint prefix to /v1 for initial API
-app.config["APPLICATION_ROOT"] = "/v1"
+# app.config["APPLICATION_ROOT"] = "/v1"
 
 @app.route('/ping', methods = ['GET'])
 def pong():
@@ -35,7 +44,17 @@ def pong():
 
 @app.route('/compile', methods=['POST'])
 def compile():
-    return None
+    data = json.loads(request.data)
+    encoded_src = data['encoded_src']
+    file_name = data['file_name']
+    src_path = write_temp_decoded(encoded_src, file_name)
+    compiler_errors,class_path = compile_decoded(src_path)
+    compiler_errors = compiler_errors.replace(src_path,file_name)
+    if class_path is None:
+        response_data = {'compiler_errors': compiler_errors}
+        return json.dumps(response_data)
+    else:
+        return class_path
 
 @app.route('/check/<uuid:file_id>', methods=['GET'])
 def check():

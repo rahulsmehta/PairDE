@@ -75,12 +75,7 @@ class App extends React.Component<AppProps, AppState>{
           </div>
           <div className="pt-navbar-group pt-align-right" style={tooltipStyle}>
             <button className="pt-button pt-minimal pt-icon-floppy-disk">Save</button>
-            <Popover
-              content = {<a><pre>javac Auth.*.java StreamCipher.java</pre></a>}
-              position = {Position.BOTTOM}
-            >
-              <button className="pt-button pt-minimal pt-icon-build">Compile</button>
-            </Popover>
+            <button className="pt-button pt-minimal pt-icon-build">Compile</button>
             <Popover
               content = {
                 <a><pre>java StreamCipher</pre></a> }
