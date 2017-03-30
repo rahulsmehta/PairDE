@@ -38,12 +38,13 @@ Architecture of the code service:
 # Set endpoint prefix to /v1 for initial API
 # app.config["APPLICATION_ROOT"] = "/v1"
 
-@app.route('/ping', methods = ['GET'])
+@app.route('/ping', methods=['GET'])
 def pong():
     return "pong"
 
+
 @app.route('/compile', methods=['POST'])
-def compile():
+def compile_blob():
     data = json.loads(request.data)
     encoded_src = data['encoded_src']
     file_name = data['file_name']
@@ -56,9 +57,11 @@ def compile():
     else:
         return class_path
 
+
 @app.route('/check/<uuid:file_id>', methods=['GET'])
 def check():
     return None
+
 
 @app.route('/run/<uuid:file_id>', methods=['GET'])
 def run():
