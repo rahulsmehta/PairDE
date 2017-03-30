@@ -24,6 +24,12 @@ TODOs:
       of files with key being UUID. Alternately can use a
       key-value store for this (Redis, etcd?)
 
+
+Architecture of the code service:
+    - (Remote) headless git server that actually stores
+      the source code for the files
+    - Accessed via an API that speaks base64-encoded files
+
 """
 
 # Set endpoint prefix to /v1 for initial API
