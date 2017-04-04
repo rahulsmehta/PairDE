@@ -13,9 +13,11 @@ from os import path, mkdir
 import base64
 import subprocess
 from uuid import uuid1
+from util import check_set_wd
 
 
 def write_temp_decoded(encoded_src, file_name, tmp_dir="./tmp"):
+    # check_set_wd()
     org_src = base64.b64decode(encoded_src)
     try:
         tmp_path = path.join(tmp_dir, str(uuid1()))
@@ -43,8 +45,8 @@ def compile_decoded(src_path):
 
 if __name__ == '__main__':
     input_encoded = sys.stdin.read()
-    src_path = write_temp_decoded(input_encoded, file_name='HelloWorld.java')
-    compiler_errors, path = compile_decoded(src_path)
+    src = write_temp_decoded(input_encoded, file_name='HelloWorld.java')
+    compiler_errors, path = compile_decoded(src)
     if path is None:
         sys.stdout.write(compiler_errors)
     else:
