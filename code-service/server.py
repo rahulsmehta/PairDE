@@ -1,6 +1,8 @@
-from flask import Flask, request
 import json
+
 from compiler import write_temp_decoded, compile_decoded
+from flask import Flask, request
+
 app = Flask(__name__)
 
 """
@@ -49,8 +51,8 @@ def compile_blob():
     encoded_src = data['encoded_src']
     file_name = data['file_name']
     src_path = write_temp_decoded(encoded_src, file_name)
-    compiler_errors,class_path = compile_decoded(src_path)
-    compiler_errors = compiler_errors.replace(src_path,file_name)
+    compiler_errors, class_path = compile_decoded(src_path)
+    compiler_errors = compiler_errors.replace(src_path, file_name)
     if class_path is None:
         response_data = {'compiler_errors': compiler_errors}
         return json.dumps(response_data)
@@ -66,6 +68,7 @@ def check():
 @app.route('/run/<uuid:file_id>', methods=['GET'])
 def run():
     return None
+
 
 if __name__ == '__main__':
     app.run()
