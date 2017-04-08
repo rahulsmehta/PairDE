@@ -9,7 +9,7 @@ Functionality:
 """
 
 import sys
-from os import path, mkdir
+from os import path, mkdir, chdir
 import base64
 import subprocess
 from uuid import uuid1
@@ -21,6 +21,8 @@ def write_temp_decoded(encoded_src, file_name, tmp_dir="./tmp"):
     org_src = base64.b64decode(encoded_src)
     try:
         tmp_path = path.join(tmp_dir, str(uuid1()))
+        if not path.exists(tmp_dir):
+            mkdir(tmp_dir)
         mkdir(tmp_path)
         file_path = path.join(tmp_path, file_name)
         tmp_file = open(file_path, 'w')
