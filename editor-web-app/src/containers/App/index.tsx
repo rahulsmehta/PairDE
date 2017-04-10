@@ -7,8 +7,6 @@ import * as TodoActions from '../../actions/todos';
 
 import * as style from './style.css';
 
-//TODO: Refactor to remove bootstrap-specific code from top level component
-import { Grid, Row, Col } from "react-bootstrap";
 import MonacoEditor from "react-monaco-editor";
 const PanelGroup = require("react-panelgroup");
 import { Breadcrumb, CollapsibleList, MenuItem, Classes,
@@ -46,7 +44,8 @@ class App extends React.Component<AppProps, AppState>{
   render() {
     const { todos, actions, children } = this.props;
     const options = {
-      selectOnLineNumbers: false
+      selectOnLineNumbers: false,
+      automaticLayout: true
     };
     const treeNodes: ITreeNode[] = [
           {hasCaret: false, iconName: "code",
@@ -105,19 +104,20 @@ class App extends React.Component<AppProps, AppState>{
           borderColor="darkgray"
           spacing={5}
           panelWidths={[
-            {size: 0, minSize:0, resize: "dynamic"},
+            {size: 200, minSize:0, resize: "dynamic"},
           ]}
         >
           <div>
             <Tree contents = {treeNodes} />
           </div>
-          <MonacoEditor
-              height = "600"
-              value = "// your code here"
-              language = "java"
-              options = {options}
-              theme = "vs-dark"
-          />
+          <div style = {{width: '100%', height: '100%'}}>
+            <MonacoEditor
+                value = "// your code here"
+                language = "java"
+                options = {options}
+                theme = "vs-dark"
+            />
+          </div>
         </PanelGroup>
       </div>
     );
