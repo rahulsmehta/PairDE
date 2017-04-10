@@ -45,10 +45,6 @@ class App extends React.Component<AppProps, AppState>{
   render() {
     // const { todos, actions, children } = this.props;
     const { actions, children } = this.props;
-    const options = {
-      selectOnLineNumbers: false,
-      automaticLayout: true
-    };
     const treeNodes: ITreeNode[] = [
           {hasCaret: false, iconName: "code",
             label: "AuthDecryptor.java", id: 1},
@@ -77,14 +73,41 @@ class App extends React.Component<AppProps, AppState>{
           <div>
             <Tree contents = {treeNodes} />
           </div>
-          <div style = {{width: '100%', height: '100%'}}>
+          <PanelGroup
+            direction = "column"
+            id = "console-panel"
+            borderColor = "darkgray"
+            spacing = {5}
+            panelWidths = {[
+              {size: 400, minSize: 0, resize: "dynamic"}
+            ]}
+          >
+          <div style = {{width: '100%', height: '100%', backgroundColor: '#333'}}>
             <MonacoEditor
                 value = "// your code here"
                 language = "java"
-                options = {options}
+                options = {{
+                  selectOnLineNumbers: false,
+                  automaticLayout: true
+                }}
                 theme = "vs-dark"
             />
           </div>
+          <div style = {{width: '100%', height: '100%', backgroundColor: '#333'}} >
+             <MonacoEditor
+                value = ''
+                language = "java"
+                options = {{
+                  readOnly: true,
+                  automaticLayout: true,
+                  lineNumbers: false,
+                  cursorStyle: 3
+                }}
+                theme = "vs-dark"
+            />
+          </div>
+          </PanelGroup>
+
         </PanelGroup>
       </div>
     );
