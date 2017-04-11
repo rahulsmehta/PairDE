@@ -1,6 +1,8 @@
 import json
 
 from compiler import write_temp_decoded, compile_decoded
+from runner import exec_file
+from os import path
 from flask import Flask, request
 
 app = Flask(__name__)
@@ -65,8 +67,17 @@ def check():
     return None
 
 
-@app.route('/run/<uuid:file_id>', methods=['GET'])
-def run():
+@app.route('/run/<uuid>/<file_id>', methods=['GET'])
+def run(uuid, file_id):
+    class_path = path.join(uuid, file_id)
+    run_errors, exec_path = exec_file(class_path)
+    run_errors = run_errors.replace(class_path, file_id)
+    if exec_path is None:
+        response_data = {'Runtime Errors': run_errors}
+        return json.dumps(response_data)
+    else:
+        return exec_path
+
     return None
 
 
