@@ -15,6 +15,13 @@ declare interface RunFileRequest {
   rid: string;
 }
 
+declare type CodePanelData = {
+  rawSrc: string;
+  fileName?: string;
+  consoleSrc?: string;
+}
+
+declare type CodePanelState = CodePanelData;
 
 declare type TodoItemId = number;
 

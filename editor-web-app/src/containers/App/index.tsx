@@ -3,7 +3,7 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as classNames from "classnames";
 import { RootState } from '../../reducers';
-import * as HeaderActions from '../../actions/header';
+import * as EditorActions from '../../actions/editor';
 import Header from "../../components/Header";
 
 import * as style from './style.css';
@@ -15,8 +15,8 @@ import { Breadcrumb, CollapsibleList, MenuItem, Classes,
          Position, Intent, Popover} from "@blueprintjs/core";
 
 interface AppProps {
-  // todos: TodoItemData[];
-  actions: typeof HeaderActions;
+  editor: CodePanelData;
+  actions: typeof EditorActions;
 };
 
 interface AppState {
@@ -24,11 +24,7 @@ interface AppState {
 }
 
 class App extends React.Component<AppProps, AppState>{
-
-  // editorDidMount(editor, monaco) {
-  //   console.log('editorDidMount', editor);
-  //   editor.focus();
-  // }
+  currentSrc: string;
 
   private renderBreadcrumb(props: IMenuItemProps) {
         if (props.href != null) {
@@ -41,10 +37,8 @@ class App extends React.Component<AppProps, AppState>{
         }
     }
 
-
   render() {
-    // const { todos, actions, children } = this.props;
-    const { actions, children } = this.props;
+    const { editor, actions, children } = this.props;
     const treeNodes: ITreeNode[] = [
           {hasCaret: false, iconName: "code",
             label: "AuthDecryptor.java", id: 1},
@@ -57,11 +51,50 @@ class App extends React.Component<AppProps, AppState>{
     const tooltipStyle = {paddingRight: "10px"};
     return (
       <div className = {classNames(style.default, "pt-app")} >
-        <Header
-          saveFile = {actions.saveFile}
-          runFile = {actions.runFile}
-          compileFile = {actions.compileFile}
-        />
+        <nav className={classNames("pt-navbar", "pt-dark")} >
+          <div className="pt-navbar-group pt-align-left">
+            <div className="pt-navbar-heading">
+              <CollapsibleList
+                className = {Classes.BREADCRUMBS}
+                dropdownTarget={<span className={Classes.BREADCRUMBS_COLLAPSED} />}
+                renderVisibleItem={this.renderBreadcrumb}
+              >
+                <MenuItem iconName="folder-close" text="Assignment 2" />
+                <MenuItem iconName="code" text="AuthDecryptor.java" />
+              </CollapsibleList>
+            </div>
+          </div>
+          <div className="pt-navbar-group pt-align-right" style={tooltipStyle}>
+            <button className="pt-button pt-minimal pt-icon-floppy-disk">Save</button>
+            <button className="pt-button pt-minimal pt-icon-build"
+              onClick = {() => {
+                actions.compileFile(this.props.editor);
+              }}
+            >Compile</button>
+            <Popover
+              content = {
+                <a><pre>java StreamCipher</pre></a> }
+              position = {Position.BOTTOM}
+            >
+              <button className="pt-button pt-minimal pt-icon-play">Run</button>
+            </Popover>
+            <span className="pt-navbar-divider"></span>
+            <Tooltip
+              content = "No partner assigned"
+              intent = {Intent.WARNING}
+              position = {Position.BOTTOM}
+             >
+              <button className="pt-button pt-minimal pt-icon-changes pt-disabled">Switch</button>
+            </Tooltip>
+            <span className="pt-navbar-divider"></span>
+            <Tooltip content="My Account" position = {Position.BOTTOM}>
+              <button className="pt-button pt-minimal pt-icon-user"></button>
+            </Tooltip>
+            <Tooltip content="Settings" position = {Position.BOTTOM}>
+              <button className="pt-button pt-minimal pt-icon-cog"></button>
+            </Tooltip>
+          </div>
+        </nav>
         <PanelGroup
           id = "split-panel"
           borderColor="darkgray"
@@ -84,13 +117,18 @@ class App extends React.Component<AppProps, AppState>{
           >
           <div style = {{width: '100%', height: '100%', backgroundColor: '#333'}}>
             <MonacoEditor
-                value = "// your code here"
+                value = {this.props.editor.rawSrc}
                 language = "java"
                 options = {{
                   selectOnLineNumbers: false,
                   automaticLayout: true
                 }}
                 theme = "vs-dark"
+                onChange = {(newValue, _) => {
+                  actions.updateSrc({
+                    rawSrc: newValue,
+                  })
+                }}
             />
           </div>
           <div style = {{width: '100%', height: '100%', backgroundColor: '#333'}} >
@@ -116,13 +154,13 @@ class App extends React.Component<AppProps, AppState>{
 
 function mapStateToProps(state: RootState) {
   return {
-    // todos: state.todos
+    editor: state.editor
   };
 }
 
 function mapDispatchToProps(dispatch) {
   return {
-    actions: bindActionCreators(HeaderActions as any, dispatch)
+    actions: bindActionCreators(EditorActions as any, dispatch)
   };
 }
 
