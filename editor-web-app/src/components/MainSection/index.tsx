@@ -1,4 +1,4 @@
-import * as React from 'react';
+/*import * as React from 'react';
 import * as TodoActions from '../../actions/todos';
 import TodoItem from '../TodoItem';
 import Footer from '../Footer';
@@ -93,4 +93,4 @@ class MainSection extends React.Component<MainSectionProps, MainSectionState> {
   }
 }
 
-export default MainSection;
+export default MainSection;*/

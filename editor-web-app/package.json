@@ -12,6 +12,7 @@
   "license": "MIT",
   "devDependencies": {
     "@types/classnames": "^0.0.32",
+    "@types/isomorphic-fetch": "0.0.33",
     "@types/node": "^7.0.4",
     "@types/react": "^15.0.6",
     "@types/react-dom": "^0.14.22",
@@ -44,8 +45,11 @@
     "webpack-hot-middleware": "^2.16.1"
   },
   "dependencies": {
-    "@blueprintjs/core": "^1.12.0",
+    "@blueprintjs/core": "^1.14.0",
+    "base-64": "^0.1.0",
     "classnames": "^2.2.5",
+    "es6-promise": "^4.1.0",
+    "isomorphic-fetch": "^2.2.1",
     "react": "^15.4.2",
     "react-addons-css-transition-group": "^15.4.2",
     "react-dom": "^15.4.2",

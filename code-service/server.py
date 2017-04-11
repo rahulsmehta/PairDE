@@ -4,8 +4,12 @@ from compiler import write_temp_decoded, compile_decoded
 from runner import exec_file
 from os import path
 from flask import Flask, request
+from flask_cors import CORS
 
 app = Flask(__name__)
+
+# Enable CORS for the app (since requests will be coming from localhost:3000
+CORS(app)
 
 """
 Code service API:
@@ -56,10 +60,11 @@ def compile_blob():
     compiler_errors, class_path = compile_decoded(src_path)
     compiler_errors = compiler_errors.replace(src_path, file_name)
     if class_path is None:
-        response_data = {'compiler_errors': compiler_errors}
+        response_data = {'compiler_errors': compiler_errors, 'class_path': None}
         return json.dumps(response_data)
     else:
-        return class_path
+        response_data = {'compiler_errors': None, 'class_path': class_path}
+        return json.dumps(response_data)
 
 
 @app.route('/check/<uuid:file_id>', methods=['GET'])
@@ -77,7 +82,6 @@ def run(uuid, file_id):
         return json.dumps(response_data)
     else:
         return exec_path
-
     return None
 
 

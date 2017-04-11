@@ -1,4 +1,4 @@
-import * as React from 'react';
+/*import * as React from 'react';
 import * as classNames from 'classnames';
 import TodoTextInput from '../TodoTextInput';
 import { applyMiddleware } from 'redux';
@@ -81,4 +81,4 @@ class TodoItem extends React.Component<TodoItemProps, TodoItemState> {
   }
 }
 
-export default TodoItem;
+export default TodoItem;*/

@@ -4,16 +4,19 @@ html,
 body {
   margin: 0;
   padding: 0;
+  height: 100%;
 }
 
 .default {
   background-color: #f5f8fa;
   font-family: 'Roboto', sans-serif;
+  height: 100%;
 }
 
 .default .resizable {
   resize: horizontal;
   overflow: hidden;
+  height: 100%;
 }
 
 button {
