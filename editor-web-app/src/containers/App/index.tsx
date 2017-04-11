@@ -133,7 +133,7 @@ class App extends React.Component<AppProps, AppState>{
           </div>
           <div style = {{width: '100%', height: '100%', backgroundColor: '#333'}} >
              <MonacoEditor
-                value = ''
+                value = {this.props.editor.consoleSrc}
                 language = "java"
                 options = {{
                   readOnly: true,

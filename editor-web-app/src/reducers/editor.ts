@@ -3,13 +3,18 @@ import * as Actions from '../constants/actions';
 import {encode, decode} from 'base-64';
 
 const initialState: CodePanelData = {
-  rawSrc: "//your code here"
+  rawSrc: "//your code here",
+  consoleSrc: ""
 };
 
 export default handleActions<CodePanelState, CodePanelData>({
   [Actions.COMPILE_FILE]: (state, action) => {
     alert('compile THIS: \n'+encode(state.rawSrc));
-    return state;
+    return {
+      rawSrc: state.rawSrc,
+      fileName: state.fileName,
+      consoleSrc: 'fuck you!'
+    };
   },
   [Actions.SAVE_FILE]: (state, action) => {
     return state;
