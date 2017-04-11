@@ -1,19 +1,20 @@
 import { handleActions } from 'redux-actions';
 import * as Actions from '../constants/actions';
+import * as EditorActions from '../actions/editor';
 import {encode, decode} from 'base-64';
 
 const initialState: CodePanelData = {
   rawSrc: "//your code here",
-  consoleSrc: ""
+  consoleSrc: "",
+  fileName: "HelloWorld.java"
 };
 
 export default handleActions<CodePanelState, CodePanelData>({
   [Actions.COMPILE_FILE]: (state, action) => {
-    alert('compile THIS: \n'+encode(state.rawSrc));
     return {
       rawSrc: state.rawSrc,
-      fileName: state.fileName,
-      consoleSrc: 'fuck you!'
+      fileName: state.rawSrc,
+      consoleSrc: action.payload.consoleSrc
     };
   },
   [Actions.SAVE_FILE]: (state, action) => {

@@ -14,6 +14,8 @@ import { Breadcrumb, CollapsibleList, MenuItem, Classes,
          IMenuItemProps, Button, ITreeNode, Tree, Tooltip,
          Position, Intent, Popover} from "@blueprintjs/core";
 
+import { encode } from 'base-64';
+
 interface AppProps {
   editor: CodePanelData;
   actions: typeof EditorActions;
@@ -68,7 +70,22 @@ class App extends React.Component<AppProps, AppState>{
             <button className="pt-button pt-minimal pt-icon-floppy-disk">Save</button>
             <button className="pt-button pt-minimal pt-icon-build"
               onClick = {() => {
-                actions.compileFile(this.props.editor);
+                fetch("http://localhost:5000/compile",{
+                  method: 'POST',
+                  body: JSON.stringify({
+                    encoded_src: encode(this.props.editor.rawSrc),
+                    file_name: "HelloWorld.java"
+                  })
+                }).then(r => r.text()).then((resp) => {
+                  const err = JSON.parse(resp).compiler_errors;
+                  alert(resp);
+                  actions.compileFile({
+                      rawSrc: this.props.editor.rawSrc,
+                      fileName: "HelloWorld.java",
+                      consoleSrc: err ? err : "Compilation successful"
+                    });
+                  }
+                , error => console.log(error));
               }}
             >Compile</button>
             <Popover

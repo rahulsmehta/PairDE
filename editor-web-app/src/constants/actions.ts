@@ -5,3 +5,5 @@ export const RUN_FILE = 'RUN_FILE';
 
 //Editor events
 export const UPDATE_SRC = 'UPDATE_SRC';
+
+export const CONSOLE_UPDATED = 'CONSOLE_UPDATED';
