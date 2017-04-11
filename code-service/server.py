@@ -1,7 +1,12 @@
 from flask import Flask, request
 import json
 from compiler import write_temp_decoded, compile_decoded
+from flask_cors import CORS
+
 app = Flask(__name__)
+
+# Enable CORS for the app (since requests will be coming from localhost:3000
+CORS(app)
 
 """
 Code service API:
@@ -38,9 +43,10 @@ Architecture of the code service:
 # Set endpoint prefix to /v1 for initial API
 # app.config["APPLICATION_ROOT"] = "/v1"
 
-@app.route('/ping', methods = ['GET'])
+@app.route('/ping', methods=['GET'])
 def pong():
     return "pong"
+
 
 @app.route('/compile', methods=['POST'])
 def compile():
@@ -48,21 +54,26 @@ def compile():
     encoded_src = data['encoded_src']
     file_name = data['file_name']
     src_path = write_temp_decoded(encoded_src, file_name)
-    compiler_errors,class_path = compile_decoded(src_path)
-    compiler_errors = compiler_errors.replace(src_path,file_name)
+    compiler_errors, class_path = compile_decoded(src_path)
+    compiler_errors = compiler_errors.replace(src_path, file_name)
     if class_path is None:
-        response_data = {'compiler_errors': compiler_errors}
+        response_data = {'compiler_errors': compiler_errors, 'class_path': None}
         return json.dumps(response_data)
     else:
-        return class_path
+        response_data = {'compiler_errors': None, 'class_path': class_path}
+        return json.dumps(response_data)
+
+
 
 @app.route('/check/<uuid:file_id>', methods=['GET'])
 def check():
     return None
 
+
 @app.route('/run/<uuid:file_id>', methods=['GET'])
 def run():
     return None
+
 
 if __name__ == '__main__':
     app.run()
