@@ -9,10 +9,11 @@ Functionality:
 
 import subprocess
 from os import path, chdir
+import sys
 from util import check_set_wd
 
 
-def exec_file(class_path,  tmp_dir="./tmp"):
+def exec_file(class_path, tmp_dir="./tmp"):
     # check_set_wd()
     [uuid, file_name] = class_path.split('/')
     exec_path = class_path.replace('.class', '')
@@ -20,7 +21,7 @@ def exec_file(class_path,  tmp_dir="./tmp"):
     try:
         dir_path = path.join(tmp_dir, uuid)
         chdir(dir_path)
-        #tmp_path = path.join(tmp_dir, exec_path)
+        # tmp_path = path.join(tmp_dir, exec_path)
         run_result = subprocess.check_output(['java', executable],
                                              stderr=subprocess.STDOUT)
         return run_result, exec_path
