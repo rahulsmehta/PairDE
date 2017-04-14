@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import * as classNames from "classnames";
 import { RootState } from '../../reducers';
 import * as EditorActions from '../../actions/editor';
-import * as CodeService from '../../services/codeService';
+import * as codeService from '../../services/codeService';
 import Header from "../../components/Header";
 
 import * as style from './style.css';
@@ -61,12 +61,12 @@ class App extends React.Component<AppProps, AppState>{
             <button className="pt-button pt-minimal pt-icon-floppy-disk">Save</button>
             <button className="pt-button pt-minimal pt-icon-build"
               onClick = {() => {
-              CodeService.compile(editor, actions);
+               codeService.compile(editor, actions);
               }}
             >Compile</button>
             <button className="pt-button pt-minimal pt-icon-play"
               onClick = {() => {
-
+                codeService.run(editor, actions);
               }}
             >Run</button>
             <span className="pt-navbar-divider"></span>

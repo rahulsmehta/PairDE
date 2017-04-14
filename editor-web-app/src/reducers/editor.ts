@@ -16,7 +16,7 @@ const initialState: CodePanelData = {
 
 export default handleActions<CodePanelState, CodePanelData>({
   [Actions.COMPILE_FILE]: (state, action) => {
-    alert(action.payload.otherFiles[0].compileId);
+    //alert(action.payload.otherFiles[0].compileId);
     return {
       rawSrc: state.rawSrc,
       fileName: state.fileName,
@@ -28,7 +28,12 @@ export default handleActions<CodePanelState, CodePanelData>({
     return state;
   },
   [Actions.RUN_FILE]: (state, action) => {
-    return state;
+    return {
+      rawSrc: state.rawSrc,
+      fileName: state.fileName,
+      otherFiles: state.otherFiles,
+      consoleSrc: action.payload.consoleSrc
+    };
   },
   [Actions.UPDATE_SRC]: (state, action) => {
     return {
@@ -39,7 +44,7 @@ export default handleActions<CodePanelState, CodePanelData>({
     };
   },
   [Actions.RENAME_CURRENT]: (state, action) => {
-    alert('Renaming ' + state.fileName + ' to ' + action.payload.fileName);
+    //alert('Renaming ' + state.fileName + ' to ' + action.payload.fileName);
     const updatedFiles = state.otherFiles.map((c: CodeFile, i) => {
       if (c.fileName == state.fileName){
         return {

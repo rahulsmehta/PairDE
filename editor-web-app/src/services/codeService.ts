@@ -2,14 +2,25 @@ import {encode, decode} from 'base-64';
 import * as EditorActions from '../actions/editor';
 export const CODE_SERVICE_URL = "http://localhost:5000/"
 
-export function run (uuid: string, className: string, actions: typeof EditorActions) {
-  fetch('http://localhost:5000/ping',{
+function getUuidAndFile(files: CodeFile[], fileName: string){
+  const result = files.filter((c: CodeFile, i) => {
+    return c.fileName == fileName;
+  });
+  const path = result[0].compileId.split('/');
+  return {
+    uuid: path[2],
+    className: path[3]
+  };
+}
+
+export function run (props: CodePanelData, actions: typeof EditorActions) {
+  const {uuid,className} = getUuidAndFile(props.otherFiles, props.fileName);
+  const url = CODE_SERVICE_URL + 'run/' + uuid + '/' + className;
+  fetch(url,{
     method: 'GET'
   }).then(response => response.text()).then((responseText) => {
-    alert(responseText);
-    actions.compileFile({
-      rawSrc: responseText,
-      fileName: 'HelloWorld.java',
+    // alert(responseText);
+    actions.runFile({
       consoleSrc: responseText
     });
   });
