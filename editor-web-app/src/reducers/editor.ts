@@ -16,11 +16,12 @@ const initialState: CodePanelData = {
 
 export default handleActions<CodePanelState, CodePanelData>({
   [Actions.COMPILE_FILE]: (state, action) => {
+    alert(action.payload.otherFiles[0].compileId);
     return {
       rawSrc: state.rawSrc,
       fileName: state.fileName,
       consoleSrc: action.payload.consoleSrc,
-      otherFiles: state.otherFiles
+      otherFiles: action.payload.otherFiles
     };
   },
   [Actions.SAVE_FILE]: (state, action) => {

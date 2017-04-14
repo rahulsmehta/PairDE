@@ -61,7 +61,7 @@ class App extends React.Component<AppProps, AppState>{
             <button className="pt-button pt-minimal pt-icon-floppy-disk">Save</button>
             <button className="pt-button pt-minimal pt-icon-build"
               onClick = {() => {
-              CodeService.compile(editor.rawSrc, editor.fileName, actions);
+              CodeService.compile(editor, actions);
               }}
             >Compile</button>
             <button className="pt-button pt-minimal pt-icon-play"
