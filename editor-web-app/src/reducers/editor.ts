@@ -3,31 +3,64 @@ import * as Actions from '../constants/actions';
 import * as EditorActions from '../actions/editor';
 import {encode, decode} from 'base-64';
 
-const initialState: CodePanelData = {
+const initialFile: CodeFile = {
   rawSrc: "//your code here",
+  fileName: "Untitled.java"
+}
+const initialState: CodePanelData = {
+  rawSrc: initialFile.rawSrc,
   consoleSrc: "",
-  fileName: "HelloWorld.java"
+  fileName: initialFile.fileName,
+  otherFiles: [initialFile]
 };
 
 export default handleActions<CodePanelState, CodePanelData>({
   [Actions.COMPILE_FILE]: (state, action) => {
+    //alert(action.payload.otherFiles[0].compileId);
     return {
       rawSrc: state.rawSrc,
-      fileName: state.rawSrc,
-      consoleSrc: action.payload.consoleSrc
+      fileName: state.fileName,
+      consoleSrc: action.payload.consoleSrc,
+      otherFiles: action.payload.otherFiles
     };
   },
   [Actions.SAVE_FILE]: (state, action) => {
     return state;
   },
   [Actions.RUN_FILE]: (state, action) => {
-    return state;
+    return {
+      rawSrc: state.rawSrc,
+      fileName: state.fileName,
+      otherFiles: state.otherFiles,
+      consoleSrc: action.payload.consoleSrc
+    };
   },
   [Actions.UPDATE_SRC]: (state, action) => {
     return {
       rawSrc: action.payload.rawSrc,
       fileName: state.fileName,
-      consoleSrc: state.consoleSrc
+      consoleSrc: state.consoleSrc,
+      otherFiles: state.otherFiles
     };
+  },
+  [Actions.RENAME_CURRENT]: (state, action) => {
+    //alert('Renaming ' + state.fileName + ' to ' + action.payload.fileName);
+    const updatedFiles = state.otherFiles.map((c: CodeFile, i) => {
+      if (c.fileName == state.fileName){
+        return {
+          rawSrc: c.rawSrc,
+          compileId: c.compileId,
+          fileName: action.payload.fileName
+        };
+      } else {
+        return c
+      }
+    });
+    return {
+      rawSrc: action.payload.rawSrc,
+      fileName: action.payload.fileName,
+      consoleSrc: state.consoleSrc,
+      otherFiles: updatedFiles
+    }
   }
 }, initialState);

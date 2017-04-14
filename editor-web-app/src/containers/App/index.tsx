@@ -4,15 +4,15 @@ import { connect } from 'react-redux';
 import * as classNames from "classnames";
 import { RootState } from '../../reducers';
 import * as EditorActions from '../../actions/editor';
+import * as codeService from '../../services/codeService';
 import Header from "../../components/Header";
 
 import * as style from './style.css';
 
 import MonacoEditor from "react-monaco-editor";
 const PanelGroup = require("react-panelgroup");
-import { Breadcrumb, CollapsibleList, MenuItem, Classes,
-         IMenuItemProps, Button, ITreeNode, Tree, Tooltip,
-         Position, Intent, Popover} from "@blueprintjs/core";
+import { Breadcrumb, Classes, Button, ITreeNode, Tree, Tooltip,
+         Position, Intent, Popover, EditableText} from "@blueprintjs/core";
 
 import { encode } from 'base-64';
 
@@ -26,29 +26,14 @@ interface AppState {
 }
 
 class App extends React.Component<AppProps, AppState>{
-  currentSrc: string;
-
-  private renderBreadcrumb(props: IMenuItemProps) {
-        if (props.href != null) {
-            return <a className={Classes.BREADCRUMB}>{props.text}</a>;
-        } else if (props.iconName == "code") {
-          return <span className={classNames(Classes.BREADCRUMB, Classes.BREADCRUMB_CURRENT)}>{props.text}</span>;
-        }
-        else {
-            return <span className={Classes.BREADCRUMB}>{props.text}</span>;
-        }
-    }
 
   render() {
     const { editor, actions, children } = this.props;
-    const treeNodes: ITreeNode[] = [
-          {hasCaret: false, iconName: "code",
-            label: "AuthDecryptor.java", id: 1},
-          {hasCaret: false, iconName: "code",
-            label: "AuthEncryptor.java", id: 2},
-          {hasCaret: false, iconName: "code",
-            label: "StreamCipher.java", id: 3}
-        ];
+    const treeNodes: ITreeNode[] = editor.otherFiles.map((c: CodeFile, i) => {
+      return {hasCaret: false, iconName: "code",
+            label: c.fileName, id: i}
+    });
+
     const monacoStyle = {overflow: "hidden"};
     const tooltipStyle = {paddingRight: "10px"};
     return (
@@ -56,45 +41,34 @@ class App extends React.Component<AppProps, AppState>{
         <nav className={classNames("pt-navbar", "pt-dark")} >
           <div className="pt-navbar-group pt-align-left">
             <div className="pt-navbar-heading">
-              <CollapsibleList
-                className = {Classes.BREADCRUMBS}
-                dropdownTarget={<span className={Classes.BREADCRUMBS_COLLAPSED} />}
-                renderVisibleItem={this.renderBreadcrumb}
-              >
-                <MenuItem iconName="folder-close" text="Assignment 2" />
-                <MenuItem iconName="code" text="AuthDecryptor.java" />
-              </CollapsibleList>
+              <EditableText
+                    intent={Intent.NONE}
+                    maxLength={100}
+                    defaultValue = {editor.fileName}
+                    selectAllOnFocus={true}
+                    onConfirm = {(v) => {
+                      let newName = v;
+                      if (v.indexOf('\.java') == -1)
+                        newName += '.java';
+                      actions.renameCurrent({
+                        fileName: newName
+                      });
+                    }}
+                />
             </div>
           </div>
           <div className="pt-navbar-group pt-align-right" style={tooltipStyle}>
             <button className="pt-button pt-minimal pt-icon-floppy-disk">Save</button>
             <button className="pt-button pt-minimal pt-icon-build"
               onClick = {() => {
-                fetch("http://localhost:5000/compile",{
-                  method: 'POST',
-                  body: JSON.stringify({
-                    encoded_src: encode(this.props.editor.rawSrc),
-                    file_name: "HelloWorld.java"
-                  })
-                }).then(r => r.text()).then((resp) => {
-                  const err = JSON.parse(resp).compiler_errors;
-                  alert(resp);
-                  actions.compileFile({
-                      rawSrc: this.props.editor.rawSrc,
-                      fileName: "HelloWorld.java",
-                      consoleSrc: err ? err : "Compilation successful"
-                    });
-                  }
-                , error => console.log(error));
+               codeService.compile(editor, actions);
               }}
             >Compile</button>
-            <Popover
-              content = {
-                <a><pre>java StreamCipher</pre></a> }
-              position = {Position.BOTTOM}
-            >
-              <button className="pt-button pt-minimal pt-icon-play">Run</button>
-            </Popover>
+            <button className="pt-button pt-minimal pt-icon-play"
+              onClick = {() => {
+                codeService.run(editor, actions);
+              }}
+            >Run</button>
             <span className="pt-navbar-divider"></span>
             <Tooltip
               content = "No partner assigned"
@@ -134,7 +108,7 @@ class App extends React.Component<AppProps, AppState>{
           >
           <div style = {{width: '100%', height: '100%', backgroundColor: '#333'}}>
             <MonacoEditor
-                value = {this.props.editor.rawSrc}
+                value = {editor.rawSrc}
                 language = "java"
                 options = {{
                   selectOnLineNumbers: false,
@@ -150,7 +124,7 @@ class App extends React.Component<AppProps, AppState>{
           </div>
           <div style = {{width: '100%', height: '100%', backgroundColor: '#333'}} >
              <MonacoEditor
-                value = {this.props.editor.consoleSrc}
+                value = {editor.consoleSrc}
                 language = "java"
                 options = {{
                   readOnly: true,

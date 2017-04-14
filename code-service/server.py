@@ -1,6 +1,9 @@
-from flask import Flask, request
 import json
+
 from compiler import write_temp_decoded, compile_decoded
+from runner import exec_file
+from os import path
+from flask import Flask, request
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -49,7 +52,7 @@ def pong():
 
 
 @app.route('/compile', methods=['POST'])
-def compile():
+def compile_blob():
     data = json.loads(request.data)
     encoded_src = data['encoded_src']
     file_name = data['file_name']
@@ -64,16 +67,21 @@ def compile():
         return json.dumps(response_data)
 
 
-
 @app.route('/check/<uuid:file_id>', methods=['GET'])
 def check():
     return None
 
 
-@app.route('/run/<uuid:file_id>', methods=['GET'])
-def run():
-    return None
-
+@app.route('/run/<uuid>/<file_id>', methods=['GET'])
+def run(uuid, file_id):
+    class_path = path.join(uuid, file_id)
+    run_result, exec_path = exec_file(class_path)
+    if exec_path is None:
+        run_errors = run_result.replace(class_path, file_id)
+        response_data = {'Runtime Errors': run_errors}
+        return json.dumps(response_data)
+    else:
+        return run_result
 
 if __name__ == '__main__':
     app.run()

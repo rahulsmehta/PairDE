@@ -15,10 +15,17 @@ declare interface RunFileRequest {
   rid: string;
 }
 
+declare type CodeFile  = {
+  rawSrc: string;
+  fileName: string;
+  compileId?: string;
+}
+
 declare type CodePanelData = {
   rawSrc: string;
   fileName?: string;
   consoleSrc?: string;
+  otherFiles: CodeFile[]
 }
 
 declare type CodePanelState = CodePanelData;
