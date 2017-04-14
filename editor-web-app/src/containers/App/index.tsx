@@ -4,15 +4,15 @@ import { connect } from 'react-redux';
 import * as classNames from "classnames";
 import { RootState } from '../../reducers';
 import * as EditorActions from '../../actions/editor';
+import * as CodeService from '../../services/codeService';
 import Header from "../../components/Header";
 
 import * as style from './style.css';
 
 import MonacoEditor from "react-monaco-editor";
 const PanelGroup = require("react-panelgroup");
-import { Breadcrumb, CollapsibleList, MenuItem, Classes,
-         IMenuItemProps, Button, ITreeNode, Tree, Tooltip,
-         Position, Intent, Popover} from "@blueprintjs/core";
+import { Breadcrumb, Classes, Button, ITreeNode, Tree, Tooltip,
+         Position, Intent, Popover, EditableText} from "@blueprintjs/core";
 
 import { encode } from 'base-64';
 
@@ -28,16 +28,16 @@ interface AppState {
 class App extends React.Component<AppProps, AppState>{
   currentSrc: string;
 
-  private renderBreadcrumb(props: IMenuItemProps) {
-        if (props.href != null) {
-            return <a className={Classes.BREADCRUMB}>{props.text}</a>;
-        } else if (props.iconName == "code") {
-          return <span className={classNames(Classes.BREADCRUMB, Classes.BREADCRUMB_CURRENT)}>{props.text}</span>;
-        }
-        else {
-            return <span className={Classes.BREADCRUMB}>{props.text}</span>;
-        }
-    }
+  // private renderBreadcrumb(props: IMenuItemProps) {
+  //       if (props.href != null) {
+  //           return <a className={Classes.BREADCRUMB}>{props.text}</a>;
+  //       } else if (props.iconName == "code") {
+  //         return <span className={classNames(Classes.BREADCRUMB, Classes.BREADCRUMB_CURRENT)}>{props.text}</span>;
+  //       }
+  //       else {
+  //           return <span className={Classes.BREADCRUMB}>{props.text}</span>;
+  //       }
+  //   }
 
   render() {
     const { editor, actions, children } = this.props;
@@ -56,45 +56,31 @@ class App extends React.Component<AppProps, AppState>{
         <nav className={classNames("pt-navbar", "pt-dark")} >
           <div className="pt-navbar-group pt-align-left">
             <div className="pt-navbar-heading">
-              <CollapsibleList
-                className = {Classes.BREADCRUMBS}
-                dropdownTarget={<span className={Classes.BREADCRUMBS_COLLAPSED} />}
-                renderVisibleItem={this.renderBreadcrumb}
-              >
-                <MenuItem iconName="folder-close" text="Assignment 2" />
-                <MenuItem iconName="code" text="AuthDecryptor.java" />
-              </CollapsibleList>
+              <EditableText
+                    intent={Intent.NONE}
+                    maxLength={100}
+                    defaultValue = {this.props.editor.fileName}
+                    selectAllOnFocus={true}
+                    onConfirm = {(v) => {
+                      alert(v);
+                    }}
+                />
             </div>
           </div>
           <div className="pt-navbar-group pt-align-right" style={tooltipStyle}>
             <button className="pt-button pt-minimal pt-icon-floppy-disk">Save</button>
             <button className="pt-button pt-minimal pt-icon-build"
               onClick = {() => {
-                fetch("http://localhost:5000/compile",{
-                  method: 'POST',
-                  body: JSON.stringify({
-                    encoded_src: encode(this.props.editor.rawSrc),
-                    file_name: "HelloWorld.java"
-                  })
-                }).then(r => r.text()).then((resp) => {
-                  const err = JSON.parse(resp).compiler_errors;
-                  alert(resp);
-                  actions.compileFile({
-                      rawSrc: this.props.editor.rawSrc,
-                      fileName: "HelloWorld.java",
-                      consoleSrc: err ? err : "Compilation successful"
-                    });
-                  }
-                , error => console.log(error));
+              CodeService.compile(this.props.editor.rawSrc,
+                'HelloWorld.java',
+                actions);
               }}
             >Compile</button>
-            <Popover
-              content = {
-                <a><pre>java StreamCipher</pre></a> }
-              position = {Position.BOTTOM}
-            >
-              <button className="pt-button pt-minimal pt-icon-play">Run</button>
-            </Popover>
+            <button className="pt-button pt-minimal pt-icon-play"
+              onClick = {() => {
+
+              }}
+            >Run</button>
             <span className="pt-navbar-divider"></span>
             <Tooltip
               content = "No partner assigned"
