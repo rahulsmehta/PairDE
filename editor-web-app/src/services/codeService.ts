@@ -42,6 +42,8 @@ export function compile (props: CodePanelData, actions: typeof EditorActions) {
             fileName: c.fileName,
             compileId: class_path
           }
+        } else {
+          return c;
         }
       });
       actions.compileFile({
