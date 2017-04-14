@@ -26,29 +26,14 @@ interface AppState {
 }
 
 class App extends React.Component<AppProps, AppState>{
-  currentSrc: string;
-
-  // private renderBreadcrumb(props: IMenuItemProps) {
-  //       if (props.href != null) {
-  //           return <a className={Classes.BREADCRUMB}>{props.text}</a>;
-  //       } else if (props.iconName == "code") {
-  //         return <span className={classNames(Classes.BREADCRUMB, Classes.BREADCRUMB_CURRENT)}>{props.text}</span>;
-  //       }
-  //       else {
-  //           return <span className={Classes.BREADCRUMB}>{props.text}</span>;
-  //       }
-  //   }
 
   render() {
     const { editor, actions, children } = this.props;
-    const treeNodes: ITreeNode[] = [
-          {hasCaret: false, iconName: "code",
-            label: "AuthDecryptor.java", id: 1},
-          {hasCaret: false, iconName: "code",
-            label: "AuthEncryptor.java", id: 2},
-          {hasCaret: false, iconName: "code",
-            label: "StreamCipher.java", id: 3}
-        ];
+    const treeNodes: ITreeNode[] = editor.otherFiles.map((c: CodeFile, i) => {
+      return {hasCaret: false, iconName: "code",
+            label: c.fileName, id: i}
+    });
+
     const monacoStyle = {overflow: "hidden"};
     const tooltipStyle = {paddingRight: "10px"};
     return (
@@ -59,10 +44,15 @@ class App extends React.Component<AppProps, AppState>{
               <EditableText
                     intent={Intent.NONE}
                     maxLength={100}
-                    defaultValue = {this.props.editor.fileName}
+                    defaultValue = {editor.fileName}
                     selectAllOnFocus={true}
                     onConfirm = {(v) => {
-                      alert(v);
+                      let newName = v;
+                      if (v.indexOf('\.java') == -1)
+                        newName += '.java';
+                      actions.renameCurrent({
+                        fileName: newName
+                      });
                     }}
                 />
             </div>
@@ -71,9 +61,7 @@ class App extends React.Component<AppProps, AppState>{
             <button className="pt-button pt-minimal pt-icon-floppy-disk">Save</button>
             <button className="pt-button pt-minimal pt-icon-build"
               onClick = {() => {
-              CodeService.compile(this.props.editor.rawSrc,
-                'HelloWorld.java',
-                actions);
+              CodeService.compile(editor.rawSrc, editor.fileName, actions);
               }}
             >Compile</button>
             <button className="pt-button pt-minimal pt-icon-play"
@@ -120,7 +108,7 @@ class App extends React.Component<AppProps, AppState>{
           >
           <div style = {{width: '100%', height: '100%', backgroundColor: '#333'}}>
             <MonacoEditor
-                value = {this.props.editor.rawSrc}
+                value = {editor.rawSrc}
                 language = "java"
                 options = {{
                   selectOnLineNumbers: false,
@@ -136,7 +124,7 @@ class App extends React.Component<AppProps, AppState>{
           </div>
           <div style = {{width: '100%', height: '100%', backgroundColor: '#333'}} >
              <MonacoEditor
-                value = {this.props.editor.consoleSrc}
+                value = {editor.consoleSrc}
                 language = "java"
                 options = {{
                   readOnly: true,

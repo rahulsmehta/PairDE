@@ -25,7 +25,7 @@ declare type CodePanelData = {
   rawSrc: string;
   fileName?: string;
   consoleSrc?: string;
-  otherFiles: {[name: string]: CodeFile}
+  otherFiles: CodeFile[]
 }
 
 declare type CodePanelState = CodePanelData;
