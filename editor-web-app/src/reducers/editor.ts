@@ -6,7 +6,8 @@ import {encode, decode} from 'base-64';
 const initialState: CodePanelData = {
   rawSrc: "//your code here",
   consoleSrc: "",
-  fileName: "HelloWorld.java"
+  fileName: "Untitled",
+  otherFiles: {}
 };
 
 export default handleActions<CodePanelState, CodePanelData>({
@@ -14,7 +15,8 @@ export default handleActions<CodePanelState, CodePanelData>({
     return {
       rawSrc: state.rawSrc,
       fileName: state.rawSrc,
-      consoleSrc: action.payload.consoleSrc
+      consoleSrc: action.payload.consoleSrc,
+      otherFiles: state.otherFiles
     };
   },
   [Actions.SAVE_FILE]: (state, action) => {
@@ -27,7 +29,8 @@ export default handleActions<CodePanelState, CodePanelData>({
     return {
       rawSrc: action.payload.rawSrc,
       fileName: state.fileName,
-      consoleSrc: state.consoleSrc
+      consoleSrc: state.consoleSrc,
+      otherFiles: state.otherFiles
     };
   }
 }, initialState);
