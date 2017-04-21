@@ -19,13 +19,14 @@ def pong():
 
 @app.route('/create/<pathtoresource>', methods=['GET'])
 def create(pathtoresource):
-    f = open("testfile.txt", "w+")
-    for i in range(10):
-        f.write("This is line %d\r\n" % (i + 1))
-    mongo.save_file(pathtoresource, f)
-    f.close()
-    x = redirect(url_for('get_upload', filename=pathtoresource))
-    return x.data
+    # f = open("testfile.txt", "w+")
+    # for i in range(10):
+    #     f.write("This is line %d\r\n" % (i + 1))
+    # mongo.save_file(pathtoresource, f)
+    # f.close()
+    # x = redirect(url_for('get_upload', filename=pathtoresource))
+    mongo.db.code.insert({'name':pathtoresource})
+    return len(mongo.db.code.find({'name':pathtoresource}))
 
 
 @app.route('/uploads/<path:filename>')
