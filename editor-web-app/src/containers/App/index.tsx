@@ -3,21 +3,22 @@ import { bindActionCreators } from 'redux';
 import { connect } from 'react-redux';
 import * as classNames from "classnames";
 import { RootState } from '../../reducers';
-import * as TodoActions from '../../actions/todos';
+import * as EditorActions from '../../actions/editor';
+import * as codeService from '../../services/codeService';
+import Header from "../../components/Header";
 
 import * as style from './style.css';
 
-//TODO: Refactor to remove bootstrap-specific code from top level component
-import { Grid, Row, Col } from "react-bootstrap";
 import MonacoEditor from "react-monaco-editor";
 const PanelGroup = require("react-panelgroup");
-import { Breadcrumb, CollapsibleList, MenuItem, Classes,
-         IMenuItemProps, Button, ITreeNode, Tree, Tooltip,
-         Position, Intent, Popover} from "@blueprintjs/core";
+import { Breadcrumb, Classes, Button, ITreeNode, Tree, Tooltip,
+         Position, Intent, Popover, EditableText} from "@blueprintjs/core";
+
+import { encode } from 'base-64';
 
 interface AppProps {
-  todos: TodoItemData[];
-  actions: typeof TodoActions;
+  editor: CodePanelData;
+  actions: typeof EditorActions;
 };
 
 interface AppState {
@@ -26,36 +27,13 @@ interface AppState {
 
 class App extends React.Component<AppProps, AppState>{
 
-  // editorDidMount(editor, monaco) {
-  //   console.log('editorDidMount', editor);
-  //   editor.focus();
-  // }
-
-  private renderBreadcrumb(props: IMenuItemProps) {
-        if (props.href != null) {
-            return <a className={Classes.BREADCRUMB}>{props.text}</a>;
-        } else if (props.iconName == "code") {
-          return <span className={classNames(Classes.BREADCRUMB, Classes.BREADCRUMB_CURRENT)}>{props.text}</span>;
-        }
-        else {
-            return <span className={Classes.BREADCRUMB}>{props.text}</span>;
-        }
-    }
-
-
   render() {
-    const { todos, actions, children } = this.props;
-    const options = {
-      selectOnLineNumbers: false
-    };
-    const treeNodes: ITreeNode[] = [
-          {hasCaret: false, iconName: "code",
-            label: "AuthDecryptor.java", id: 1},
-          {hasCaret: false, iconName: "code",
-            label: "AuthEncryptor.java", id: 2},
-          {hasCaret: false, iconName: "code",
-            label: "StreamCipher.java", id: 3}
-        ];
+    const { editor, actions, children } = this.props;
+    const treeNodes: ITreeNode[] = editor.otherFiles.map((c: CodeFile, i) => {
+      return {hasCaret: false, iconName: "code",
+            label: c.fileName, id: i}
+    });
+
     const monacoStyle = {overflow: "hidden"};
     const tooltipStyle = {paddingRight: "10px"};
     return (
@@ -63,29 +41,37 @@ class App extends React.Component<AppProps, AppState>{
         <nav className={classNames("pt-navbar", "pt-dark")} >
           <div className="pt-navbar-group pt-align-left">
             <div className="pt-navbar-heading">
-              <CollapsibleList
-                className = {Classes.BREADCRUMBS}
-                dropdownTarget={<span className={Classes.BREADCRUMBS_COLLAPSED} />}
-                renderVisibleItem={this.renderBreadcrumb}
-              >
-                <MenuItem iconName="folder-close" text="Assignment 2" />
-                <MenuItem iconName="code" text="AuthDecryptor.java" />
-              </CollapsibleList>
+              <EditableText
+                    intent={Intent.NONE}
+                    maxLength={100}
+                    defaultValue = {editor.fileName}
+                    selectAllOnFocus={true}
+                    onConfirm = {(v) => {
+                      let newName = v;
+                      if (v.indexOf('\.java') == -1)
+                        newName += '.java';
+                      actions.renameCurrent({
+                        fileName: newName
+                      });
+                    }}
+                />
             </div>
           </div>
           <div className="pt-navbar-group pt-align-right" style={tooltipStyle}>
             <button className="pt-button pt-minimal pt-icon-floppy-disk">Save</button>
-            <button className="pt-button pt-minimal pt-icon-build">Compile</button>
-            <Popover
-              content = {
-                <a><pre>java StreamCipher</pre></a> }
-              position = {Position.BOTTOM}
-            >
-              <button className="pt-button pt-minimal pt-icon-play">Run</button>
-            </Popover>
+            <button className="pt-button pt-minimal pt-icon-build"
+              onClick = {() => {
+               codeService.compile(editor, actions);
+              }}
+            >Compile</button>
+            <button className="pt-button pt-minimal pt-icon-play"
+              onClick = {() => {
+                codeService.run(editor, actions);
+              }}
+            >Run</button>
             <span className="pt-navbar-divider"></span>
             <Tooltip
-              content = "You are not the current editor"
+              content = "No partner assigned"
               intent = {Intent.WARNING}
               position = {Position.BOTTOM}
              >
@@ -105,19 +91,52 @@ class App extends React.Component<AppProps, AppState>{
           borderColor="darkgray"
           spacing={5}
           panelWidths={[
-            {size: 0, minSize:0, resize: "dynamic"},
+            {size: 200, minSize:0, resize: "dynamic"},
           ]}
         >
           <div>
             <Tree contents = {treeNodes} />
           </div>
-          <MonacoEditor
-              height = "600"
-              value = "// your code here"
-              language = "java"
-              options = {options}
-              theme = "vs-dark"
-          />
+          <PanelGroup
+            direction = "column"
+            id = "console-panel"
+            borderColor = "darkgray"
+            spacing = {5}
+            panelWidths = {[
+              {size: 400, minSize: 0, resize: "dynamic"}
+            ]}
+          >
+          <div style = {{width: '100%', height: '100%', backgroundColor: '#333'}}>
+            <MonacoEditor
+                value = {editor.rawSrc}
+                language = "java"
+                options = {{
+                  selectOnLineNumbers: false,
+                  automaticLayout: true
+                }}
+                theme = "vs-dark"
+                onChange = {(newValue, _) => {
+                  actions.updateSrc({
+                    rawSrc: newValue,
+                  })
+                }}
+            />
+          </div>
+          <div style = {{width: '100%', height: '100%', backgroundColor: '#333'}} >
+             <MonacoEditor
+                value = {editor.consoleSrc}
+                language = "markdown"
+                options = {{
+                  readOnly: true,
+                  automaticLayout: true,
+                  lineNumbers: false,
+                  cursorStyle: 3
+                }}
+                theme = "vs-dark"
+            />
+          </div>
+          </PanelGroup>
+
         </PanelGroup>
       </div>
     );
@@ -126,13 +145,13 @@ class App extends React.Component<AppProps, AppState>{
 
 function mapStateToProps(state: RootState) {
   return {
-    todos: state.todos
+    editor: state.editor
   };
 }
 
 function mapDispatchToProps(dispatch) {
   return {
-    actions: bindActionCreators(TodoActions as any, dispatch)
+    actions: bindActionCreators(EditorActions as any, dispatch)
   };
 }
 

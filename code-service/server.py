@@ -1,7 +1,15 @@
-from flask import Flask, request
 import json
+
 from compiler import write_temp_decoded, compile_decoded
+from runner import exec_file
+from os import path
+from flask import Flask, request
+from flask_cors import CORS
+
 app = Flask(__name__)
+
+# Enable CORS for the app (since requests will be coming from localhost:3000
+CORS(app)
 
 """
 Code service API:
@@ -38,31 +46,42 @@ Architecture of the code service:
 # Set endpoint prefix to /v1 for initial API
 # app.config["APPLICATION_ROOT"] = "/v1"
 
-@app.route('/ping', methods = ['GET'])
+@app.route('/ping', methods=['GET'])
 def pong():
     return "pong"
 
+
 @app.route('/compile', methods=['POST'])
-def compile():
+def compile_blob():
     data = json.loads(request.data)
     encoded_src = data['encoded_src']
     file_name = data['file_name']
     src_path = write_temp_decoded(encoded_src, file_name)
-    compiler_errors,class_path = compile_decoded(src_path)
-    compiler_errors = compiler_errors.replace(src_path,file_name)
+    compiler_errors, class_path = compile_decoded(src_path)
+    compiler_errors = compiler_errors.replace(src_path, file_name)
     if class_path is None:
-        response_data = {'compiler_errors': compiler_errors}
+        response_data = {'compiler_errors': compiler_errors, 'class_path': None}
         return json.dumps(response_data)
     else:
-        return class_path
+        response_data = {'compiler_errors': None, 'class_path': class_path}
+        return json.dumps(response_data)
+
 
 @app.route('/check/<uuid:file_id>', methods=['GET'])
 def check():
     return None
 
-@app.route('/run/<uuid:file_id>', methods=['GET'])
-def run():
-    return None
+
+@app.route('/run/<uuid>/<file_id>', methods=['GET'])
+def run(uuid, file_id):
+    class_path = path.join(uuid, file_id)
+    run_result, exec_path = exec_file(class_path)
+    if exec_path is None:
+        run_errors = run_result.replace(class_path, file_id)
+        response_data = {'Runtime Errors': run_errors}
+        return json.dumps(response_data)
+    else:
+        return run_result
 
 if __name__ == '__main__':
     app.run()
