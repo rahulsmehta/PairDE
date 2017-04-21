@@ -1,4 +1,4 @@
-from flask import Flask, request
+from flask import Flask, request, redirect, url_for
 from flask_pymongo import PyMongo
 import json
 app = Flask(__name__)
@@ -18,11 +18,29 @@ def pong():
 
 @app.route('/create/<pathtoresource>', methods = ['GET'])
 def create(pathtoresource):
-  client = MongoClient()
-  #newID = db.insert_one({'name':'sam'})
-  db = client.local
-  return type(db)
+	f= open("testfile.txt","w+")
+	for i in range(10):
+		f.write("This is line %d\r\n" % (i+1))
+	mongo.save_file(pathtoresource, f)
+	f.close() 
+	x =  redirect(url_for('get_upload', filename=pathtoresource))
+	return x.data
+	
+	
 
+@app.route('/uploads/<path:filename>')
+def get_upload(filename):
+    return mongo.send_file(filename)
+	#return redirect(url_for('get_upload', filename=filename))
+  #client = MongoClient()
+  #newID = db.insert_one({'name':'sam'})
+  #db = client.local
+  #return "foo"
+
+@app.route('/uploads/<path:filename>', methods=['POST'])
+def save_upload(filename):
+    mongo.save_file(filename, request.files['file'])
+    return redirect(url_for('get_upload', filename=filename))
 
 if __name__ == '__main__':
     app.run(debug=True)
