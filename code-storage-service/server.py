@@ -16,34 +16,26 @@ TODO: Implement storage service with headless git repo
 def pong():
     return "pong"
 
+@app.route('/root', methods=['GET'])
+def root():
+    return "pong"
 
-@app.route('/create/<pathtoresource>', methods=['GET'])
-def create(pathtoresource):
-    # f = open("testfile.txt", "w+")
-    # for i in range(10):
-    #     f.write("This is line %d\r\n" % (i + 1))
-    # mongo.save_file(pathtoresource, f)
-    # f.close()
-    # x = redirect(url_for('get_upload', filename=pathtoresource))
-    mongo.db.code.insert({'name':pathtoresource})
+@app.route('/create/<parent>/<filename>', methods=['GET'])
+def create(parent, filename):
+	data = json.loads(request.data)
+	if data['parent'] is null:
+		parent = '942892pd0'
+	else:
+		parent = data['parent']
+    mongo.db.code.insert({'name':filename, 'children':[], 'contents': data['contents'], 'isDir': data['isDir'], 'parent': parent})
     return len(mongo.db.code.find({'name':pathtoresource}))
 
-
-@app.route('/uploads/<path:filename>')
-def get_upload(filename):
-    return mongo.send_file(filename)
-    # return redirect(url_for('get_upload', filename=filename))
-    # client = MongoClient()
-    # newID = db.insert_one({'name':'sam'})
-    # db = client.local
-    # return "foo"
+@app.route('/load/<pathtoresource>', methods=['GET'])
+def create(pathtoresource):
+    x = mongo.db.code.find({'name':pathtoresource})
+    return x['contents']
 
 
-@app.route('/uploads/<path:filename>', methods=['POST'])
-def save_upload(filename):
-    mongo.save_file(filename, request.files['file'])
-    return redirect(url_for('get_upload', filename=filename))
-
-
+@app.route('create/<pathtoresource><contents>')
 if __name__ == '__main__':
     app.run(debug=True)
