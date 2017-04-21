@@ -29,7 +29,7 @@ def exec_file(class_path, tmp_dir="./tmp"):
     except subprocess.CalledProcessError as e:
         return e.output, None
     finally:
-        chdir("../")
+        chdir("../../")
 
 
 
