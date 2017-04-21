@@ -125,7 +125,7 @@ class App extends React.Component<AppProps, AppState>{
           <div style = {{width: '100%', height: '100%', backgroundColor: '#333'}} >
              <MonacoEditor
                 value = {editor.consoleSrc}
-                language = "java"
+                language = "markdown"
                 options = {{
                   readOnly: true,
                   automaticLayout: true,
