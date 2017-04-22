@@ -46,8 +46,9 @@ def create(filename):
 
 @app.route('/load/<pathtoresource>', methods=['GET'])
 def load(pathtoresource):
-	x = mongo.db.code.find({'name':pathtoresource})
-	return x['contents']
+	rid = pathtoresource
+	myList = list(mongo.db.code.find({'rid':rid}, {'contents': 1}))
+	return myList[0]['contents']
 
 if __name__ == '__main__':
 	app.run(debug=True)
