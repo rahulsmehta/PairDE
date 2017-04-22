@@ -20,7 +20,7 @@ def new_rid():
 
 #Takes path to resource and returns RID from db
 def getRID(pathtoresource):
-	return 1
+	return pathtoresource
 
 @app.route('/ping', methods=['GET'])
 def pong():
@@ -46,9 +46,23 @@ def create(filename):
 
 @app.route('/load/<pathtoresource>', methods=['GET'])
 def load(pathtoresource):
-	rid = pathtoresource
-	myList = list(mongo.db.code.find({'rid':rid}, {'contents': 1}))
+	rid = getRID(pathtoresource)
+	myList = list(mongo.db.code.find({'rid':rid}))
 	return myList[0]['contents']
+
+@app.route('/delete/<pathtoresource>', methods=['DELETE'])
+def delete(pathtoresource):
+	rid = getRID(pathtoresource)
+	myList = list(mongo.db.code.find({'rid':rid}))
+	#Remove target from parent's list of children
+	parent = myList[0]['parent']
+	mongo.db.code.update({'rid':parent}, { "$pull": {'children':rid} })
+
+	#If target has children, delete them
+	children = myList[0]['children']
+	for child in children:
+		mongo.db.code.remove({'rid':child})
+	mongo.db.code.remove({'rid':rid})
 
 if __name__ == '__main__':
 	app.run(debug=True)
