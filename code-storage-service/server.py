@@ -51,7 +51,6 @@ def create(filename):
 	data = json.loads(request.data)
 
 	rid = new_rid()
-
 	#STILL NEED TO DO:
 	#figure out what to do with root
 	#verify that parent is a directory
@@ -60,7 +59,12 @@ def create(filename):
 		parent = getRoot()
 	else:
 		parent = data['parent']
-		mongo.db.code.update({'rid':parent}, { "$addToSet": {'children':rid} })
+		myList = list(mongo.db.code.find({'rid':parent}))
+		# Need to be consistent here with 0,1 as true, false
+		if myList[0]['isDir'] == 0:
+			return "cannot add child to file"
+		else:
+			mongo.db.code.update({'rid':parent}, { "$addToSet": {'children':rid} })
 	mongo.db.code.insert({'name':filename, 'rid':rid, 'children':[], 'contents': data['contents'], 'isDir': data['isDir'], 'parent': parent})
 	return "success"
 
