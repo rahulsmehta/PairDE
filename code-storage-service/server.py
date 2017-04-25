@@ -9,21 +9,18 @@ mongo = PyMongo(app)
 TODO: Implement storage service with headless git repo
 """
 
-
 # Set endpoint prefix to /v1 for initial API
 # app.config["APPLICATION_ROOT"] = "/v1"
+
+#Maintenance to do:
+# 1) define a resource class
+# 2) Replace rids with mongo ObjectID
+# 3) Create a new endpoints so that each call handles RID and filename
 def getRoot():
 	return "8013998e-160e-4b5c-aad6-7c8c203da879"
 
 def new_rid():
-	i = 0
-	while i == 0:
-		rid = str(uuid4())
-		myList = list(mongo.db.code.find({'rid':rid})) 
-		if len(myList) == 0:
-			i = 1
-	return rid
-
+	return str(uuid4())
 
 #Takes path to resource and returns RID from db
 def getRID(pathtoresource):
@@ -49,24 +46,24 @@ def root():
 @app.route('/create/<filename>', methods=['POST'])
 def create(filename):
 	data = json.loads(request.data)
-
 	rid = new_rid()
 	#STILL NEED TO DO:
-	#figure out what to do with root
-	#verify that parent is a directory
-	#verify that file with same name and parent does not exist in db
+	#figure out what to do with root (ignore, for now)
+	#verify that file with same name and parent does not exist in db (409 error)
+	parentPath = ""
 	if data['parent'] == "":
 		parent = getRoot()
 	else:
 		parent = data['parent']
 		myList = list(mongo.db.code.find({'rid':parent}))
-		# Need to be consistent here with 0,1 as true, false
-		if myList[0]['isDir'] == 0:
+		parentPath += myList[0]['path']		
+		if myList[0]['isDir'] == False:
 			return "cannot add child to file"
 		else:
 			mongo.db.code.update({'rid':parent}, { "$addToSet": {'children':rid} })
-	mongo.db.code.insert({'name':filename, 'rid':rid, 'children':[], 'contents': data['contents'], 'isDir': data['isDir'], 'parent': parent})
-	return "success"
+	path = parentPath + "/" + filename
+	mongo.db.code.insert({'name':filename, 'rid':rid, 'children':[], 'contents': data['contents'], 'isDir': data['isDir'], 'parent': parent, 'path':path})
+	return rid
 
 
 @app.route('/load/<pathtoresource>', methods=['GET'])
@@ -88,10 +85,11 @@ def move(currentpath, newpath):
 	# add to new parent 
 	newrid = getRID(newpath)
 	myList = list(mongo.db.code.find({'rid':newrid}))
+	path = myList[0]['path']
 	mongo.db.code.update({'rid':newrid}, { "$addToSet": {'children':rid} })
 
 	#update its parent
-	mongo.db.code.update({'rid':rid}, { "$set": {'parent':newrid} })
+	mongo.db.code.update({'rid':rid}, { "$set": {'parent':newrid}, 'path': path + "/" + myList[0]['name'] })
 
 	return "success"
 
@@ -104,12 +102,18 @@ def delete(pathtoresource):
 	#Remove target from parent's list of children
 	parent = myList[0]['parent']
 	mongo.db.code.update({'rid':parent}, { "$pull": {'children':rid} })
+	if myList[0]['isDir'] == True:
+		path = myList[0]['path'] + '/'
+		mongo.db.code.remove({"path": {"$regex": path}})
+	print path
+	return json.dumps(mongo.db.code.remove({'rid': rid}))
 
-	#If target has children, delete them
-	children = myList[0]['children']
-	for child in children:
-		mongo.db.code.remove({'rid':child})
-	mongo.db.code.remove({'rid':rid})
+@app.before_first_request
+def addRoot():
+	root = mongo.db.code.find({'rid': getRoot()})
+	if root.count() == 0:
+		mongo.db.code.insert({'name':"root", 'rid':getRoot(), 'children':[], 'contents': None, 'isDir': True, 'parent': None, 'path':"/"})
 
 if __name__ == '__main__':
 	app.run(debug=True)
+
