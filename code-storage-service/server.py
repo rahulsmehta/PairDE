@@ -22,7 +22,8 @@ TODO: Implement storage service with headless git repo
 
 def getRoot():
 	root = list(mongo.db.code.find({'path': "/"}))
-	return list[0]["_id"]
+	print root[0]["_id"]
+	return root[0]["_id"]
 
 def new_rid():
 	return str(uuid4())
@@ -37,8 +38,8 @@ def pong():
 
 @app.route('/find/<rid>', methods=['GET'])
 def find(rid):
-	myList = list(mongo.db.code.find({'_id':rid}))
-	if len(myList) == 0:
+	target = list(mongo.db.code.find({'_id':rid}))
+	if len(target) == 0:
 		return "successs"
 	else:
 		return "failure"
@@ -49,10 +50,11 @@ def root():
 	return list[0]["_id"]
 
 #Takes a JSON Object with parent path/rid, file contents, and isDir boolean 
-@app.route('/create/<filename>', methods=['POST'])
-def create(filename):
+@app.route('/create/<pathtoresource>', methods=['POST'])
+def create(pathtoresource):
 	data = json.loads(request.data)
-	rid = new_rid()
+	path = pathtoresource.split('/')
+	filename = path[len(path) - 1]
 	#STILL NEED TO DO:
 	#figure out what to do with root (ignore, for now)
 	#verify that file with same name and parent does not exist in db (409 error)
@@ -61,21 +63,20 @@ def create(filename):
 		parent = getRoot()
 	else:
 		parent = data['parent']
-		myList = list(mongo.db.code.find({'rid':parent}))
-		parentPath += myList[0]['path']		
-		if myList[0]['isDir'] == False:
+		target = list(mongo.db.code.find({'_id':parent}))
+		parentPath += target[0]['path']		
+		if target[0]['isDir'] == False:
 			return "cannot add child to file"
 		else:
-			mongo.db.code.update({'rid':parent}, { "$addToSet": {'children':rid} })
-	path = parentPath + "/" + filename
-	mongo.db.code.insert({'name':filename, 'rid':rid, 'children':[], 'contents': data['contents'], 'isDir': data['isDir'], 'parent': parent, 'path':path})
-	return rid
+			mongo.db.code.update({'parentPath':parent}, { "$addToSet": {'children':pathtoresource} })
+	mongo.db.code.insert({'name':filename, 'children':[], 'contents': data['contents'], 'isDir': data['isDir'], 'parent': parentPath, 'path':"/"+pathtoresource})
+	return filename
 
 
 @app.route('/load/<pathtoresource>', methods=['GET'])
 def load(pathtoresource):
-	myList = list(mongo.db.code.find({'path':pathtoresource}))
-	return myList[0]['contents']
+	target = list(mongo.db.code.find({'path':pathtoresource}))
+	return target[0]['contents']
 
 
 @app.route('/move/<currentpath>/<newpath>', methods=['POST'])
@@ -87,36 +88,36 @@ def move(currentpath, newpath):
 	mongo.db.code.update({'_id':parent}, { "$pull": {'children':target[0]['_id']} })
 
 	# add to new parent 
-	newParent = list(mongo.db.code.find({'path':newpath}))
-	path = newParent[0]['path']
-	mongo.db.code.update({'path':newpath}, { "$addToSet": {'children':rid} })
+	tree = newpath.split('/')
+	newParentPath = ""
+	for i in range(1, len(tree) - 1):
+		newParentPath += "/" + resource
+	newParent = list(mongo.db.code.find({'path':newParentPath}))
+	mongo.db.code.update({'path':newParentPath}, { "$addToSet": {'children':newpath} })
 
-	#update its parent
-	mongo.db.code.update({'rid':rid}, { "$set": {'parent':newrid}, 'path': path + "/" + myList[0]['name'] })
-
+	#update its parent and path
+	mongo.db.code.update({'_id': target[0]["_id"]}, { "$set": {'parent':newParentPath}, 'path':newpath})
 	return "success"
 
 
 @app.route('/delete/<pathtoresource>', methods=['DELETE'])
 def delete(pathtoresource):
-	rid = getRID(pathtoresource)
-	myList = list(mongo.db.code.find({'rid':rid}))
+	target = list(mongo.db.code.find({'path':pathtoresource}))
 
 	#Remove target from parent's list of children
-	parent = myList[0]['parent']
-	mongo.db.code.update({'rid':parent}, { "$pull": {'children':rid} })
-	if myList[0]['isDir'] == True:
-		path = myList[0]['path'] + '/'
+	parent = target[0]['parent']
+	mongo.db.code.update({'path':parent}, { "$pull": {'children':pathtoresource} })
+	if target[0]['isDir'] == True:
+		path = target[0]['path'] + '/'
 		mongo.db.code.remove({"path": {"$regex": path}})
-	print path
-	return json.dumps(mongo.db.code.remove({'rid': rid}))
+	return json.dumps(mongo.db.code.remove({'path': pathtoresource}))
 
 @app.before_first_request
 def addRoot():
-	root = mongo.db.code.find({'_id': getRoot()})
-	if root.count() == 0:
+	root = list(mongo.db.code.find({"path": "/"}))
+	if len(root) == 0:
 		mongo.db.code.insert({'name':"root", 'children':[], 'contents': None, 'isDir': True, 'parent': None, 'path':"/"})
-
+	getRoot()
 if __name__ == '__main__':
 	app.run(debug=True)
 
