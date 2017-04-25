@@ -34,7 +34,18 @@ def getRoot():
 def new_rid():
     return str(uuid4())
 
+# Given a path to file, return the path to parent of file
+def getParentPath(path):
+	array = path.split('/')
+    newParentPath = ""
+    for i in range(1, len(array)):
+        newParentPath += "/" + array[i]
+    return newParentPath
 
+def getFilename(path):
+	array = path.split('/')
+	return array[len(array) - 1]
+	
 # Takes path to resource and returns RID from db
 def getRID(pathtoresource):
     return pathtoresource
@@ -45,9 +56,9 @@ def pong():
     return "pong"
 
 
-@app.route('/find/<rid>', methods=['GET'])
-def find(rid):
-    target = list(mongo.db.code.find({'_id': rid}))
+@app.route('/find/<id>', methods=['GET'])
+def find(id):
+    target = list(mongo.db.code.find({'_id': id}))
     if len(target) == 0:
         return "successs"
     else:
@@ -61,14 +72,16 @@ def root():
 
 
 # Takes a JSON Object with parent path/rid, file contents, and isDir boolean
-@app.route('/create/<pathtoresource>', methods=['POST'])
+@app.route('/create/<path:path>', methods=['POST'])
 def create(pathtoresource):
     data = json.loads(request.data)
     path = pathtoresource.split('/')
     filename = path[len(path) - 1]
     # STILL NEED TO DO:
+    # Check that parent path exists
     # figure out what to do with root (ignore, for now)
     # verify that file with same name and parent does not exist in db (409 error)
+    path = '/' + path
     parentPath = ""
     if data['parent'] == "":
         parent = getRoot()
@@ -117,10 +130,7 @@ def move(currentpath, newpath):
     mongo.db.code.update({'_id': parent}, {"$pull": {'children': target[0]['_id']}})
 
     # add to new parent
-    tree = newpath.split('/')
-    newParentPath = ""
-    for i in range(1, len(tree) - 1):
-        newParentPath += "/" + resource
+    newParentPath = getParentPath(newpath)
     newParent = list(mongo.db.code.find({'path': newParentPath}))
     mongo.db.code.update({'path': newParentPath}, {"$addToSet": {'children': newpath}})
 
