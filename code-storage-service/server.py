@@ -1,5 +1,5 @@
 import json
-from flask import Flask, request
+from flask import Flask, request, abort
 from flask_uuid import FlaskUUID
 from flask_pymongo import PyMongo
 from uuid import uuid4
@@ -86,9 +86,9 @@ def create(pathtoresource):
     return filename
 
 
-@app.route('/load', defaults={'path': ''})
-@app.route('/load/', defaults={'path': ''})
-@app.route('/load/<path:path>', methods=['GET'])
+@app.route('/load-path', defaults={'path': ''})
+@app.route('/load-path/', defaults={'path': ''})
+@app.route('/load-path/<path:path>', methods=['GET'])
 def load_path(path):
     path = '/' + path
     print path
@@ -99,10 +99,13 @@ def load_path(path):
         return target[0]['contents']
 
 
-@app.route('/load/<uuid:rid>')
-def load_rid(rid):
-    rid = str(rid)
-    return rid
+@app.route('/load-rid/<string:id>')
+def load_rid(id):
+    target = list(mongo.db.code.find({'_id': id}))
+    if len(target) <= 0:
+        return "not found"
+    else:
+        return target[0]['contents']
 
 
 @app.route('/move/<currentpath>/<newpath>', methods=['POST'])
