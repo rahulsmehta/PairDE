@@ -16,8 +16,13 @@ TODO: Implement storage service with headless git repo
 # 1) define a resource class
 # 2) Replace rids with mongo ObjectID
 # 3) Create a new endpoints so that each call handles RID and filename
+
+#class Resource:
+#	def __init__()
+
 def getRoot():
-	return "8013998e-160e-4b5c-aad6-7c8c203da879"
+	root = list(mongo.db.code.find({'path': "/"}))
+	return list[0]["_id"]
 
 def new_rid():
 	return str(uuid4())
@@ -32,15 +37,16 @@ def pong():
 
 @app.route('/find/<rid>', methods=['GET'])
 def find(rid):
-	myList = list(mongo.db.code.find({'rid':rid}))
+	myList = list(mongo.db.code.find({'_id':rid}))
 	if len(myList) == 0:
 		return "successs"
 	else:
-		return "fuck you sperk"
+		return "failure"
 
 @app.route('/root', methods=['GET'])
 def root():
-	return "8013998e-160e-4b5c-aad6-7c8c203da879"
+	root = list(mongo.db.code.find({'path': "/"}))
+	return list[0]["_id"]
 
 #Takes a JSON Object with parent path/rid, file contents, and isDir boolean 
 @app.route('/create/<filename>', methods=['POST'])
@@ -68,25 +74,22 @@ def create(filename):
 
 @app.route('/load/<pathtoresource>', methods=['GET'])
 def load(pathtoresource):
-	rid = getRID(pathtoresource)
-	myList = list(mongo.db.code.find({'rid':rid}))
+	myList = list(mongo.db.code.find({'path':pathtoresource}))
 	return myList[0]['contents']
 
 
 @app.route('/move/<currentpath>/<newpath>', methods=['POST'])
 def move(currentpath, newpath):
-	rid = getRID(currentpath)
-	myList = list(mongo.db.code.find({'rid':rid}))
+	target = list(mongo.db.code.find({'path':currentpath}))
 
 	#delete from current parent
-	parent = myList[0]['parent']
-	mongo.db.code.update({'rid':parent}, { "$pull": {'children':rid} })
+	parent = target[0]['parent']
+	mongo.db.code.update({'_id':parent}, { "$pull": {'children':target[0]['_id']} })
 
 	# add to new parent 
-	newrid = getRID(newpath)
-	myList = list(mongo.db.code.find({'rid':newrid}))
-	path = myList[0]['path']
-	mongo.db.code.update({'rid':newrid}, { "$addToSet": {'children':rid} })
+	newParent = list(mongo.db.code.find({'path':newpath}))
+	path = newParent[0]['path']
+	mongo.db.code.update({'path':newpath}, { "$addToSet": {'children':rid} })
 
 	#update its parent
 	mongo.db.code.update({'rid':rid}, { "$set": {'parent':newrid}, 'path': path + "/" + myList[0]['name'] })
@@ -110,9 +113,9 @@ def delete(pathtoresource):
 
 @app.before_first_request
 def addRoot():
-	root = mongo.db.code.find({'rid': getRoot()})
+	root = mongo.db.code.find({'_id': getRoot()})
 	if root.count() == 0:
-		mongo.db.code.insert({'name':"root", 'rid':getRoot(), 'children':[], 'contents': None, 'isDir': True, 'parent': None, 'path':"/"})
+		mongo.db.code.insert({'name':"root", 'children':[], 'contents': None, 'isDir': True, 'parent': None, 'path':"/"})
 
 if __name__ == '__main__':
 	app.run(debug=True)
