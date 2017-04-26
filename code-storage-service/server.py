@@ -27,6 +27,7 @@ TODO: Implement storage service with headless git repo
 # class Resource:
 #   def __init__()
 
+
 def getRoot():
     root = list(mongo.db.code.find({'path': "/"}))
     print root[0]["_id"]
@@ -68,6 +69,16 @@ def root():
     return list[0]["_id"]
 
 
+@app.route('/create/<path: path>', methods=['POST'])
+def create(path):
+    data = json.loads(request.data)
+    path = "/" + path
+    splitpath = path.split('/')
+    filename = path[len(splitpath) - 1]
+    parentPath = "/"
+    for i in range(1, len(splitpath) - 1):
+        parentPath += splitpath[i] + "/"
+
 # Takes a JSON Object with parent path/rid, file contents, and isDir boolean
 @app.route('/create/<pathtoresource>', methods=['POST'])
 def create(pathtoresource):
@@ -82,15 +93,15 @@ def create(pathtoresource):
         parent = getRoot()
     else:
         parent = data['parent']
-        target = list(mongo.db.code.find({'_id': parent}))
-        parentPath += target[0]['path']
-        if target[0]['isDir'] == False:
+        target = mongo.db.code.find_one({'_id': bson.ObjectId(oid = str(parent))})
+        parentPath += target['path']
+        if target['isDir'] == False:
             return "cannot add child to file"
         else:
-            mongo.db.code.update({'parentPath': parent}, {"$addToSet": {'children': pathtoresource}})
-    mongo.db.code.insert(
-        {'name': filename, 'children': [], 'contents': data['contents'], 'isDir': data['isDir'], 'parent': parentPath,
-         'path': "/" + pathtoresource})
+            mongo.db.code.insert(
+                {'name': filename, 'children': [], 'contents': data['contents'], 'isDir': data['isDir'], 'parent': parent,
+                 'path': "/" + pathtoresource})
+            mongo.db.code.update({'_id': bson.ObjectId(oid = str(parent)}, {"$addToSet": {'children': pathtoresource}})
     return filename
 
 
@@ -139,13 +150,33 @@ def move(currentpath, newpath):
     mongo.db.code.update({'_id': target[0]["_id"]}, {"$set": {'parent': newParentPath}, 'path': newpath})
     return "success"
 
-
-@app.route('/delete/<pathtoresource>', methods=['DELETE'])
-def delete(pathtoresource):
-    target = list(mongo.db.code.find({'path': pathtoresource}))
+@app.route('/delete-path', defaults={'path': ''})
+@app.route('/delete-path/', defaults={'path': ''})
+@app.route('/delete-path/<path:path>', methods=['DELETE'])
+def delete_path(path):
+    path = "/" + path
+    target = mongo.db.code.find_one({'path': path})
+    print target
 
     # Remove target from parent's list of children
-    parent = target[0]['parent']
+    rid = target['_id']
+    parentId = target['parent']
+
+    mongo.db.code.update({'_id': bson.ObjectId(oid = str(parentId))}, {"$pull": {'children': rid}})
+
+    if target['isDir'] == True:
+        regpath = target['path'] + '/'
+        mongo.db.code.remove({"path": {"$regex": regpath}})
+    return json.dumps(mongo.db.code.remove({'path': path}))
+
+
+
+@app.route('/delete-rid/<rid>', methods=['DELETE'])
+def delete_rid(rid):
+    target = mongo.db.code.find_one({'_id': bson.ObjectId(oid = str(rid))})
+
+    # Remove target from parent's list of children
+    parent = target['parent']
     mongo.db.code.update({'path': parent}, {"$pull": {'children': pathtoresource}})
     if target[0]['isDir'] == True:
         path = target[0]['path'] + '/'
