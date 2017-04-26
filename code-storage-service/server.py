@@ -37,8 +37,10 @@ def new_rid():
 # Given a path to file, return the path to parent of file
 def getParentPath(path):
 	array = path.split('/')
+	if len(array) == 2:
+		return "/"
 	newParentPath = ""
-	for i in range(0, len(array) - 1):
+	for i in range(1, len(array) - 1):
 		newParentPath += "/" + array[i]
 	return newParentPath
 
@@ -74,6 +76,7 @@ def root():
 # Takes a JSON Object with parent path/rid, file contents, and isDir boolean
 @app.route('/create/<path:path>', methods=['POST'])
 def create(path):
+	path = "/" + path
 	data = json.loads(request.data)
 	filename = getFilename(path)
 	# STILL NEED TO DO:
@@ -81,14 +84,20 @@ def create(path):
 	# figure out what to do with root (ignore, for now)
 	# verify that file with same name and parent does not exist in db (409 error)
 	parentPath = getParentPath(path)
-	print parentPath
-	target = list(mongo.db.code.find({'path': parentPath}))
+	print "parentPath: " + parentPath
+	print "path: " + path
+	print "filename: " + filename
+
+	if data['parent'] == "":
+		target = list(mongo.db.code.find({'path': "/"}))
+	else:
+		target = list(mongo.db.code.find({'path': parentPath}))
 	if target[0]['isDir'] == False:
 		return "cannot add child to file"
 	else:
 		newID = mongo.db.code.insert(
-		{'name': filename, 'children': [], 'contents': data['contents'], 'isDir': data['isDir'], 'parent': parentPath,
-		 'path': "/" + path})
+		{'name': filename, 'children': [], 'contents': data['contents'], 'isDir': data['isDir'], 'parent': target[0]['_id'],
+		 'path': path})
 		mongo.db.code.update({'path': parentPath}, {"$addToSet": {'children': newID}})
 	return filename
 
@@ -126,24 +135,25 @@ def move(currentpath, newpath):
 	# add to new parent
 	newParentPath = getParentPath(newpath)
 	newParent = list(mongo.db.code.find({'path': newParentPath}))
-	mongo.db.code.update({'path': newParentPath}, {"$addToSet": {'children': newpath}})
+	mongo.db.code.update({'path': newParentPath}, {"$addToSet": {'children': target[0]['_id']}})
 
 	# update its parent and path
-	mongo.db.code.update({'_id': target[0]["_id"]}, {"$set": {'parent': newParentPath}, 'path': newpath})
+	mongo.db.code.update({'_id': target[0]["_id"]}, {"$set": {'parent': newParent[0][_id]}, 'path': newpath})
 	return "success"
 
 
-@app.route('/delete/<pathtoresource>', methods=['DELETE'])
-def delete(pathtoresource):
-	target = list(mongo.db.code.find({'path': pathtoresource}))
+@app.route('/delete/<path:path>', methods=['DELETE'])
+def delete(path):
+	path = '/' + path
+	target = list(mongo.db.code.find({'path': path}))
 
 	# Remove target from parent's list of children
 	parent = target[0]['parent']
-	mongo.db.code.update({'path': parent}, {"$pull": {'children': pathtoresource}})
+	mongo.db.code.update({'_id': parent}, {"$pull": {'children': target[0]['_id']}})
 	if target[0]['isDir'] == True:
-		path = target[0]['path'] + '/'
-		mongo.db.code.remove({"path": {"$regex": path}})
-	return json.dumps(mongo.db.code.remove({'path': pathtoresource}))
+		regpath = target[0]['path'] + '/'
+		mongo.db.code.remove({"path": {"$regex": regpath}})
+	return json.dumps(mongo.db.code.remove({'path': path}))
 
 
 @app.before_first_request
