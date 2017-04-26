@@ -126,25 +126,28 @@ def load_rid(rid):
         #return target[0]['contents']
         return docs['contents']
 
-
-@app.route('/move/<currentpath>/<newpath>', methods=['POST'])
-def move(currentpath, newpath):
-    target = list(mongo.db.code.find({'path': currentpath}))
-
+@app.route('/move', defaults={'path': ''})
+@app.route('/move/', defaults={'path': ''})
+@app.route('/move/<path:destinationPath>', methods=['POST'])
+def move(destinationPath):
+    data = json.loads(request.data)
+    destinationPath = "/" + destinationPath
+    source = mongo.db.code.find_one({'path': data['currentpath']})
+    target = mongo.db.code.find_one({'path': destinationPath})
+    print "destinationPath : " + destinationPath
+    print target
     # delete from current parent
-    parent = target[0]['parent']
-    mongo.db.code.update({'_id': parent}, {"$pull": {'children': target[0]['_id']}})
+    mongo.db.code.update({'_id': source['parent']}, {"$pull": {'children': source['_id']}})
 
     # add to new parent
-    tree = newpath.split('/')
-    newParentPath = ""
-    for i in range(1, len(tree) - 1):
-        newParentPath += "/" + resource
-    newParent = list(mongo.db.code.find({'path': newParentPath}))
-    mongo.db.code.update({'path': newParentPath}, {"$addToSet": {'children': newpath}})
+    # tree = newpath.split('/')
+    # newParentPath = ""
+    # for i in range(1, len(tree) - 1):
+    #     newParentPath += "/" + resource
+    mongo.db.code.update({'path': destinationPath}, {"$addToSet": {'children': source['_id']}})
 
     # update its parent and path
-    mongo.db.code.update({'_id': target[0]["_id"]}, {"$set": {'parent': newParentPath}, 'path': newpath})
+    mongo.db.code.update({'_id': source["_id"]}, {"$set": {'parent': target['_id'], 'path': destinationPath + "/" + source['name']}})
     return "success"
 
 
