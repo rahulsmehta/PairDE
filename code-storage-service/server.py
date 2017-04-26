@@ -21,8 +21,8 @@ TODO: Implement storage service with headless git repo
 
 # Maintenance to do:
 # 1) define a resource class
-# 2) Replace rids with mongo ObjectID
-# 3) Create a new endpoints so that each call handles RID and filename
+# 2) Create a new endpoints so that each call handles RID and filename
+# 3) Add in error messages
 
 # class Resource:
 #   def __init__()
@@ -100,31 +100,6 @@ def create_path(path):
     mongo.db.code.update({'_id': parentId}, {"$addToSet": {'children': child['_id']}})
 
     return "success"
-    
-# # Takes a JSON Object with parent path/rid, file contents, and isDir boolean
-# @app.route('/create/<pathtoresource>', methods=['POST'])
-# def create(pathtoresource):
-#     data = json.loads(request.data)
-#     path = pathtoresource.split('/')
-#     filename = path[len(path) - 1]
-#     # STILL NEED TO DO:
-#     # figure out what to do with root (ignore, for now)
-#     # verify that file with same name and parent does not exist in db (409 error)
-#     parentPath = ""
-#     if data['parent'] == "":
-#         parent = getRoot()
-#     else:
-#         parent = data['parent']
-#         target = mongo.db.code.find_one({'_id': bson.ObjectId(oid = str(parent))})
-#         parentPath += target['path']
-#         if target['isDir'] == False:
-#             return "cannot add child to file"
-#         else:
-#             mongo.db.code.insert(
-#                 {'name': filename, 'children': [], 'contents': data['contents'], 'isDir': data['isDir'], 'parent': parent,
-#                  'path': "/" + pathtoresource})
-#             mongo.db.code.update({'_id': bson.ObjectId(oid = str(parent)}, {"$addToSet": {'children': pathtoresource}})
-#     return filename
 
 
 @app.route('/load-path', defaults={'path': ''})
@@ -172,14 +147,15 @@ def move(currentpath, newpath):
     mongo.db.code.update({'_id': target[0]["_id"]}, {"$set": {'parent': newParentPath}, 'path': newpath})
     return "success"
 
+
 @app.route('/delete-path', defaults={'path': ''})
 @app.route('/delete-path/', defaults={'path': ''})
 @app.route('/delete-path/<path:path>', methods=['DELETE'])
 def delete_path(path):
     path = "/" + path
+    if path == "/":
+        return "No file given to be deleted"
     target = mongo.db.code.find_one({'path': path})
-    print target
-
     # Remove target from parent's list of children
     rid = target['_id']
     parentId = target['parent']
@@ -192,24 +168,25 @@ def delete_path(path):
     return json.dumps(mongo.db.code.remove({'path': path}))
 
 
-
 @app.route('/delete-rid/<rid>', methods=['DELETE'])
-def delete_rid(rid):
+def delete_rid(rid):        
     target = mongo.db.code.find_one({'_id': bson.ObjectId(oid = str(rid))})
-
+    if target['path'] == '/':
+        return "Cannot delete root"
     # Remove target from parent's list of children
-    parent = target['parent']
-    mongo.db.code.update({'path': parent}, {"$pull": {'children': pathtoresource}})
-    if target[0]['isDir'] == True:
-        path = target[0]['path'] + '/'
-        mongo.db.code.remove({"path": {"$regex": path}})
-    return json.dumps(mongo.db.code.remove({'path': pathtoresource}))
+    parentID = target['parent']
+    parentObj = mongo.db.code.find_one({'_id': bson.ObjectId(oid = str(parentID))})
+    mongo.db.code.update({'path': parentObj['path']}, {"$pull": {'children': target['_id']}})
+    if target['isDir'] == True:
+        regpath = target['path'] + '/'
+        mongo.db.code.remove({"path": {"$regex": regpath}})
+    return json.dumps(mongo.db.code.remove({'_id': target['_id']}))
 
 
 @app.before_first_request
 def check_add_root():
-    root = list(mongo.db.code.find({"path": "/"}))
-    if len(root) == 0:
+    root = mongo.db.code.find_one({"path": "/"})
+    if root == None:
         mongo.db.code.insert(
             {'name': "root", 'children': [], 'contents': None, 'isDir': True, 'parent': None, 'path': "/"})
     getRoot()
