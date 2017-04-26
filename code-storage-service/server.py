@@ -111,12 +111,12 @@ def load_path(path):
 @app.route('/load-rid/<rid>', methods=['GET'])
 def load_rid(rid):
     print rid
-    docs = list(mongo.db.code.find_one({'_id': bson.ObjectId(oid = str(rid))}))
+    docs = mongo.db.code.find_one({'_id': bson.ObjectId(oid = str(rid))})
     if len(docs) <= 0:
         return "not found"
     else:
         #return target[0]['contents']
-        return json.dumps(1)
+        return docs['contents']
 
 
 @app.route('/move/<currentpath>/<newpath>', methods=['POST'])
