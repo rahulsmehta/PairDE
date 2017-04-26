@@ -111,12 +111,12 @@ def load_path(path):
 @app.route('/load-rid/<rid>', methods=['GET'])
 def load_rid(rid):
     print rid
-    doc = list(mongo.db.code.find_one({'_id': bson.ObjectId(oid = str(rid))}))
-    if len(doc) <= 0:
-        return "not found 1"
+    docs = list(mongo.db.code.find_one({'_id': bson.ObjectId(oid = str(rid))}))
+    if len(docs) <= 0:
+        return "not found"
     else:
         #return target[0]['contents']
-        return 1
+        return json.dumps(1)
 
 
 @app.route('/move/<currentpath>/<newpath>', methods=['POST'])
