@@ -129,7 +129,7 @@ def load_rid(rid):
 @app.route('/move', defaults={'path': ''})
 @app.route('/move/', defaults={'path': ''})
 @app.route('/move/<path:destinationPath>', methods=['POST'])
-def move(destinationPath):
+def move_path(destinationPath):
     data = json.loads(request.data)
     destinationPath = "/" + destinationPath
     source = mongo.db.code.find_one({'path': data['currentpath']})
@@ -147,14 +147,33 @@ def move(destinationPath):
     mongo.db.code.update({'_id': source['parent']}, {"$pull": {'children': source['_id']}})
 
     # add to new parent
-    # tree = newpath.split('/')
-    # newParentPath = ""
-    # for i in range(1, len(tree) - 1):
-    #     newParentPath += "/" + resource
     mongo.db.code.update({'path': destinationPath}, {"$addToSet": {'children': source['_id']}})
 
     # update its parent and path
     mongo.db.code.update({'_id': source["_id"]}, {"$set": {'parent': target['_id'], 'path': destinationPath + "/" + source['name']}})
+    return "success"
+
+@app.route('/move-rid/<destinationID>', methods=['POST'])
+def move_rid(destinationID):
+    data = json.loads(request.data)
+    sourceID = data['rid']
+    source = mongo.db.code.find_one({'_id': bson.ObjectId(oid = str(sourceID))})
+    target = mongo.db.code.find_one({'_id': bson.ObjectId(oid = str(destinationID))})
+
+    #Check for bad destinations
+    if target == None:
+        return "destination is not in the database"
+    if target['isDir'] == False:
+        return "destination is not a directory"
+
+    # delete from current parent
+    mongo.db.code.update({'_id': source['parent']}, {"$pull": {'children': source['_id']}})
+
+    # add to new parent
+    mongo.db.code.update({'_id': target['_id']}, {"$addToSet": {'children': source['_id']}})
+
+    # update its parent and path
+    mongo.db.code.update({'_id': source["_id"]}, {"$set": {'parent': target['_id'], 'path': target['path'] + "/" + source['name']}})
     return "success"
 
 
