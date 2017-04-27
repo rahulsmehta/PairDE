@@ -134,6 +134,13 @@ def move(destinationPath):
     destinationPath = "/" + destinationPath
     source = mongo.db.code.find_one({'path': data['currentpath']})
     target = mongo.db.code.find_one({'path': destinationPath})
+
+    #Check for bad destinations
+    if target == None:
+        return "destination is not in the database"
+    if target['isDir'] == False:
+        return "destination is not a directory"
+        
     print "destinationPath : " + destinationPath
     print target
     # delete from current parent
