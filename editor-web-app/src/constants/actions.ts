@@ -9,3 +9,6 @@ export const CONSOLE_UPDATED = 'CONSOLE_UPDATED';
 
 //File name events
 export const RENAME_CURRENT = 'RENAME_CURRENT';
+
+//Extra args
+export const ARG_CHANGE = 'ARG_CHANGE';
