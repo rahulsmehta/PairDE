@@ -11,7 +11,8 @@ const initialState: CodePanelData = {
   rawSrc: initialFile.rawSrc,
   consoleSrc: "",
   fileName: initialFile.fileName,
-  otherFiles: [initialFile]
+  otherFiles: [initialFile],
+  extraArgs: []
 };
 
 export default handleActions<CodePanelState, CodePanelData>({
@@ -21,7 +22,8 @@ export default handleActions<CodePanelState, CodePanelData>({
       rawSrc: state.rawSrc,
       fileName: state.fileName,
       consoleSrc: action.payload.consoleSrc,
-      otherFiles: action.payload.otherFiles
+      otherFiles: action.payload.otherFiles,
+      extraArgs: state.extraArgs
     };
   },
   [Actions.SAVE_FILE]: (state, action) => {
@@ -32,7 +34,8 @@ export default handleActions<CodePanelState, CodePanelData>({
       rawSrc: state.rawSrc,
       fileName: state.fileName,
       otherFiles: state.otherFiles,
-      consoleSrc: action.payload.consoleSrc
+      consoleSrc: action.payload.consoleSrc,
+      extraArgs: state.extraArgs
     };
   },
   [Actions.UPDATE_SRC]: (state, action) => {
@@ -40,7 +43,8 @@ export default handleActions<CodePanelState, CodePanelData>({
       rawSrc: action.payload.rawSrc,
       fileName: state.fileName,
       consoleSrc: state.consoleSrc,
-      otherFiles: state.otherFiles
+      otherFiles: state.otherFiles,
+      extraArgs: state.extraArgs
     };
   },
   [Actions.RENAME_CURRENT]: (state, action) => {
@@ -60,7 +64,17 @@ export default handleActions<CodePanelState, CodePanelData>({
       rawSrc: action.payload.rawSrc,
       fileName: action.payload.fileName,
       consoleSrc: state.consoleSrc,
-      otherFiles: updatedFiles
+      otherFiles: updatedFiles,
+      extraArgs: state.extraArgs
+    }
+  },
+  [Actions.ARG_CHANGE]: (state, action) => {
+    return {
+      rawSrc: state.rawSrc,
+      fileName: state.fileName,
+      consoleSrc: state.consoleSrc,
+      otherFiles: state.otherFiles,
+      extraArgs: action.payload.extraArgs
     }
   }
 }, initialState);

@@ -72,10 +72,12 @@ def check():
     return None
 
 
-@app.route('/run/<uuid>/<file_id>', methods=['GET'])
+@app.route('/run/<uuid>/<file_id>', methods=['POST'])
 def run(uuid, file_id):
+    data = json.loads(request.data)
+    extra_args = data['extra_args']
     class_path = path.join(uuid, file_id)
-    run_result, exec_path = exec_file(class_path)
+    run_result, exec_path = exec_file(class_path, args=extra_args)
     if exec_path is None:
         run_errors = run_result.replace(class_path, file_id)
         response_data = {'Runtime Errors': run_errors}
@@ -83,5 +85,6 @@ def run(uuid, file_id):
     else:
         return run_result
 
+
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

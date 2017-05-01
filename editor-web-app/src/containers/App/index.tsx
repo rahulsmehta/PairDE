@@ -22,10 +22,17 @@ interface AppProps {
 };
 
 interface AppState {
-  /* empty */
 }
 
 class App extends React.Component<AppProps, AppState>{
+
+  formatCommandName(fileName: string, extraArgs?: string[]) {
+    let result = 'java ' + fileName.replace('.java','');
+    if (extraArgs.length > 0) {
+      result += ' ' + extraArgs.reduce((acc, key) => {return acc + ' ' + key})
+    }
+    return result;
+  }
 
   render() {
     const { editor, actions, children } = this.props;
@@ -33,6 +40,33 @@ class App extends React.Component<AppProps, AppState>{
       return {hasCaret: false, iconName: "code",
             label: c.fileName, id: i}
     });
+    const popoverValue = (args: string[]) => {
+      if (args.length > 0) {
+        return args.reduce((acc, key) => {return acc + ' ' + key});
+      } else {
+        return "";
+      }
+    }
+    const runPopover = (
+      <div>
+        <input className={"pt-input"} type={"text"}
+           placeholder={"Extra args..."}
+           value={popoverValue(editor.extraArgs)}
+           onChange={(args) => {
+             actions.argChange({
+              extraArgs: args.target.value.split(' ')
+             });
+           }}
+        />
+        <br />
+        <br />
+        <button className="pt-button"
+          onClick = {() => {
+            codeService.run(editor, actions);
+          }}
+        >{this.formatCommandName(editor.fileName, editor.extraArgs)}</button>
+      </div>
+    )
 
     const monacoStyle = {overflow: "hidden"};
     const tooltipStyle = {paddingRight: "10px"};
@@ -64,11 +98,19 @@ class App extends React.Component<AppProps, AppState>{
                codeService.compile(editor, actions);
               }}
             >Compile</button>
-            <button className="pt-button pt-minimal pt-icon-play"
+            {/*<button className="pt-button pt-minimal pt-icon-play"
               onClick = {() => {
                 codeService.run(editor, actions);
               }}
-            >Run</button>
+            >Run</button>*/}
+            <Popover
+              content = {runPopover}
+              popoverClassName="pt-popover-content-sizing"
+              position={Position.BOTTOM}
+              useSmartArrowPositioning={true}
+            >
+              <button className="pt-button pt-minimal pt-icon-play">Run</button>
+            </Popover>
             <span className="pt-navbar-divider"></span>
             <Tooltip
               content = "No partner assigned"

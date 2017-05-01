@@ -17,7 +17,10 @@ export function run (props: CodePanelData, actions: typeof EditorActions) {
   const {uuid,className} = getUuidAndFile(props.otherFiles, props.fileName);
   const url = CODE_SERVICE_URL + 'run/' + uuid + '/' + className;
   fetch(url,{
-    method: 'GET'
+    method: 'POST',
+    body: JSON.stringify ({
+      extra_args: props.extraArgs
+    })
   }).then(response => response.text()).then((responseText) => {
     // alert(responseText);
     actions.runFile({

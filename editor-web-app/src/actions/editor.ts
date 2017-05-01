@@ -9,3 +9,5 @@ export const updateSrc = createAction<CodePanelData>(Actions.UPDATE_SRC);
 export const consoleUpdated = createAction<CodePanelData>(Actions.CONSOLE_UPDATED);
 
 export const renameCurrent = createAction<CodePanelData>(Actions.RENAME_CURRENT);
+
+export const argChange = createAction<CodePanelData>(Actions.ARG_CHANGE);

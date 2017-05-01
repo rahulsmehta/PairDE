@@ -13,7 +13,7 @@ import sys
 from util import check_set_wd
 
 
-def exec_file(class_path, tmp_dir="./tmp"):
+def exec_file(class_path, tmp_dir="./tmp", args=[]):
     # check_set_wd()
     print getcwd()
     [uuid, file_name] = class_path.split('/')
@@ -23,7 +23,7 @@ def exec_file(class_path, tmp_dir="./tmp"):
         dir_path = path.join(tmp_dir, uuid)
         chdir(dir_path)
         # tmp_path = path.join(tmp_dir, exec_path)
-        run_result = subprocess.check_output(['java', executable],
+        run_result = subprocess.check_output(['java', executable] + args,
                                              stderr=subprocess.STDOUT)
         return run_result, exec_path
     except subprocess.CalledProcessError as e:
