@@ -22,7 +22,6 @@ export function run (props: CodePanelData, actions: typeof EditorActions) {
       extra_args: props.extraArgs
     })
   }).then(response => response.text()).then((responseText) => {
-    // alert(responseText);
     actions.runFile({
       consoleSrc: responseText
     });

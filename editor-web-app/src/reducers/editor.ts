@@ -11,7 +11,7 @@ const initialState: CodePanelData = {
   rawSrc: initialFile.rawSrc,
   consoleSrc: "",
   fileName: initialFile.fileName,
-  otherFiles: [initialFile],
+  otherFiles: [],
   extraArgs: []
 };
 
@@ -39,6 +39,7 @@ export default handleActions<CodePanelState, CodePanelData>({
     };
   },
   [Actions.UPDATE_SRC]: (state, action) => {
+    console.log(state.otherFiles);
     return {
       rawSrc: action.payload.rawSrc,
       fileName: state.fileName,

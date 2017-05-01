@@ -14,8 +14,6 @@ from util import check_set_wd
 
 
 def exec_file(class_path, tmp_dir="./tmp", args=[]):
-    # check_set_wd()
-    print getcwd()
     [uuid, file_name] = class_path.split('/')
     exec_path = class_path.replace('.class', '')
     executable = file_name.replace('.class', '')

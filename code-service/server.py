@@ -80,7 +80,7 @@ def run(uuid, file_id):
     run_result, exec_path = exec_file(class_path, args=extra_args)
     if exec_path is None:
         run_errors = run_result.replace(class_path, file_id)
-        response_data = {'Runtime Errors': run_errors}
+        response_data = run_errors
         return json.dumps(response_data)
     else:
         return run_result

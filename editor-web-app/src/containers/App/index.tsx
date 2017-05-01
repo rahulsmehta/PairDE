@@ -5,7 +5,7 @@ import * as classNames from "classnames";
 import { RootState } from '../../reducers';
 import * as EditorActions from '../../actions/editor';
 import * as codeService from '../../services/codeService';
-import Header from "../../components/Header";
+import Editor from "../../components/Editor";
 
 import * as style from './style.css';
 
@@ -66,29 +66,37 @@ class App extends React.Component<AppProps, AppState>{
           }}
         >{this.formatCommandName(editor.fileName, editor.extraArgs)}</button>
       </div>
-    )
+    );
 
-    const monacoStyle = {overflow: "hidden"};
+    let codeEditor = null;
+    if (editor.otherFiles.length > 0) {
+      codeEditor =
+        <Editor
+          src={editor.rawSrc}
+          actions={actions}
+        />
+    } else {
+      codeEditor =
+      <div style = {{width: '100%', height: '100%'}}>
+        <div className={"pt-non-ideal-state"}>
+          <div className={"pt-non-ideal-state-visual pt-non-ideal-state-icon"}>
+            <span className={"pt-icon pt-icon-folder-open"}></span>
+          </div>
+          <h4 className={"pt-non-ideal-state-title"}>This folder is empty</h4>
+          <div className={"pt-non-ideal-state-description"}>
+            Create a new file to populate the folder.
+          </div>
+        </div>
+      </div>
+    }
+
     const tooltipStyle = {paddingRight: "10px"};
     return (
       <div className = {classNames(style.default, "pt-app")} >
         <nav className={classNames("pt-navbar", "pt-dark")} >
           <div className="pt-navbar-group pt-align-left">
             <div className="pt-navbar-heading">
-              <EditableText
-                    intent={Intent.NONE}
-                    maxLength={100}
-                    defaultValue = {editor.fileName}
-                    selectAllOnFocus={true}
-                    onConfirm = {(v) => {
-                      let newName = v;
-                      if (v.indexOf('\.java') == -1)
-                        newName += '.java';
-                      actions.renameCurrent({
-                        fileName: newName
-                      });
-                    }}
-                />
+              {/* editable text used to be here */}
             </div>
           </div>
           <div className="pt-navbar-group pt-align-right" style={tooltipStyle}>
@@ -148,22 +156,7 @@ class App extends React.Component<AppProps, AppState>{
               {size: 400, minSize: 0, resize: "dynamic"}
             ]}
           >
-          <div style = {{width: '100%', height: '100%', backgroundColor: '#333'}}>
-            <MonacoEditor
-                value = {editor.rawSrc}
-                language = "java"
-                options = {{
-                  selectOnLineNumbers: false,
-                  automaticLayout: true
-                }}
-                theme = "vs-dark"
-                onChange = {(newValue, _) => {
-                  actions.updateSrc({
-                    rawSrc: newValue,
-                  })
-                }}
-            />
-          </div>
+          {codeEditor}
           <div style = {{width: '100%', height: '100%', backgroundColor: '#333'}} >
              <MonacoEditor
                 value = {editor.consoleSrc}
