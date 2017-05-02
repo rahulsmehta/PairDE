@@ -70,6 +70,17 @@ def root():
     root = list(mongo.db.code.find({'path': "/"}))
     return root[0]["_id"]
 
+@app.route('/list-path', defaults={'path':''})
+@app.route('/list-path/',defaults={'path':''})
+@app.route('/list-path/<path:path>', methods=['GET'])
+def list_path(path):
+    path = '/' + path
+    resource = mongo.db.code.find_one({'path': path})
+    if resource['isDir'] == False:
+        return "file has no members"
+    else:
+        return json.dumps(map(str,resource['children']))
+
 @app.route('/create-path', defaults={'path': ''})
 @app.route('/create-path/', defaults={'path': ''})
 @app.route('/create-path/<path:path>', methods=['POST'])
