@@ -6,7 +6,9 @@ import { RootState } from '../../reducers';
 import * as EditorActions from '../../actions/editor';
 import * as codeService from '../../services/codeService';
 import Editor from "../../components/Editor";
+import Console from "../../components/Console";
 import Navbar from "../../components/Navbar";
+
 
 import * as style from './style.css';
 
@@ -64,19 +66,7 @@ class App extends React.Component<AppProps, AppState>{
           <Editor src={editor.rawSrc} actions={actions}
             isEmpty={editor.workState.files.size == 0}
           />
-          <div style = {{width: '100%', height: '100%', backgroundColor: '#333'}} >
-             <MonacoEditor
-                value = {editor.consoleSrc}
-                language = "markdown"
-                options = {{
-                  readOnly: true,
-                  automaticLayout: true,
-                  lineNumbers: false,
-                  cursorStyle: 3
-                }}
-                theme = "vs-dark"
-            />
-          </div>
+          <Console src={editor.consoleSrc} />
           </PanelGroup>
 
         </PanelGroup>
