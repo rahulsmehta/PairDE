@@ -62,7 +62,7 @@ class App extends React.Component<AppProps, AppState>{
             ]}
           >
           <Editor src={editor.rawSrc} actions={actions}
-            isEmpty={editor.otherFiles.length == 0}
+            isEmpty={editor.workState.files.size == 0}
           />
           <div style = {{width: '100%', height: '100%', backgroundColor: '#333'}} >
              <MonacoEditor

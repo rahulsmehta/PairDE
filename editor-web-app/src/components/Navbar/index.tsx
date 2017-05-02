@@ -74,13 +74,27 @@ class Navbar extends React.Component<NavbarProps, {}> {
       </div>
     );
 
+    const newPopover = (
+      <div>
+        <button className={"pt-button pt-minimal pt-icon pt-icon-folder-close"}>New Folder</button><br/>
+        <button className={"pt-button pt-minimal pt-icon pt-icon-document"}>New File</button>
+      </div>
+    )
+
    return (
     <nav className={classNames("pt-navbar", "pt-dark")} >
       <div className="pt-navbar-group pt-align-left">
         <div className="pt-navbar-heading">
           {/* editable text used to be here */}
         </div>
-        <button className="pt-button pt-minimal pt-icon-add">New</button>
+        <Popover
+          content = {newPopover}
+          popoverClassName="pt-popover-content-sizing"
+          position={Position.BOTTOM_LEFT}
+          useSmartArrowPositioning={true}
+        >
+          <button className="pt-button pt-minimal pt-icon-add">New</button>
+        </Popover>
         <button className={renameClass}>Rename</button>
         <span className="pt-navbar-divider"></span>
         <button className={saveClass}>Save</button>
