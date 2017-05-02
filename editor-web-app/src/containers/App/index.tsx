@@ -5,6 +5,8 @@ import * as classNames from "classnames";
 import { RootState } from '../../reducers';
 import * as EditorActions from '../../actions/editor';
 import * as codeService from '../../services/codeService';
+import * as storageService from '../../services/storageService';
+
 import Editor from "../../components/Editor";
 import Console from "../../components/Console";
 import Navbar from "../../components/Navbar";
@@ -28,6 +30,12 @@ interface AppState {
 }
 
 class App extends React.Component<AppProps, AppState>{
+
+  componentDidMount() {
+    const { editor, actions } = this.props;
+    const workState = editor.workState;
+    storageService.listPath(workState.wd, actions, editor);
+  }
 
   render() {
     const { editor, actions, children } = this.props;

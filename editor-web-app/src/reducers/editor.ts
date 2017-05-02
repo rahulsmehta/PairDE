@@ -86,5 +86,16 @@ export default handleActions<CodePanelState, CodePanelData>({
       extraArgs: action.payload.extraArgs,
       workState: state.workState
     }
+  },
+  [Actions.INIT_APP]: (state, action) => {
+    alert(JSON.stringify(action.payload.workState));
+    return {
+      rawSrc: state.rawSrc,
+      fileName: state.fileName,
+      consoleSrc: state.consoleSrc,
+      otherFiles: state.otherFiles,
+      extraArgs: state.extraArgs,
+      workState: action.payload.workState
+    }
   }
 }, initialState);

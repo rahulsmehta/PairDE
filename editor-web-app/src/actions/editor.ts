@@ -11,3 +11,5 @@ export const consoleUpdated = createAction<CodePanelData>(Actions.CONSOLE_UPDATE
 export const renameCurrent = createAction<CodePanelData>(Actions.RENAME_CURRENT);
 
 export const argChange = createAction<CodePanelData>(Actions.ARG_CHANGE);
+
+export const initApp = createAction<CodePanelData>(Actions.INIT_APP);

@@ -5,7 +5,7 @@ from flask import Flask, request
 from flask_pymongo import PyMongo
 from uuid import uuid4
 from bson.objectid import ObjectId
-from flask_cors import CORS
+from flask_cors import CORS, cross_origin
 
 app = Flask(__name__)
 CORS(app)
@@ -73,6 +73,7 @@ def root():
 @app.route('/list-path', defaults={'path':''})
 @app.route('/list-path/',defaults={'path':''})
 @app.route('/list-path/<path:path>', methods=['GET'])
+@cross_origin()
 def list_path(path):
     path = '/' + path
     resource = mongo.db.code.find_one({'path': path})
@@ -130,14 +131,17 @@ def load_path(path):
 
 
 @app.route('/load-rid/<rid>', methods=['GET'])
+@cross_origin()
 def load_rid(rid):
     print rid
     docs = mongo.db.code.find_one({'_id': bson.ObjectId(oid = str(rid))})
     if len(docs) <= 0:
         return "not found"
-    else:
+    elif docs['isDir']:
+        return json.dumps({'isDir': True, 'contents': None, 'name': docs['name']})
         #return target[0]['contents']
-        return docs['contents']
+    else:
+        return json.dumps({'isDir': False,'contents': docs['contents'], 'name': docs['name']})
 
 @app.route('/move', defaults={'path': ''})
 @app.route('/move/', defaults={'path': ''})
