@@ -12,7 +12,11 @@ const initialState: CodePanelData = {
   consoleSrc: "",
   fileName: initialFile.fileName,
   otherFiles: [],
-  extraArgs: []
+  extraArgs: [],
+  workState: {
+    wd: '/',
+    files: new Set([])
+  }
 };
 
 export default handleActions<CodePanelState, CodePanelData>({
@@ -23,7 +27,8 @@ export default handleActions<CodePanelState, CodePanelData>({
       fileName: state.fileName,
       consoleSrc: action.payload.consoleSrc,
       otherFiles: action.payload.otherFiles,
-      extraArgs: state.extraArgs
+      extraArgs: state.extraArgs,
+      workState: state.workState
     };
   },
   [Actions.SAVE_FILE]: (state, action) => {
@@ -35,7 +40,8 @@ export default handleActions<CodePanelState, CodePanelData>({
       fileName: state.fileName,
       otherFiles: state.otherFiles,
       consoleSrc: action.payload.consoleSrc,
-      extraArgs: state.extraArgs
+      extraArgs: state.extraArgs,
+      workState: state.workState
     };
   },
   [Actions.UPDATE_SRC]: (state, action) => {
@@ -45,7 +51,8 @@ export default handleActions<CodePanelState, CodePanelData>({
       fileName: state.fileName,
       consoleSrc: state.consoleSrc,
       otherFiles: state.otherFiles,
-      extraArgs: state.extraArgs
+      extraArgs: state.extraArgs,
+      workState: state.workState
     };
   },
   [Actions.RENAME_CURRENT]: (state, action) => {
@@ -66,7 +73,8 @@ export default handleActions<CodePanelState, CodePanelData>({
       fileName: action.payload.fileName,
       consoleSrc: state.consoleSrc,
       otherFiles: updatedFiles,
-      extraArgs: state.extraArgs
+      extraArgs: state.extraArgs,
+      workState: state.workState
     }
   },
   [Actions.ARG_CHANGE]: (state, action) => {
@@ -75,7 +83,8 @@ export default handleActions<CodePanelState, CodePanelData>({
       fileName: state.fileName,
       consoleSrc: state.consoleSrc,
       otherFiles: state.otherFiles,
-      extraArgs: action.payload.extraArgs
+      extraArgs: action.payload.extraArgs,
+      workState: state.workState
     }
   }
 }, initialState);

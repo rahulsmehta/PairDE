@@ -21,12 +21,18 @@ declare type CodeFile  = {
   compileId?: string;
 }
 
+declare type WorkState = {
+  wd: string;
+  files: Set<CodeFile>
+}
+
 declare type CodePanelData = {
   rawSrc: string;
   fileName?: string;
   consoleSrc?: string;
   otherFiles: CodeFile[];
   extraArgs: string[];
+  workState: WorkState;
 }
 
 declare type CodePanelState = CodePanelData;
