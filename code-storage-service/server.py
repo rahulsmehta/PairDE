@@ -82,6 +82,39 @@ def list_path(path):
     else:
         return json.dumps(map(str,resource['children']))
 
+
+@app.route('/update-path', defaults={'path':''})
+@app.route('/update-path/', defaults={'path':''})
+@app.route('/update-path/<path:path>', methods=['POST'])
+def update_path(path):
+    data = json.loads(request.data)
+    path = '/' + path
+    rawpath = path
+    splitpath = path.split('/')
+    filename = splitpath[len(splitpath) - 1]
+    parentPath = "/"
+    for i in range(1, len(splitpath) - 1):
+        parentPath += splitpath[i] + "/"
+    parentPath = parentPath[:-1]
+    if path == "":
+        return "cannot modify root"
+    else:
+        file = mongo.db.code.find_one({'path':path})
+        if file == None:
+            return "no such file to update"
+        mongo.db.code.update({'path':path},{
+            'name': filename,
+            'children': [],
+            'contents': data['contents'],
+            'isDir': file['isDir'],
+            'parent': file['parent'],
+            'path': rawpath})
+        return "success"
+
+
+
+
+
 @app.route('/create-path', defaults={'path': ''})
 @app.route('/create-path/', defaults={'path': ''})
 @app.route('/create-path/<path:path>', methods=['POST'])
