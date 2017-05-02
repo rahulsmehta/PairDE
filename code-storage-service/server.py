@@ -5,8 +5,10 @@ from flask import Flask, request
 from flask_pymongo import PyMongo
 from uuid import uuid4
 from bson.objectid import ObjectId
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 #flask_uuid = FlaskUUID()
 #flask_uuid.init_app(app)
 mongo = PyMongo(app)
@@ -223,4 +225,4 @@ def check_add_root():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=4000)
