@@ -41,8 +41,16 @@ class App extends React.Component<AppProps, AppState>{
     const { editor, actions, children } = this.props;
     const workState = editor.workState;
     const fileNodes: ITreeNode[] = workState.files.map((c: CodeFile, i) => {
-      return {hasCaret: false, iconName: "code",
-            label: c.fileName, id: i}
+      let result = {
+        hasCaret: false,
+        iconName: "code",
+        label: c.fileName,
+        id: i
+      }
+      if (editor.fileName == c.fileName) {
+        result['isSelected'] = true;
+      }
+      return result;
     });
     const treeNodes: ITreeNode[] = [
       {
@@ -67,7 +75,27 @@ class App extends React.Component<AppProps, AppState>{
           panelWidths={[{size: 200, minSize:0, resize: "dynamic"},]}
           style={{paddingLeft: "10px"}}
         >
-          <div><Tree contents = {treeNodes}/></div>
+          <div>
+            <Tree
+              contents = {treeNodes}
+              onNodeClick = {((node, _) => {
+                const getSrc = fileName => {
+                  const f = workState.files.filter((fn) => {
+                    return fn.fileName == node.label;
+                  });
+                  return f[0].rawSrc;
+                }
+                if (node.iconName == 'code'){
+                  actions.changeSrcFile({
+                    fileName: node.label,
+                    rawSrc: getSrc(node.label)
+                  });
+                }
+                else
+                  alert('Dir!');
+              })}
+            />
+          </div>
           <PanelGroup direction = "column" id = "console-panel" borderColor = "darkgray"
             spacing = {5}
             panelWidths = {[{size: 400, minSize: 0, resize: "dynamic"}]}

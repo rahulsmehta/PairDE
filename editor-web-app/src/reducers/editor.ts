@@ -3,14 +3,14 @@ import * as Actions from '../constants/actions';
 import * as EditorActions from '../actions/editor';
 import {encode, decode} from 'base-64';
 
-const initialFile: CodeFile = {
-  rawSrc: "//your code here",
-  fileName: "Untitled.java"
-}
+// const initialFile: CodeFile = {
+//   rawSrc: "//your code here",
+//   fileName: "Untitled.java"
+// }
 const initialState: CodePanelData = {
-  rawSrc: initialFile.rawSrc,
+  rawSrc: "",
   consoleSrc: "",
-  fileName: initialFile.fileName,
+  fileName: "",
   otherFiles: [],
   extraArgs: [],
   workState: {
@@ -28,7 +28,7 @@ export default handleActions<CodePanelState, CodePanelData>({
       consoleSrc: action.payload.consoleSrc,
       otherFiles: action.payload.otherFiles,
       extraArgs: state.extraArgs,
-      workState: state.workState
+      workState: action.payload.workState
     };
   },
   [Actions.SAVE_FILE]: (state, action) => {
@@ -87,15 +87,58 @@ export default handleActions<CodePanelState, CodePanelData>({
       workState: state.workState
     }
   },
-  [Actions.INIT_APP]: (state, action) => {
-    alert(JSON.stringify(action.payload.workState));
+  [Actions.CHANGE_SRC_FILE]: (state, action) => {
+    // alert(action.payload.fileName);
+    // alert(action.payload.rawSrc);
+    // before returning state, update rawSrc for the org file
+    // in workState
+
+    const newFiles = state.workState.files.map((v,i) => {
+      if (v.fileName == state.fileName) {
+        return {
+          fileName: v.fileName,
+          compileId: v.compileId,
+          rawSrc: state.rawSrc
+        };
+      } else {
+        return v;
+      }
+    });
+
     return {
-      rawSrc: state.rawSrc,
-      fileName: state.fileName,
+      rawSrc: action.payload.rawSrc,
+      fileName: action.payload.fileName,
       consoleSrc: state.consoleSrc,
       otherFiles: state.otherFiles,
       extraArgs: state.extraArgs,
-      workState: action.payload.workState
+      workState: {
+        wd: state.workState.wd,
+        files: newFiles
+      }
+    };
+  },
+  [Actions.INIT_APP]: (state, action) => {
+    // alert(JSON.stringify(action.payload.workState));
+    const { workState } = action.payload;
+    if (workState.files.length > 0) {
+      const top = workState.files[0];
+      return {
+        rawSrc: top.rawSrc,
+        fileName: top.fileName,
+        consoleSrc: state.consoleSrc,
+        otherFiles: state.otherFiles,
+        extraArgs: state.extraArgs,
+        workState: action.payload.workState
+      }
+    } else {
+      return {
+        rawSrc: "",
+        fileName: "Untitled.java",
+        consoleSrc: state.consoleSrc,
+        otherFiles: state.otherFiles,
+        extraArgs: state.extraArgs,
+        workState: action.payload.workState
+      }
     }
   }
 }, initialState);

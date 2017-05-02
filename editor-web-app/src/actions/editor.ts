@@ -13,3 +13,5 @@ export const renameCurrent = createAction<CodePanelData>(Actions.RENAME_CURRENT)
 export const argChange = createAction<CodePanelData>(Actions.ARG_CHANGE);
 
 export const initApp = createAction<CodePanelData>(Actions.INIT_APP);
+
+export const changeSrcFile = createAction<CodePanelData>(Actions.CHANGE_SRC_FILE);

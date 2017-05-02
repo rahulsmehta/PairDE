@@ -14,7 +14,8 @@ function getUuidAndFile(files: CodeFile[], fileName: string){
 }
 
 export function run (props: CodePanelData, actions: typeof EditorActions) {
-  const {uuid,className} = getUuidAndFile(props.otherFiles, props.fileName);
+  const {workState} = props;
+  const {uuid,className} = getUuidAndFile(workState.files, props.fileName);
   const url = CODE_SERVICE_URL + 'run/' + uuid + '/' + className;
   fetch(url,{
     method: 'POST',
@@ -37,7 +38,7 @@ export function compile (props: CodePanelData, actions: typeof EditorActions) {
       })
     }).then(r => r.text()).then((resp) => {
       const {compiler_errors, class_path} = JSON.parse(resp);
-      const updatedFiles = props.otherFiles.map((c: CodeFile, i) => {
+      const updatedFiles = props.workState.files.map((c: CodeFile, i) => {
         if (c.fileName == props.fileName) {
           return {
             rawSrc: c.rawSrc,
@@ -52,7 +53,10 @@ export function compile (props: CodePanelData, actions: typeof EditorActions) {
           rawSrc: props.rawSrc,
           fileName: props.fileName,
           consoleSrc: compiler_errors ? compiler_errors : "Compilation successful",
-          otherFiles: updatedFiles
+          workState: {
+            wd: props.workState.wd,
+            files: updatedFiles
+          }
         });
       }
     , error => actions.compileFile({

@@ -15,3 +15,6 @@ export const ARG_CHANGE = 'ARG_CHANGE';
 
 //componentDidMount action to load working dir
 export const INIT_APP = 'INIT_APP';
+
+//Side panel actions
+export const CHANGE_SRC_FILE = 'CHANGE_SRC_FILE';
