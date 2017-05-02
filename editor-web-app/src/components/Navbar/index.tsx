@@ -2,6 +2,7 @@ import * as React from 'react';
 import * as classNames from 'classnames';
 import * as EditorActions from '../../actions/editor';
 import * as CodeService from '../../services/codeService';
+import * as StorageService from '../../services/storageService';
 
 import { Breadcrumb, Classes, Button, ITreeNode, Tree, Tooltip,
          Position, Intent, Popover, EditableText} from "@blueprintjs/core";
@@ -9,6 +10,7 @@ import { Breadcrumb, Classes, Button, ITreeNode, Tree, Tooltip,
 interface NavbarProps {
   actions: typeof EditorActions;
   codeService: typeof CodeService;
+  storageService: typeof StorageService;
   editor: CodePanelData;
 }
 
@@ -27,7 +29,7 @@ class Navbar extends React.Component<NavbarProps, {}> {
   }
 
   render() {
-    const {codeService, actions, editor} = this.props;
+    const {storageService, codeService, actions, editor} = this.props;
     const tooltipStyle = {paddingRight: "10px"};
     const isEmpty = editor.workState.files.length == 0;
 
@@ -108,7 +110,10 @@ class Navbar extends React.Component<NavbarProps, {}> {
         </Popover>
         <button className={renameClass}>Rename</button>
         <span className="pt-navbar-divider"></span>
-        <button className={saveClass}>Save</button>
+        <button className={saveClass} onClick = {() => {
+            const path = editor.workState.wd + editor.fileName;
+            storageService.saveFile(path, editor.rawSrc, actions, editor);
+          }}>Save</button>
         <span className="pt-navbar-divider"></span>
         <button className={deleteClass}>Delete</button>
       </div>
@@ -118,14 +123,6 @@ class Navbar extends React.Component<NavbarProps, {}> {
             codeService.compile(editor, actions);
           }}
         >Compile</button>
-        {/*<Popover
-          content = {runPopover}
-          popoverClassName="pt-popover-content-sizing"
-          position={Position.BOTTOM}
-          useSmartArrowPositioning={true}
-        >
-          <button className={runClass}>Run</button>
-        </Popover>*/}
         {runButton}
         <span className="pt-navbar-divider"></span>
         <Tooltip

@@ -2,6 +2,23 @@ import {encode, decode} from 'base-64';
 import * as EditorActions from '../actions/editor';
 export const STORAGE_SERVICE_URL = "http://localhost:4000/"
 
+export function saveFile(path: string, contents: string, actions: typeof EditorActions,
+    props: CodePanelData) {
+      const url = STORAGE_SERVICE_URL + 'update-path' + path;
+      fetch(url, {
+        method: 'POST',
+        body: JSON.stringify({
+          contents: encode(contents)
+        })
+      }).then(response => response.text()).then(responseText => {
+        if (responseText == 'success') {
+          alert('Save successful!');
+        } else {
+          alert('Something went wrong');
+        }
+      })
+    }
+
 export function listPath(path: string, actions: typeof EditorActions, props: CodePanelData) {
   const url = STORAGE_SERVICE_URL + 'list-path' + path;
   const fileUrl = STORAGE_SERVICE_URL + 'load-rid/';

@@ -67,6 +67,7 @@ class App extends React.Component<AppProps, AppState>{
       <div className = {classNames(style.default, "pt-app")} >
         <Navbar actions={actions}
           codeService={codeService}
+          storageService={storageService}
           editor={editor}
         />
 
