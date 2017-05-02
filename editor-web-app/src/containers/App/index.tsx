@@ -31,10 +31,21 @@ class App extends React.Component<AppProps, AppState>{
 
   render() {
     const { editor, actions, children } = this.props;
-    const treeNodes: ITreeNode[] = editor.otherFiles.map((c: CodeFile, i) => {
+    const workState = editor.workState;
+    const fileNodes: ITreeNode[] = workState.files.map((c: CodeFile, i) => {
       return {hasCaret: false, iconName: "code",
             label: c.fileName, id: i}
     });
+    const treeNodes: ITreeNode[] = [
+      {
+        hasCaret: false,
+        iconName: "folder-close",
+        label: workState.wd,
+        id: 10,
+        isExpanded: true,
+        childNodes: fileNodes
+      }
+    ]
 
     return (
       <div className = {classNames(style.default, "pt-app")} >
@@ -44,27 +55,17 @@ class App extends React.Component<AppProps, AppState>{
         />
 
         <PanelGroup
-          id = "split-panel"
-          borderColor="darkgray"
-          spacing={5}
-          panelWidths={[
-            {size: 200, minSize:0, resize: "dynamic"},
-          ]}
+          id = "split-panel" borderColor="darkgray" spacing={5}
+          panelWidths={[{size: 200, minSize:0, resize: "dynamic"},]}
+          style={{paddingLeft: "10px"}}
         >
-          <div>
-            <Tree contents = {treeNodes} />
-          </div>
-          <PanelGroup
-            direction = "column"
-            id = "console-panel"
-            borderColor = "darkgray"
+          <div><Tree contents = {treeNodes}/></div>
+          <PanelGroup direction = "column" id = "console-panel" borderColor = "darkgray"
             spacing = {5}
-            panelWidths = {[
-              {size: 400, minSize: 0, resize: "dynamic"}
-            ]}
+            panelWidths = {[{size: 400, minSize: 0, resize: "dynamic"}]}
           >
           <Editor src={editor.rawSrc} actions={actions}
-            isEmpty={editor.workState.files.size == 0}
+            isEmpty={editor.workState.files.length == 0}
           />
           <Console src={editor.consoleSrc} />
           </PanelGroup>

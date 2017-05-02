@@ -15,7 +15,7 @@ const initialState: CodePanelData = {
   extraArgs: [],
   workState: {
     wd: '/',
-    files: new Set([])
+    files: []
   }
 };
 

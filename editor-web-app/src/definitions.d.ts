@@ -23,7 +23,7 @@ declare type CodeFile  = {
 
 declare type WorkState = {
   wd: string;
-  files: Set<CodeFile>
+  files: CodeFile[]
 }
 
 declare type CodePanelData = {

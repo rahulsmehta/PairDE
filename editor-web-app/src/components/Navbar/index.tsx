@@ -29,7 +29,7 @@ class Navbar extends React.Component<NavbarProps, {}> {
   render() {
     const {codeService, actions, editor} = this.props;
     const tooltipStyle = {paddingRight: "10px"};
-    const isEmpty = editor.workState.files.size == 0;
+    const isEmpty = editor.workState.files.length == 0;
 
     let renameClass = "pt-button pt-minimal pt-icon-edit";
     let saveClass = "pt-button pt-minimal pt-icon-floppy-disk";
@@ -73,6 +73,17 @@ class Navbar extends React.Component<NavbarProps, {}> {
         >{this.formatCommandName(editor.fileName, editor.extraArgs)}</button>
       </div>
     );
+    const runButton = isEmpty ? (<button className={runClass}>Run</button>) :
+        (
+        <Popover
+          content = {runPopover}
+          popoverClassName="pt-popover-content-sizing"
+          position={Position.BOTTOM}
+          useSmartArrowPositioning={true}
+        >
+          <button className={runClass}>Run</button>
+        </Popover>
+      );
 
     const newPopover = (
       <div>
@@ -107,14 +118,15 @@ class Navbar extends React.Component<NavbarProps, {}> {
             codeService.compile(editor, actions);
           }}
         >Compile</button>
-        <Popover
+        {/*<Popover
           content = {runPopover}
           popoverClassName="pt-popover-content-sizing"
           position={Position.BOTTOM}
           useSmartArrowPositioning={true}
         >
           <button className={runClass}>Run</button>
-        </Popover>
+        </Popover>*/}
+        {runButton}
         <span className="pt-navbar-divider"></span>
         <Tooltip
           content = "No partner assigned"
