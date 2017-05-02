@@ -12,3 +12,6 @@ export const RENAME_CURRENT = 'RENAME_CURRENT';
 
 //Extra args
 export const ARG_CHANGE = 'ARG_CHANGE';
+
+//componentDidMount action to load working dir
+export const INIT_APP = 'INIT_APP';
