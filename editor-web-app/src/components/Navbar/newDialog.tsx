@@ -14,6 +14,7 @@ interface IDialogProps {
     actions: typeof EditorActions
     storageService: typeof StorageService
     wd: string
+    rawSrc: string
 }
 
 class NewFileDialog extends React.Component<IDialogProps, IDialogState> {
@@ -64,7 +65,12 @@ class NewFileDialog extends React.Component<IDialogProps, IDialogState> {
         );
     }
 
-    private handleNewFile = () => {alert('Creating ' + this.state.content)};
+    private handleNewFile = () => {
+      const {actions, storageService, wd, rawSrc} = this.props;
+      const path = wd + this.state.content;
+      storageService.create(path, false, rawSrc, actions);
+      this.setState({isOpen: !this.state.isOpen})
+    }
 
     private handleNewFolder = () => {alert('New Folder!')};
 

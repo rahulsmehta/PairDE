@@ -30,7 +30,8 @@ export function run (props: CodePanelData, actions: typeof EditorActions) {
 }
 
 export function compile (props: CodePanelData, actions: typeof EditorActions) {
-    fetch(CODE_SERVICE_URL + "compile",{
+    const path = props.workState.wd + props.fileName;
+    fetch(CODE_SERVICE_URL + "compile" + path,{
       method: 'POST',
       body: JSON.stringify({
         encoded_src: encode(props.rawSrc),

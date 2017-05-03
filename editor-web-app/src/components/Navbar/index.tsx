@@ -130,6 +130,7 @@ class Navbar extends React.Component<NavbarProps, {}> {
       <NewFileDialog className={"pt-button pt-minimal pt-icon pt-icon-add"}
         storageService={storageService}
         wd={editor.workState.wd}
+        rawSrc={editor.rawSrc}
         actions={actions}
       />
     )

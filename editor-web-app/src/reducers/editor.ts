@@ -81,6 +81,42 @@ export default handleActions<CodePanelState, CodePanelData>({
       }
     }
   },
+  [Actions.CREATE_FILE]: (state, action) => {
+    AppToaster.show({
+      message: "Successfully created " + action.payload.fileName + "!",
+      intent: Intent.SUCCESS,
+      iconName: "tick"
+    });
+    let newFiles = state.workState.files;
+    if (newFiles.length > 0) {
+      newFiles = newFiles.map((c) => {
+        if(c.fileName == state.fileName) {
+          return {
+            fileName: c.fileName,
+            compileId: c.compileId,
+            rawSrc: action.payload.rawSrc
+          }
+        } else {
+          return c;
+        }
+      });
+    }
+    newFiles.push({
+      fileName: action.payload.fileName,
+      rawSrc: ''
+    });
+    return {
+      rawSrc: '',
+      fileName: action.payload.fileName,
+      consoleSrc: state.consoleSrc,
+      otherFiles: state.otherFiles,
+      extraArgs: state.extraArgs,
+      workState: {
+        wd: state.workState.wd,
+        files: newFiles
+      }
+    }
+  },
   [Actions.ARG_CHANGE]: (state, action) => {
     return {
       rawSrc: state.rawSrc,

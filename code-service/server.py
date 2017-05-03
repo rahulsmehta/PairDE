@@ -51,12 +51,17 @@ def pong():
     return "pong"
 
 
-@app.route('/compile', methods=['POST'])
-def compile_blob():
+@app.route('/compile/<path:path>', methods=['POST'])
+def compile_blob(path):
+    path = '/' + path
     data = json.loads(request.data)
     encoded_src = data['encoded_src']
     file_name = data['file_name']
-    src_path = write_temp_decoded(encoded_src, file_name)
+
+    parentPath = '/'.join(path.split('/')[:-1])
+    if '/' not in parentPath:
+        parentPath = '/' + parentPath
+    src_path = write_temp_decoded(encoded_src, file_name, parentPath)
     compiler_errors, class_path = compile_decoded(src_path)
     compiler_errors = compiler_errors.replace(src_path, file_name)
     if class_path is None:

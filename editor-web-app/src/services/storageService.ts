@@ -6,6 +6,34 @@ import { AppToaster } from "./toaster";
 
 export const STORAGE_SERVICE_URL = "http://localhost:4000/"
 
+export function create(path: string, isDir: boolean, rawSrc: string,
+  actions: typeof EditorActions) {
+
+  const url = STORAGE_SERVICE_URL + 'create-path' + path;
+  const tokens = path.split('/');
+  const fn = tokens[tokens.length-1];
+  fetch(url, {
+    method: 'POST',
+    body: JSON.stringify({
+      isDir: isDir,
+      contents: ''
+    })
+  }).then(response => response.text()).then(responseText => {
+    if(responseText == 'success'){
+      actions.createFile({
+        fileName: fn,
+        rawSrc: rawSrc
+      });
+    } else {
+      AppToaster.show({
+        message: "Failed to create " + fn + "!",
+        intent: Intent.DANGER,
+        iconName: "cross"
+      })
+    }
+  })
+}
+
 export function deleteFile(path: string, actions: typeof EditorActions) {
   const url = STORAGE_SERVICE_URL + 'delete-path' + path;
   fetch(url, {
