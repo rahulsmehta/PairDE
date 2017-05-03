@@ -1,8 +1,8 @@
 import * as React from "react";
 import { Button, Dialog, Intent } from "@blueprintjs/core";
-import {AppToaster} from "../../../services/toaster";
-import * as EditorActions from "../../../actions/editor";
-import * as StorageService from '../../../services/storageService';
+import {AppToaster} from "../../services/toaster";
+import * as EditorActions from "../../actions/editor";
+import * as StorageService from '../../services/storageService';
 
 interface IDialogState{
     isOpen: boolean;

@@ -68,7 +68,7 @@ export default handleActions<CodePanelState, CodePanelData>({
       }
     });
     return {
-      rawSrc: action.payload.rawSrc,
+      rawSrc: state.rawSrc,
       fileName: action.payload.fileName,
       consoleSrc: state.consoleSrc,
       otherFiles: updatedFiles,

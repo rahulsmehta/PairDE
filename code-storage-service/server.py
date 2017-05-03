@@ -264,9 +264,14 @@ def delete_path(path):
     target = mongo.db.code.find_one({'path': path})
     # Remove target from parent's list of children
     rid = target['_id']
-    parentId = target['parent']
+    path_tokens = path.split('/')
+    parentPath = '/'.join(path_tokens[:-1])
+    if '/' not in parentPath:
+        parentPath = '/' + parentPath
 
-    mongo.db.code.update({'_id': bson.ObjectId(oid=str(parentId))}, {"$pull": {'children': rid}})
+    print parentPath
+
+    mongo.db.code.update({'path':parentPath}, {"$pull": {'children': bson.ObjectId(oid=str(rid))}})
 
     if target['isDir'] == True:
         regpath = target['path'] + '/'

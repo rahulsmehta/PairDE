@@ -19,7 +19,6 @@ import MonacoEditor from "react-monaco-editor";
 const PanelGroup = require("react-panelgroup");
 import { Breadcrumb, Classes, Button, ITreeNode, Tree, Tooltip,
          Position, Intent, Popover, EditableText} from "@blueprintjs/core";
-import RenameDialog from "../../components/Navbar/RenameDialog"
 
 import { encode } from 'base-64';
 

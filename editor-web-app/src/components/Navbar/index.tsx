@@ -6,7 +6,7 @@ import * as StorageService from '../../services/storageService';
 
 import { Breadcrumb, Classes, Button, ITreeNode, Tree, Tooltip,
          Position, Intent, Popover, EditableText} from "@blueprintjs/core";
-import RenameDialog from './RenameDialog';
+import RenameDialog from './rename';
 
 interface NavbarProps {
   actions: typeof EditorActions;
