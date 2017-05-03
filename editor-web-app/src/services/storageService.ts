@@ -1,6 +1,26 @@
 import {encode, decode} from 'base-64';
 import * as EditorActions from '../actions/editor';
+
+import { Intent } from "@blueprintjs/core";
+import { AppToaster } from "./toaster";
+
 export const STORAGE_SERVICE_URL = "http://localhost:4000/"
+
+export function renameFile(path: string, newName: string, actions: typeof EditorActions){
+      const url = STORAGE_SERVICE_URL + 'rename-path' + path;
+      fetch(url, {
+        method: 'POST',
+        body: JSON.stringify({
+          newName: newName
+        })
+      }).then(response => response.text()).then(responseText => {
+        if(responseText == 'success'){
+          actions.renameCurrent({
+            fileName: newName
+          });
+        }
+      })
+    }
 
 export function saveFile(path: string, contents: string, actions: typeof EditorActions,
     props: CodePanelData) {
@@ -12,9 +32,15 @@ export function saveFile(path: string, contents: string, actions: typeof EditorA
         })
       }).then(response => response.text()).then(responseText => {
         if (responseText == 'success') {
-          alert('Save successful!');
+          AppToaster.show({
+            message: "Saved successfully!",
+            intent: Intent.SUCCESS
+          });
         } else {
-          alert('Something went wrong');
+          AppToaster.show({
+            message: "Something went wrong",
+            intent: Intent.DANGER
+          });
         }
       })
     }

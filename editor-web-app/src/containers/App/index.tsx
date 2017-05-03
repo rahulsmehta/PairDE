@@ -4,6 +4,7 @@ import { connect } from 'react-redux';
 import * as classNames from "classnames";
 import { RootState } from '../../reducers';
 import * as EditorActions from '../../actions/editor';
+
 import * as codeService from '../../services/codeService';
 import * as storageService from '../../services/storageService';
 
@@ -18,6 +19,7 @@ import MonacoEditor from "react-monaco-editor";
 const PanelGroup = require("react-panelgroup");
 import { Breadcrumb, Classes, Button, ITreeNode, Tree, Tooltip,
          Position, Intent, Popover, EditableText} from "@blueprintjs/core";
+import RenameDialog from "../../components/Navbar/RenameDialog"
 
 import { encode } from 'base-64';
 

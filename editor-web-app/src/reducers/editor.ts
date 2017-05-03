@@ -56,16 +56,15 @@ export default handleActions<CodePanelState, CodePanelData>({
     };
   },
   [Actions.RENAME_CURRENT]: (state, action) => {
-    //alert('Renaming ' + state.fileName + ' to ' + action.payload.fileName);
-    const updatedFiles = state.otherFiles.map((c: CodeFile, i) => {
-      if (c.fileName == state.fileName){
+    const updatedFiles: CodeFile[] = state.workState.files.map((c, i) => {
+      if (c.fileName == state.fileName) {
         return {
-          rawSrc: c.rawSrc,
+          fileName: action.payload.fileName,
           compileId: c.compileId,
-          fileName: action.payload.fileName
-        };
+          rawSrc: c.rawSrc
+        }
       } else {
-        return c
+        return c;
       }
     });
     return {
@@ -74,7 +73,10 @@ export default handleActions<CodePanelState, CodePanelData>({
       consoleSrc: state.consoleSrc,
       otherFiles: updatedFiles,
       extraArgs: state.extraArgs,
-      workState: state.workState
+      workState: {
+        wd: state.workState.wd,
+        files: updatedFiles
+      }
     }
   },
   [Actions.ARG_CHANGE]: (state, action) => {

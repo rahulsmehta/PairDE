@@ -1,7 +1,7 @@
 import json
 import bson
 from flask import Flask, request
-#from flask_uuid import FlaskUUID
+# from flask_uuid import FlaskUUID
 from flask_pymongo import PyMongo
 from uuid import uuid4
 from bson.objectid import ObjectId
@@ -9,8 +9,8 @@ from flask_cors import CORS, cross_origin
 
 app = Flask(__name__)
 CORS(app)
-#flask_uuid = FlaskUUID()
-#flask_uuid.init_app(app)
+# flask_uuid = FlaskUUID()
+# flask_uuid.init_app(app)
 mongo = PyMongo(app)
 
 """
@@ -56,7 +56,7 @@ def find(rid):
     target = list(mongo.db.code.find({'_id': tstring}))
 
     print tstring
-    print rid 
+    print rid
     print target
     print len(target)
     if len(target) == 0:
@@ -70,8 +70,9 @@ def root():
     root = list(mongo.db.code.find({'path': "/"}))
     return root[0]["_id"]
 
-@app.route('/list-path', defaults={'path':''})
-@app.route('/list-path/',defaults={'path':''})
+
+@app.route('/list-path', defaults={'path': ''})
+@app.route('/list-path/', defaults={'path': ''})
 @app.route('/list-path/<path:path>', methods=['GET'])
 @cross_origin()
 def list_path(path):
@@ -80,12 +81,13 @@ def list_path(path):
     if resource['isDir'] == False:
         return "file has no members"
     else:
-        return json.dumps(map(str,resource['children']))
+        return json.dumps(map(str, resource['children']))
 
 
-@app.route('/update-path', defaults={'path':''})
-@app.route('/update-path/', defaults={'path':''})
+@app.route('/update-path', defaults={'path': ''})
+@app.route('/update-path/', defaults={'path': ''})
 @app.route('/update-path/<path:path>', methods=['POST'])
+@cross_origin()
 def update_path(path):
     data = json.loads(request.data)
     path = '/' + path
@@ -99,20 +101,18 @@ def update_path(path):
     if path == "":
         return "cannot modify root"
     else:
-        file = mongo.db.code.find_one({'path':path})
+        print path
+        file = mongo.db.code.find_one({'path': path})
         if file == None:
             return "no such file to update"
-        mongo.db.code.update({'path':path},{
+
+        mongo.db.code.update({'path': path}, {
             'name': filename,
             'children': [],
             'contents': data['contents'],
             'isDir': file['isDir'],
-            'parent': file['parent'],
             'path': rawpath})
         return "success"
-
-
-
 
 
 @app.route('/create-path', defaults={'path': ''})
@@ -142,7 +142,7 @@ def create_path(path):
             parentId = parent['_id']
     mongo.db.code.insert(
         {'name': filename, 'children': [], 'contents': data['contents'], 'isDir': data['isDir'], 'parent': parentId,
-        'path': rawpath})
+         'path': rawpath})
     child = mongo.db.code.find_one({'path': rawpath})
     mongo.db.code.update({'_id': parentId}, {"$addToSet": {'children': child['_id']}})
 
@@ -163,18 +163,42 @@ def load_path(path):
         return target[0]['contents']
 
 
+@app.route('/rename-path', defaults={'path': ''})
+@app.route('/rename-path/', defaults={'path': ''})
+@app.route('/rename-path/<path:path>', methods=['POST'])
+def rename_path(path):
+    data = json.loads(request.data)
+    path = "/" + path
+    rawpath = path
+    splitpath = path.split('/')
+    filename = splitpath[len(splitpath) - 1]
+    parentPath = "/"
+    for i in range(1, len(splitpath) - 1):
+        parentPath += splitpath[i] + "/"
+    parentPath = parentPath[:-1]
+    to_update = mongo.db.code.find_one({'path':path})
+    new_path = '/' + parentPath + data['newName']
+    mongo.db.code.update({'path': path},
+                         {'name': data['newName'],
+                          'isDir': to_update['isDir'],
+                          'contents': to_update['contents'],
+                          'path': new_path})
+    return "success"
+
+
 @app.route('/load-rid/<rid>', methods=['GET'])
 @cross_origin()
 def load_rid(rid):
     print rid
-    docs = mongo.db.code.find_one({'_id': bson.ObjectId(oid = str(rid))})
+    docs = mongo.db.code.find_one({'_id': bson.ObjectId(oid=str(rid))})
     if len(docs) <= 0:
         return "not found"
     elif docs['isDir']:
         return json.dumps({'isDir': True, 'contents': None, 'name': docs['name']})
-        #return target[0]['contents']
+        # return target[0]['contents']
     else:
-        return json.dumps({'isDir': False,'contents': docs['contents'], 'name': docs['name']})
+        return json.dumps({'isDir': False, 'contents': docs['contents'], 'name': docs['name']})
+
 
 @app.route('/move', defaults={'path': ''})
 @app.route('/move/', defaults={'path': ''})
@@ -185,12 +209,12 @@ def move_path(destinationPath):
     source = mongo.db.code.find_one({'path': data['currentpath']})
     target = mongo.db.code.find_one({'path': destinationPath})
 
-    #Check for bad destinations
+    # Check for bad destinations
     if target == None:
         return "destination is not in the database"
     if target['isDir'] == False:
         return "destination is not a directory"
-        
+
     print "destinationPath : " + destinationPath
     print target
     # delete from current parent
@@ -200,17 +224,19 @@ def move_path(destinationPath):
     mongo.db.code.update({'path': destinationPath}, {"$addToSet": {'children': source['_id']}})
 
     # update its parent and path
-    mongo.db.code.update({'_id': source["_id"]}, {"$set": {'parent': target['_id'], 'path': destinationPath + "/" + source['name']}})
+    mongo.db.code.update({'_id': source["_id"]},
+                         {"$set": {'parent': target['_id'], 'path': destinationPath + "/" + source['name']}})
     return "success"
+
 
 @app.route('/move-rid/<destinationID>', methods=['POST'])
 def move_rid(destinationID):
     data = json.loads(request.data)
     sourceID = data['rid']
-    source = mongo.db.code.find_one({'_id': bson.ObjectId(oid = str(sourceID))})
-    target = mongo.db.code.find_one({'_id': bson.ObjectId(oid = str(destinationID))})
+    source = mongo.db.code.find_one({'_id': bson.ObjectId(oid=str(sourceID))})
+    target = mongo.db.code.find_one({'_id': bson.ObjectId(oid=str(destinationID))})
 
-    #Check for bad destinations
+    # Check for bad destinations
     if target == None:
         return "destination is not in the database"
     if target['isDir'] == False:
@@ -223,7 +249,8 @@ def move_rid(destinationID):
     mongo.db.code.update({'_id': target['_id']}, {"$addToSet": {'children': source['_id']}})
 
     # update its parent and path
-    mongo.db.code.update({'_id': source["_id"]}, {"$set": {'parent': target['_id'], 'path': target['path'] + "/" + source['name']}})
+    mongo.db.code.update({'_id': source["_id"]},
+                         {"$set": {'parent': target['_id'], 'path': target['path'] + "/" + source['name']}})
     return "success"
 
 
@@ -239,7 +266,7 @@ def delete_path(path):
     rid = target['_id']
     parentId = target['parent']
 
-    mongo.db.code.update({'_id': bson.ObjectId(oid = str(parentId))}, {"$pull": {'children': rid}})
+    mongo.db.code.update({'_id': bson.ObjectId(oid=str(parentId))}, {"$pull": {'children': rid}})
 
     if target['isDir'] == True:
         regpath = target['path'] + '/'
@@ -248,13 +275,13 @@ def delete_path(path):
 
 
 @app.route('/delete-rid/<rid>', methods=['DELETE'])
-def delete_rid(rid):        
-    target = mongo.db.code.find_one({'_id': bson.ObjectId(oid = str(rid))})
+def delete_rid(rid):
+    target = mongo.db.code.find_one({'_id': bson.ObjectId(oid=str(rid))})
     if target['path'] == '/':
         return "Cannot delete root"
     # Remove target from parent's list of children
     parentID = target['parent']
-    parentObj = mongo.db.code.find_one({'_id': bson.ObjectId(oid = str(parentID))})
+    parentObj = mongo.db.code.find_one({'_id': bson.ObjectId(oid=str(parentID))})
     mongo.db.code.update({'path': parentObj['path']}, {"$pull": {'children': target['_id']}})
     if target['isDir'] == True:
         regpath = target['path'] + '/'

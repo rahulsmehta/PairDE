@@ -6,6 +6,7 @@ import * as StorageService from '../../services/storageService';
 
 import { Breadcrumb, Classes, Button, ITreeNode, Tree, Tooltip,
          Position, Intent, Popover, EditableText} from "@blueprintjs/core";
+import RenameDialog from './RenameDialog';
 
 interface NavbarProps {
   actions: typeof EditorActions;
@@ -108,7 +109,10 @@ class Navbar extends React.Component<NavbarProps, {}> {
         >
           <button className="pt-button pt-minimal pt-icon-add">New</button>
         </Popover>
-        <button className={renameClass}>Rename</button>
+        <RenameDialog className={renameClass} currentFile={editor.fileName} actions={actions}
+            storageService={storageService}
+            wd={editor.workState.wd}
+         />
         <span className="pt-navbar-divider"></span>
         <button className={saveClass} onClick = {() => {
             const path = editor.workState.wd + editor.fileName;
