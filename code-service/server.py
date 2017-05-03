@@ -50,7 +50,6 @@ Architecture of the code service:
 def pong():
     return "pong"
 
-
 @app.route('/compile/<path:path>', methods=['POST'])
 def compile_blob(path):
     path = '/' + path
