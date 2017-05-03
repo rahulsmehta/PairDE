@@ -41,9 +41,10 @@ class App extends React.Component<AppProps, AppState>{
     const { editor, actions, children } = this.props;
     const workState = editor.workState;
     const fileNodes: ITreeNode[] = workState.files.map((c: CodeFile, i) => {
+      const icon = (c.fileName.indexOf('.java') != -1) ? 'code' : 'folder-close';
       let result = {
         hasCaret: false,
-        iconName: "code",
+        iconName: icon,
         label: c.fileName,
         id: i
       }
