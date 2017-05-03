@@ -4,8 +4,14 @@ import { connect } from 'react-redux';
 import * as classNames from "classnames";
 import { RootState } from '../../reducers';
 import * as EditorActions from '../../actions/editor';
+
 import * as codeService from '../../services/codeService';
-import Header from "../../components/Header";
+import * as storageService from '../../services/storageService';
+
+import Editor from "../../components/Editor";
+import Console from "../../components/Console";
+import Navbar from "../../components/Navbar";
+
 
 import * as style from './style.css';
 
@@ -26,157 +32,82 @@ interface AppState {
 
 class App extends React.Component<AppProps, AppState>{
 
-  formatCommandName(fileName: string, extraArgs?: string[]) {
-    let result = 'java ' + fileName.replace('.java','');
-    if (extraArgs.length > 0) {
-      result += ' ' + extraArgs.reduce((acc, key) => {return acc + ' ' + key})
-    }
-    return result;
+  componentDidMount() {
+    const { editor, actions } = this.props;
+    const workState = editor.workState;
+    storageService.listPath(workState.wd, actions, editor);
   }
 
   render() {
     const { editor, actions, children } = this.props;
-    const treeNodes: ITreeNode[] = editor.otherFiles.map((c: CodeFile, i) => {
-      return {hasCaret: false, iconName: "code",
-            label: c.fileName, id: i}
-    });
-    const popoverValue = (args: string[]) => {
-      if (args.length > 0) {
-        return args.reduce((acc, key) => {return acc + ' ' + key});
-      } else {
-        return "";
+    const workState = editor.workState;
+    const fileNodes: ITreeNode[] = workState.files.map((c: CodeFile, i) => {
+      const isDir = (c.fileName.indexOf('.java') != -1);
+      const icon = isDir ? 'code' : 'folder-close';
+      let result = {
+        hasCaret: !isDir,
+        iconName: icon,
+        label: c.fileName,
+        id: i
       }
-    }
-    const runPopover = (
-      <div>
-        <input className={"pt-input"} type={"text"}
-           placeholder={"Extra args..."}
-           value={popoverValue(editor.extraArgs)}
-           onChange={(args) => {
-             actions.argChange({
-              extraArgs: args.target.value.split(' ')
-             });
-           }}
-        />
-        <br />
-        <br />
-        <button className="pt-button"
-          onClick = {() => {
-            codeService.run(editor, actions);
-          }}
-        >{this.formatCommandName(editor.fileName, editor.extraArgs)}</button>
-      </div>
-    )
+      if (editor.fileName == c.fileName) {
+        result['isSelected'] = true;
+      }
+      return result;
+    });
+    const treeNodes: ITreeNode[] = [
+      {
+        hasCaret: false,
+        iconName: "folder-close",
+        label: workState.wd,
+        id: 10,
+        isExpanded: true,
+        childNodes: fileNodes
+      }
+    ]
 
-    const monacoStyle = {overflow: "hidden"};
-    const tooltipStyle = {paddingRight: "10px"};
     return (
       <div className = {classNames(style.default, "pt-app")} >
-        <nav className={classNames("pt-navbar", "pt-dark")} >
-          <div className="pt-navbar-group pt-align-left">
-            <div className="pt-navbar-heading">
-              <EditableText
-                    intent={Intent.NONE}
-                    maxLength={100}
-                    defaultValue = {editor.fileName}
-                    selectAllOnFocus={true}
-                    onConfirm = {(v) => {
-                      let newName = v;
-                      if (v.indexOf('\.java') == -1)
-                        newName += '.java';
-                      actions.renameCurrent({
-                        fileName: newName
-                      });
-                    }}
-                />
-            </div>
-          </div>
-          <div className="pt-navbar-group pt-align-right" style={tooltipStyle}>
-            <button className="pt-button pt-minimal pt-icon-floppy-disk">Save</button>
-            <button className="pt-button pt-minimal pt-icon-build"
-              onClick = {() => {
-               codeService.compile(editor, actions);
-              }}
-            >Compile</button>
-            {/*<button className="pt-button pt-minimal pt-icon-play"
-              onClick = {() => {
-                codeService.run(editor, actions);
-              }}
-            >Run</button>*/}
-            <Popover
-              content = {runPopover}
-              popoverClassName="pt-popover-content-sizing"
-              position={Position.BOTTOM}
-              useSmartArrowPositioning={true}
-            >
-              <button className="pt-button pt-minimal pt-icon-play">Run</button>
-            </Popover>
-            <span className="pt-navbar-divider"></span>
-            <Tooltip
-              content = "No partner assigned"
-              intent = {Intent.WARNING}
-              position = {Position.BOTTOM}
-             >
-              <button className="pt-button pt-minimal pt-icon-changes pt-disabled">Switch</button>
-            </Tooltip>
-            <span className="pt-navbar-divider"></span>
-            <Tooltip content="My Account" position = {Position.BOTTOM}>
-              <button className="pt-button pt-minimal pt-icon-user"></button>
-            </Tooltip>
-            <Tooltip content="Settings" position = {Position.BOTTOM}>
-              <button className="pt-button pt-minimal pt-icon-cog"></button>
-            </Tooltip>
-          </div>
-        </nav>
+        <Navbar actions={actions}
+          codeService={codeService}
+          storageService={storageService}
+          editor={editor}
+        />
+
         <PanelGroup
-          id = "split-panel"
-          borderColor="darkgray"
-          spacing={5}
-          panelWidths={[
-            {size: 200, minSize:0, resize: "dynamic"},
-          ]}
+          id = "split-panel" borderColor="darkgray" spacing={5}
+          panelWidths={[{size: 200, minSize:0, resize: "dynamic"},]}
+          style={{paddingLeft: "10px"}}
         >
           <div>
-            <Tree contents = {treeNodes} />
+            <Tree
+              contents = {treeNodes}
+              onNodeClick = {((node, _) => {
+                const getSrc = fileName => {
+                  const f = workState.files.filter((fn) => {
+                    return fn.fileName == node.label;
+                  });
+                  return f[0].rawSrc;
+                }
+                if (node.iconName == 'code'){
+                  actions.changeSrcFile({
+                    fileName: node.label,
+                    rawSrc: getSrc(node.label)
+                  });
+                }
+                else
+                  alert('Dir!');
+              })}
+            />
           </div>
-          <PanelGroup
-            direction = "column"
-            id = "console-panel"
-            borderColor = "darkgray"
+          <PanelGroup direction = "column" id = "console-panel" borderColor = "darkgray"
             spacing = {5}
-            panelWidths = {[
-              {size: 400, minSize: 0, resize: "dynamic"}
-            ]}
+            panelWidths = {[{size: 400, minSize: 0, resize: "dynamic"}]}
           >
-          <div style = {{width: '100%', height: '100%', backgroundColor: '#333'}}>
-            <MonacoEditor
-                value = {editor.rawSrc}
-                language = "java"
-                options = {{
-                  selectOnLineNumbers: false,
-                  automaticLayout: true
-                }}
-                theme = "vs-dark"
-                onChange = {(newValue, _) => {
-                  actions.updateSrc({
-                    rawSrc: newValue,
-                  })
-                }}
-            />
-          </div>
-          <div style = {{width: '100%', height: '100%', backgroundColor: '#333'}} >
-             <MonacoEditor
-                value = {editor.consoleSrc}
-                language = "markdown"
-                options = {{
-                  readOnly: true,
-                  automaticLayout: true,
-                  lineNumbers: false,
-                  cursorStyle: 3
-                }}
-                theme = "vs-dark"
-            />
-          </div>
+          <Editor src={editor.rawSrc} actions={actions}
+            isEmpty={editor.workState.files.length == 0}
+          />
+          <Console src={editor.consoleSrc} />
           </PanelGroup>
 
         </PanelGroup>
