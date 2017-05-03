@@ -1,6 +1,8 @@
 import { handleActions } from 'redux-actions';
 import * as Actions from '../constants/actions';
 import * as EditorActions from '../actions/editor';
+import { AppToaster } from "../services/toaster";
+import { Intent } from "@blueprintjs/core";
 import {encode, decode} from 'base-64';
 
 // const initialFile: CodeFile = {
@@ -88,6 +90,32 @@ export default handleActions<CodePanelState, CodePanelData>({
       extraArgs: action.payload.extraArgs,
       workState: state.workState
     }
+  },
+  [Actions.DELETE_FILE]: (state, action) => {
+    const newFiles = state.workState.files.filter((c) => {
+      return c.fileName != action.payload.fileName
+    });
+    const newFile = (newFiles.length > 0) ? newFiles[0] : {
+      rawSrc: '',
+      fileName: ''
+    }
+    AppToaster.clear();
+    AppToaster.show({
+      message: "Successfully deleted!",
+      intent: Intent.SUCCESS,
+      iconName: 'trash'
+    });
+    return {
+      rawSrc: newFile.rawSrc,
+      fileName: newFile.fileName,
+      consoleSrc: state.consoleSrc,
+      otherFiles: state.otherFiles,
+      extraArgs: state.extraArgs,
+      workState: {
+        wd: state.workState.wd,
+        files: newFiles
+      }
+    };
   },
   [Actions.CHANGE_SRC_FILE]: (state, action) => {
     // alert(action.payload.fileName);

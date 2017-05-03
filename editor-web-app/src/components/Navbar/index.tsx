@@ -3,10 +3,13 @@ import * as classNames from 'classnames';
 import * as EditorActions from '../../actions/editor';
 import * as CodeService from '../../services/codeService';
 import * as StorageService from '../../services/storageService';
+import { AppToaster } from "../../services/toaster";
 
 import { Breadcrumb, Classes, Button, ITreeNode, Tree, Tooltip,
          Position, Intent, Popover, EditableText} from "@blueprintjs/core";
-import RenameDialog from './rename';
+
+import RenameDialog from './renameDialog';
+import NewFileDialog from './newDialog';
 
 interface NavbarProps {
   actions: typeof EditorActions;
@@ -56,43 +59,79 @@ class Navbar extends React.Component<NavbarProps, {}> {
         return "";
       }
     }
-    const runPopover = (
-      <div>
-        <input className={"pt-input"} type={"text"}
-           placeholder={"Extra args..."}
-           value={popoverValue(editor.extraArgs)}
-           onChange={(args) => {
-             actions.argChange({
-              extraArgs: args.target.value.split(' ')
-             });
-           }}
-        />
-        <br />
-        <br />
-        <button className="pt-button"
-          onClick = {() => {
-            codeService.run(editor, actions);
+  const runPopover = (
+    <div>
+      <input className={"pt-input"} type={"text"}
+          placeholder={"Extra args..."}
+          value={popoverValue(editor.extraArgs)}
+          onChange={(args) => {
+            actions.argChange({
+            extraArgs: args.target.value.split(' ')
+            });
           }}
-        >{this.formatCommandName(editor.fileName, editor.extraArgs)}</button>
-      </div>
+      />
+      <br />
+      <br />
+      <button className="pt-button"
+        onClick = {() => {
+          codeService.run(editor, actions);
+        }}
+      >{this.formatCommandName(editor.fileName, editor.extraArgs)}</button>
+    </div>
+  );
+  const runButton = isEmpty ? (<button className={runClass}>Run</button>) :
+      (
+      <Popover
+        content = {runPopover}
+        popoverClassName="pt-popover-content-sizing"
+        position={Position.BOTTOM}
+        useSmartArrowPositioning={true}
+      >
+        <button className={runClass}>Run</button>
+      </Popover>
     );
-    const runButton = isEmpty ? (<button className={runClass}>Run</button>) :
-        (
-        <Popover
-          content = {runPopover}
-          popoverClassName="pt-popover-content-sizing"
-          position={Position.BOTTOM}
-          useSmartArrowPositioning={true}
-        >
-          <button className={runClass}>Run</button>
-        </Popover>
-      );
 
-    const newPopover = (
-      <div>
-        <button className={"pt-button pt-minimal pt-icon pt-icon-folder-close"}>New Folder</button><br/>
-        <button className={"pt-button pt-minimal pt-icon pt-icon-document"}>New File</button>
-      </div>
+    const renameButton = isEmpty ? (<button className={renameClass}>Rename</button>) :
+      (
+      <RenameDialog className={renameClass} currentFile={editor.fileName} actions={actions}
+          storageService={storageService}
+          wd={editor.workState.wd}
+        />
+      )
+
+    const saveButton = isEmpty ? (<button className={saveClass}>Save</button>) :
+      (
+      <button className={saveClass} onClick = {() => {
+          const path = editor.workState.wd + editor.fileName;
+          storageService.saveFile(path, editor.rawSrc, actions, editor);
+        }}>Save</button>
+      )
+    const deleteButton = isEmpty ? (<button className={deleteClass}>Delete</button>) :
+      (
+        <button className={deleteClass}
+          onClick={() => {
+            AppToaster.show({
+              action: {
+                onClick: () => {
+                  const path = editor.workState.wd + editor.fileName;
+                  storageService.deleteFile(path, actions)
+                },
+                text: 'Delete',
+              },
+              message: "Are you sure you want to delete " + editor.fileName + '?',
+              intent: Intent.WARNING,
+              iconName: "trash"
+            })
+          }}
+        >Delete</button>
+      )
+
+    const newButton = (
+      <NewFileDialog className={"pt-button pt-minimal pt-icon pt-icon-add"}
+        storageService={storageService}
+        wd={editor.workState.wd}
+        actions={actions}
+      />
     )
 
    return (
@@ -101,25 +140,12 @@ class Navbar extends React.Component<NavbarProps, {}> {
         <div className="pt-navbar-heading">
           {/* editable text used to be here */}
         </div>
-        <Popover
-          content = {newPopover}
-          popoverClassName="pt-popover-content-sizing"
-          position={Position.BOTTOM_LEFT}
-          useSmartArrowPositioning={true}
-        >
-          <button className="pt-button pt-minimal pt-icon-add">New</button>
-        </Popover>
-        <RenameDialog className={renameClass} currentFile={editor.fileName} actions={actions}
-            storageService={storageService}
-            wd={editor.workState.wd}
-         />
+        {newButton}
+        {renameButton}
         <span className="pt-navbar-divider"></span>
-        <button className={saveClass} onClick = {() => {
-            const path = editor.workState.wd + editor.fileName;
-            storageService.saveFile(path, editor.rawSrc, actions, editor);
-          }}>Save</button>
+        {saveButton}
         <span className="pt-navbar-divider"></span>
-        <button className={deleteClass}>Delete</button>
+        {deleteButton}
       </div>
       <div className="pt-navbar-group pt-align-right" style={tooltipStyle}>
         <button className={compileClass}

@@ -6,6 +6,22 @@ import { AppToaster } from "./toaster";
 
 export const STORAGE_SERVICE_URL = "http://localhost:4000/"
 
+export function deleteFile(path: string, actions: typeof EditorActions) {
+  const url = STORAGE_SERVICE_URL + 'delete-path' + path;
+  fetch(url, {
+    method: 'DELETE'
+  }).then(response => response.text()).then(responseText => {
+    const responseBody = JSON.parse(responseText);
+    if(responseBody['n'] == 1) {
+      const tokens = path.split('/');
+      const fn = tokens[tokens.length-1];
+      actions.deleteFile({
+        fileName: fn
+      });
+    }
+  })
+}
+
 export function renameFile(path: string, newName: string, actions: typeof EditorActions){
       const url = STORAGE_SERVICE_URL + 'rename-path' + path;
       fetch(url, {
@@ -34,12 +50,14 @@ export function saveFile(path: string, contents: string, actions: typeof EditorA
         if (responseText == 'success') {
           AppToaster.show({
             message: "Saved successfully!",
-            intent: Intent.SUCCESS
+            intent: Intent.SUCCESS,
+            iconName: "floppy-disk"
           });
         } else {
           AppToaster.show({
             message: "Something went wrong",
-            intent: Intent.DANGER
+            intent: Intent.DANGER,
+            iconName: "floppy-disk"
           });
         }
       })
