@@ -1,5 +1,7 @@
 import {encode, decode} from 'base-64';
 import * as EditorActions from '../actions/editor';
+import {AppToaster} from './toaster';
+import {Intent} from '@blueprintjs/core';
 export const CODE_SERVICE_URL = "http://localhost:5000/"
 
 function getUuidAndFile(files: CodeFile[], fileName: string){
@@ -11,6 +13,28 @@ function getUuidAndFile(files: CodeFile[], fileName: string){
     uuid: path[2],
     className: path[3]
   };
+}
+
+export function validateTicket (ticket: string, props: CodePanelData,
+  actions: typeof EditorActions) {
+  const url = CODE_SERVICE_URL + 'validate/' + ticket;
+  fetch(url, {
+    method: 'GET'
+  }).then(response => response.text()).then((user) => {
+    if (user == "failure"){
+      AppToaster.show({
+        intent: Intent.DANGER,
+        message: 'Something went wrong! Please try again'
+      })
+    } else {
+      actions.logIn({
+        authState: {
+          isAuthenticated: true,
+          user: user,
+          ticket: ticket
+        }});
+    }
+  });
 }
 
 export function run (props: CodePanelData, actions: typeof EditorActions) {

@@ -5,10 +5,6 @@ import { AppToaster } from "../services/toaster";
 import { Intent } from "@blueprintjs/core";
 import {encode, decode} from 'base-64';
 
-// const initialFile: CodeFile = {
-//   rawSrc: "//your code here",
-//   fileName: "Untitled.java"
-// }
 const initialState: CodePanelData = {
   rawSrc: "",
   consoleSrc: "",
@@ -51,7 +47,6 @@ export default handleActions<CodePanelState, CodePanelData>({
     };
   },
   [Actions.UPDATE_SRC]: (state, action) => {
-    console.log(state.otherFiles);
     return {
       rawSrc: action.payload.rawSrc,
       fileName: state.fileName,
@@ -218,6 +213,10 @@ export default handleActions<CodePanelState, CodePanelData>({
   },
   [Actions.LOG_IN]: (state, action) => {
     const {authState} = action.payload;
+    AppToaster.show({
+      intent: Intent.SUCCESS,
+      message: "Welcome " + authState.user + "!"
+    })
     return {
       rawSrc: state.rawSrc,
       fileName: state.fileName,

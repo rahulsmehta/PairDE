@@ -60,25 +60,10 @@ class App extends React.Component<AppProps, AppState>{
     //   }
     // }
     // https://fed.princeton.edu/cas/serviceValidate?ticket=ST-275245-elL0gHT6LONmEozLVe6z-auth-a&service=http%3A%2F%2Flocalhost%3A3000%2F
-      const validate = (ticket) => {
-        return {
-          ticketValid: true,
-          user: 'rahulm'
-        }
-      };
       const tokens = window.location.href.split('ticket=');
       if (tokens.length > 1 && !editor.authState.isAuthenticated) {
         const ticket = tokens[1];
-        const {ticketValid, user} = validate(ticket);
-        if(ticketValid){
-          actions.logIn({
-            authState: {
-              isAuthenticated: true,
-              user: user,
-              ticket: ticket
-            }
-          });
-        }
+        codeService.validateTicket(ticket, editor, actions);
       }
       storageService.listPath(workState.wd, actions, editor);
   }

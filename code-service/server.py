@@ -6,6 +6,7 @@ from os import path
 from flask import Flask, request
 from flask_cors import CORS
 import urllib2
+import xmltodict
 
 app = Flask(__name__)
 
@@ -57,8 +58,13 @@ def pong():
 def validate_cas_ticket(ticket):
     cas_url = "https://fed.princeton.edu/cas/serviceValidate?service={}&ticket={}"
     cas_url = cas_url.format(SERVICE_URL, ticket)
-    result = urllib2.urlopen(cas_url).read()
-    return result
+    try:
+        result = urllib2.urlopen(cas_url).read()
+        cas_response = xmltodict.parse(result)
+        user = cas_response['cas:serviceResponse']['cas:authenticationSuccess']['cas:user']
+        return user
+    except:
+        return "failure"
 
 @app.route('/compile/<path:path>', methods=['POST'])
 def compile_blob(path):
