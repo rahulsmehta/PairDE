@@ -17,6 +17,10 @@ import * as style from './style.css';
 
 import MonacoEditor from "react-monaco-editor";
 const PanelGroup = require("react-panelgroup");
+const CAS = require('cas');
+const uri = require('urijs');
+const cas = new CAS({base_url: 'https://fed.princeton.edu/cas/login',
+  service: 'http%3A%2F%2Flocalhost%3A3000%2F'});
 import { Breadcrumb, Classes, Button, ITreeNode, Tree, Tooltip,
          Position, Intent, Popover, EditableText} from "@blueprintjs/core";
 
@@ -35,10 +39,77 @@ class App extends React.Component<AppProps, AppState>{
   componentDidMount() {
     const { editor, actions } = this.props;
     const workState = editor.workState;
-    storageService.listPath(workState.wd, actions, editor);
+    // console.log(uri);
+    // if (!editor.authState.isAuthenticated) {
+    //   const url_tokens = window.location.href.split('ticket=');
+    //   let ticket = null;
+    //   if (url_tokens.length > 1) {
+    //     ticket = url_tokens[1];
+    //   }
+    //   if(ticket != null) {
+    //     alert(ticket);
+    //     const validateUrl =
+    //       'https://fed.princeton.edu/cas/serviceValidate?service=http%3A%2F%2Flocalhost%3A3000%2F&ticket=' + ticket;
+    //     fetch (validateUrl, {
+    //       method: 'GET',
+    //       mode: 'no-cors'
+    //     }).then(response => response.text()).then((user) => {
+    //     })
+    //   } else {
+    //     window.location.replace("https://fed.princeton.edu/cas/login?service=http%3A%2F%2Flocalhost%3A3000%2F");
+    //   }
+    // }
+    // https://fed.princeton.edu/cas/serviceValidate?ticket=ST-275245-elL0gHT6LONmEozLVe6z-auth-a&service=http%3A%2F%2Flocalhost%3A3000%2F
+      const validate = (ticket) => {
+        return {
+          ticketValid: true,
+          user: 'rahulm'
+        }
+      };
+      const tokens = window.location.href.split('ticket=');
+      if (tokens.length > 1 && !editor.authState.isAuthenticated) {
+        const ticket = tokens[1];
+        const {ticketValid, user} = validate(ticket);
+        if(ticketValid){
+          actions.logIn({
+            authState: {
+              isAuthenticated: true,
+              user: user,
+              ticket: ticket
+            }
+          });
+        }
+      }
+      storageService.listPath(workState.wd, actions, editor);
   }
 
-  render() {
+  renderAuthView(){
+    return (
+      <div className = {classNames(style.default, "pt-app")} >
+        <div className="pt-non-ideal-state">
+          <div className="pt-non-ideal-state-visual pt-non-ideal-state-icon">
+          <span className="pt-icon pt-icon-user"></span>
+        </div>
+          <h4 className="pt-non-ideal-state-title">You are not signed in!</h4>
+          <div className="pt-non-ideal-state-description">
+            <a className={"pt-button pt-intent-primary"}
+              href={"https://fed.princeton.edu/cas/login?service=http%3A%2F%2Flocalhost%3A3000%2F"}>
+              Login with CAS </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+    render() {
+      if (!this.props.editor.authState.isAuthenticated) {
+        return this.renderAuthView();
+      } else {
+        return this.renderDefaultView();
+      }
+    }
+
+  renderDefaultView() {
     const { editor, actions, children } = this.props;
     const workState = editor.workState;
     const fileNodes: ITreeNode[] = workState.files.map((c: CodeFile, i) => {
@@ -66,7 +137,7 @@ class App extends React.Component<AppProps, AppState>{
       }
     ]
 
-    return (
+    const defaultView = (
       <div className = {classNames(style.default, "pt-app")} >
         <Navbar actions={actions}
           codeService={codeService}
@@ -113,8 +184,10 @@ class App extends React.Component<AppProps, AppState>{
         </PanelGroup>
       </div>
     );
+    return defaultView;
   }
 }
+
 
 function mapStateToProps(state: RootState) {
   return {

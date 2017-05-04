@@ -305,4 +305,4 @@ def check_add_root():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=4000)
+    app.run(debug=True, port=4000, threaded=True)

@@ -18,19 +18,22 @@ const initialState: CodePanelData = {
   workState: {
     wd: '/',
     files: []
+  },
+  authState: {
+    isAuthenticated: false
   }
 };
 
 export default handleActions<CodePanelState, CodePanelData>({
   [Actions.COMPILE_FILE]: (state, action) => {
-    //alert(action.payload.otherFiles[0].compileId);
     return {
       rawSrc: state.rawSrc,
       fileName: state.fileName,
       consoleSrc: action.payload.consoleSrc,
       otherFiles: action.payload.otherFiles,
       extraArgs: state.extraArgs,
-      workState: action.payload.workState
+      workState: action.payload.workState,
+      authState: state.authState
     };
   },
   [Actions.SAVE_FILE]: (state, action) => {
@@ -43,7 +46,8 @@ export default handleActions<CodePanelState, CodePanelData>({
       otherFiles: state.otherFiles,
       consoleSrc: action.payload.consoleSrc,
       extraArgs: state.extraArgs,
-      workState: state.workState
+      workState: state.workState,
+      authState: state.authState
     };
   },
   [Actions.UPDATE_SRC]: (state, action) => {
@@ -54,7 +58,8 @@ export default handleActions<CodePanelState, CodePanelData>({
       consoleSrc: state.consoleSrc,
       otherFiles: state.otherFiles,
       extraArgs: state.extraArgs,
-      workState: state.workState
+      workState: state.workState,
+      authState: state.authState
     };
   },
   [Actions.RENAME_CURRENT]: (state, action) => {
@@ -78,7 +83,8 @@ export default handleActions<CodePanelState, CodePanelData>({
       workState: {
         wd: state.workState.wd,
         files: updatedFiles
-      }
+      },
+      authState: state.authState
     }
   },
   [Actions.CREATE_FILE]: (state, action) => {
@@ -114,7 +120,8 @@ export default handleActions<CodePanelState, CodePanelData>({
       workState: {
         wd: state.workState.wd,
         files: newFiles
-      }
+      },
+      authState: state.authState
     }
   },
   [Actions.ARG_CHANGE]: (state, action) => {
@@ -124,7 +131,8 @@ export default handleActions<CodePanelState, CodePanelData>({
       consoleSrc: state.consoleSrc,
       otherFiles: state.otherFiles,
       extraArgs: action.payload.extraArgs,
-      workState: state.workState
+      workState: state.workState,
+      authState: state.authState
     }
   },
   [Actions.DELETE_FILE]: (state, action) => {
@@ -150,12 +158,11 @@ export default handleActions<CodePanelState, CodePanelData>({
       workState: {
         wd: state.workState.wd,
         files: newFiles
-      }
+      },
+      authState: state.authState
     };
   },
   [Actions.CHANGE_SRC_FILE]: (state, action) => {
-    // alert(action.payload.fileName);
-    // alert(action.payload.rawSrc);
     // before returning state, update rawSrc for the org file
     // in workState
 
@@ -180,11 +187,11 @@ export default handleActions<CodePanelState, CodePanelData>({
       workState: {
         wd: state.workState.wd,
         files: newFiles
-      }
+      },
+      authState: state.authState
     };
   },
   [Actions.INIT_APP]: (state, action) => {
-    // alert(JSON.stringify(action.payload.workState));
     const { workState } = action.payload;
     if (workState.files.length > 0) {
       const top = workState.files[0];
@@ -194,7 +201,8 @@ export default handleActions<CodePanelState, CodePanelData>({
         consoleSrc: state.consoleSrc,
         otherFiles: state.otherFiles,
         extraArgs: state.extraArgs,
-        workState: action.payload.workState
+        workState: action.payload.workState,
+        authState: state.authState
       }
     } else {
       return {
@@ -203,8 +211,22 @@ export default handleActions<CodePanelState, CodePanelData>({
         consoleSrc: state.consoleSrc,
         otherFiles: state.otherFiles,
         extraArgs: state.extraArgs,
-        workState: action.payload.workState
+        workState: action.payload.workState,
+        authState: state.authState
       }
+    }
+  },
+  [Actions.LOG_IN]: (state, action) => {
+    const {authState} = action.payload;
+    alert(authState.user);
+    return {
+      rawSrc: state.rawSrc,
+      fileName: state.fileName,
+      consoleSrc: state.consoleSrc,
+      otherFiles: state.otherFiles,
+      extraArgs: state.extraArgs,
+      workState: state.workState,
+      authState: authState
     }
   }
 }, initialState);

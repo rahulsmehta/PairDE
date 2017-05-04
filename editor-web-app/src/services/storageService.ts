@@ -93,6 +93,7 @@ export function saveFile(path: string, contents: string, actions: typeof EditorA
 
 export function listPath(path: string, actions: typeof EditorActions, props: CodePanelData) {
   const url = STORAGE_SERVICE_URL + 'list-path' + path;
+  // alert(url);
   const fileUrl = STORAGE_SERVICE_URL + 'load-rid/';
   const grabContent = url => fetch(url)
     .then(res => res.text()).then(obj => {
