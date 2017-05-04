@@ -218,7 +218,6 @@ export default handleActions<CodePanelState, CodePanelData>({
   },
   [Actions.LOG_IN]: (state, action) => {
     const {authState} = action.payload;
-    alert(authState.user);
     return {
       rawSrc: state.rawSrc,
       fileName: state.fileName,

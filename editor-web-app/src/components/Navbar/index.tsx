@@ -164,7 +164,7 @@ class Navbar extends React.Component<NavbarProps, {}> {
           <button className="pt-button pt-minimal pt-icon-changes pt-disabled">Switch</button>
         </Tooltip>
         <span className="pt-navbar-divider"></span>
-        <Tooltip content="My Account" position = {Position.BOTTOM}>
+        <Tooltip content={"Logged in as " + editor.authState.user} position = {Position.BOTTOM_RIGHT}>
           <button className="pt-button pt-minimal pt-icon-user"></button>
         </Tooltip>
         <Tooltip content="Settings" position = {Position.BOTTOM}>
