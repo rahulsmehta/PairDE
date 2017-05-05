@@ -22,6 +22,9 @@ const PanelGroup = require("react-panelgroup");
 import { Breadcrumb, Classes, Button, ITreeNode, Tree, Tooltip,
          Position, Intent, Popover, EditableText} from "@blueprintjs/core";
 
+const io = require('socket.io-client');
+let socket = io(`http://localhost:9000`, {transports: ['websocket']});
+
 import { encode } from 'base-64';
 
 interface AppProps {
@@ -144,6 +147,7 @@ class App extends React.Component<AppProps, AppState>{
         isEmpty={false}
         isSlave={isSlave}
         fileName={editor.fileName}
+        socket={socket}
       />
     )
 

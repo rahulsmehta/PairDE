@@ -1,6 +1,6 @@
 import json
 import bson
-from flask import Flask, request
+from flask import Flask, request, session
 # from flask_uuid import FlaskUUID
 from flask_pymongo import PyMongo
 from uuid import uuid4
@@ -75,11 +75,18 @@ def getshared(user):
         loaded.append(loaded_dir)
     return json.dumps(loaded)
 
+@socketio.on('get_lock', namespace='/')
+def on_init(payload, path):
+    print "Received lock request from {}...acking...".format(request.sid)
+
+@socketio.on('release_lock', namespace='/')
+def on_init(payload, path):
+    print "Received release lock request from {}...acking...".format(request.sid)
+
 
 @socketio.on('code', namespace='/')
 def on_code(payload,path):
-    print payload
-    print request.sid
+    print "Received payload from {}".format(request.sid)
     emit('code-sub',payload,namespace='/', broadcast=True)
 
 if __name__ == '__main__':

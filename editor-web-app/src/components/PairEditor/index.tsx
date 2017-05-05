@@ -3,8 +3,6 @@ import * as classNames from "classnames";
 import MonacoEditor from "react-monaco-editor";
 import * as EditorActions from '../../actions/editor';
 // const io = require('socket.io-client');
-const io = require('socket.io-client');
-let socket = io(`http://localhost:9000`, {transports: ['websocket']});
 
 
 interface IPairEditorProps {
@@ -13,6 +11,7 @@ interface IPairEditorProps {
   isEmpty: boolean;
   isSlave: boolean;
   fileName: string;
+  socket: SocketIOClient.Socket;
 }
 
 interface IPairEditorState {
@@ -27,19 +26,17 @@ class PairEditor extends React.Component<IPairEditorProps,IPairEditorState> {
   }
 
   componentDidMount() {
+    const {socket} = this.props;
     socket.on('connect', () => console.log('connected'));
     socket.on('code-sub', (payload) => {
-      const msg = JSON.parse(payload);
-      console.log(msg.fileName);
       this.props.actions.updateSrc({
-        rawSrc: msg.src
+        rawSrc: payload
       });
     });
   }
 
   render() {
-    console.log(socket);
-    const {src, actions, isEmpty, fileName} = this.props;
+    const {src, actions, isEmpty, fileName, socket} = this.props;
     const slaveEditor = (
       <div style = {{width: '100%', height: '100%', backgroundColor: '#333'}}>
         <MonacoEditor
