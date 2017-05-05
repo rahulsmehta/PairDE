@@ -155,6 +155,7 @@ def create_path(path):
 
     if parentPath == "":
         parentId = root()
+        parent = mongo.db.code.find_one({'_id': bson.ObjectId(oid=str(parentId))})
     else:
         parent = mongo.db.code.find_one({'path': parentPath})
         print parent
@@ -164,6 +165,11 @@ def create_path(path):
             return parent['name'] + " is not a folder"
         else:
             parentId = parent['_id']
+    childList = parent['children']
+    for childID in childList:
+        child = mongo.db.code.find_one({'_id': bson.ObjectId(oid=str(childID))})
+        if child['name'] == filename:
+            return "file already exists"
     mongo.db.code.insert(
         {'name': filename, 'children': [], 'contents': data['contents'], 'isDir': data['isDir'], 'parent': parentId,
          'path': rawpath})
