@@ -12,12 +12,11 @@ interface IPairEditorProps {
   actions: typeof EditorActions;
   isEmpty: boolean;
   isSlave: boolean;
-  initialSrc: string;
+  fileName: string;
 }
 
 interface IPairEditorState {
   // socket: SocketIOClient.Socket
-  syncSrc: string
 }
 
 class PairEditor extends React.Component<IPairEditorProps,IPairEditorState> {
@@ -25,24 +24,26 @@ class PairEditor extends React.Component<IPairEditorProps,IPairEditorState> {
 
   constructor(props?: IPairEditorProps, context?: any) {
     super(props, context);
-    this.state = {syncSrc: props.initialSrc}
   }
 
   componentDidMount() {
     socket.on('connect', () => console.log('connected'));
     socket.on('code-sub', (payload) => {
-      console.log(payload);
-      this.setState({syncSrc: payload})
+      const msg = JSON.parse(payload);
+      console.log(msg.fileName);
+      this.props.actions.updateSrc({
+        rawSrc: msg.src
+      });
     });
   }
 
   render() {
     console.log(socket);
-    const {src, actions, isEmpty} = this.props;
+    const {src, actions, isEmpty, fileName} = this.props;
     const slaveEditor = (
       <div style = {{width: '100%', height: '100%', backgroundColor: '#333'}}>
         <MonacoEditor
-            value = {this.state.syncSrc}
+            value = {src}
             language = "java"
             options = {{
               readOnly: true,

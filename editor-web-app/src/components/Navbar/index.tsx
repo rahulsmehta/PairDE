@@ -16,6 +16,7 @@ interface NavbarProps {
   codeService: typeof CodeService;
   storageService: typeof StorageService;
   editor: CodePanelData;
+  isSlave: boolean;
 }
 
 class Navbar extends React.Component<NavbarProps, {}> {
@@ -33,7 +34,7 @@ class Navbar extends React.Component<NavbarProps, {}> {
   }
 
   render() {
-    const {storageService, codeService, actions, editor} = this.props;
+    const {storageService, codeService, actions, editor, isSlave} = this.props;
     const tooltipStyle = {paddingRight: "10px"};
     const isEmpty = editor.workState.files.length == 0;
 
@@ -52,6 +53,12 @@ class Navbar extends React.Component<NavbarProps, {}> {
     if (!editor.isHome) {
       renameClass += " pt-disabled";
       deleteClass += " pt-disabled";
+    }
+
+    if (isSlave && !editor.isHome) {
+      saveClass += ' pt-disabled';
+      compileClass += ' pt-disabled';
+      runClass += ' pt-disabled';
     }
 
 
@@ -83,7 +90,7 @@ class Navbar extends React.Component<NavbarProps, {}> {
       >{this.formatCommandName(editor.fileName, editor.extraArgs)}</button>
     </div>
   );
-  const runButton = isEmpty ? (<button className={runClass}>Run</button>) :
+  const runButton = (isEmpty || (isSlave && !editor.isHome)) ? (<button className={runClass}>Run</button>) :
       (
       <Popover
         content = {runPopover}
@@ -96,10 +103,16 @@ class Navbar extends React.Component<NavbarProps, {}> {
     );
 
   let partnerClass = "pt-button pt-minimal pt-icon-people ";
+  let startClassName = "pt-button pt-icon pt-minimal pt-icon-edit ";
+  let stopClassName = "pt-button pt-icon pt-minimal pt-icon-stop ";
+  if (isSlave)
+    stopClassName += 'pt-disabled';
+  else
+    startClassName += 'pt-disabled';
   const partnerPopover = (
     <div>
-      <button className="pt-button pt-icon pt-minimal pt-icon-edit">Start Editing</button> <br/>
-      <button className="pt-button pt-icon pt-minimal pt-icon-stop">Stop Editing</button>
+      <button className={startClassName}>Start Editing</button> <br/>
+      <button className={stopClassName}>Stop Editing</button>
     </div>
   );
   const partnerButton = (isEmpty || editor.isHome) ?

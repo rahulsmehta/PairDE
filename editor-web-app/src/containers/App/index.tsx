@@ -131,12 +131,29 @@ class App extends React.Component<AppProps, AppState>{
       }
     });
 
+
+
+    const isSlave = (editor.authState.user == 'mhw3');
+    // const isSlave = true;
+    const editorComponent = (editor.isHome) ? (
+      <Editor src={editor.rawSrc} actions={actions}
+        isEmpty={editor.workState.files.length == 0}
+      />
+    ) : (
+      <PairEditor src={editor.rawSrc} actions={actions}
+        isEmpty={false}
+        isSlave={isSlave}
+        fileName={editor.fileName}
+      />
+    )
+
     const defaultView = (
       <div className = {classNames(style.default, "pt-app")} >
         <Navbar actions={actions}
           codeService={codeService}
           storageService={storageService}
           editor={editor}
+          isSlave={isSlave}
         />
 
         <PanelGroup
@@ -207,14 +224,7 @@ class App extends React.Component<AppProps, AppState>{
             spacing = {5}
             panelWidths = {[{size: 400, minSize: 0, resize: "dynamic"}]}
           >
-          {/*<PairEditor src={editor.rawSrc} actions={actions}
-            isEmpty={editor.workState.files.length == 0}
-            isSlave={true}
-            initialSrc={editor.rawSrc}
-          />*/}
-          <Editor src={editor.rawSrc} actions={actions}
-            isEmpty={editor.workState.files.length == 0}
-          />
+          {editorComponent}
           <Console src={editor.consoleSrc} />
           </PanelGroup>
 
