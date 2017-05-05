@@ -83,6 +83,28 @@ def list_path(path):
     else:
         return json.dumps(map(str, resource['children']))
 
+@app.route('/list-full', defaults={'path': ''})
+@app.route('/list-full/', defaults={'path': ''})
+@app.route('/list-full/<path:path>', methods=['GET'])
+@cross_origin()
+def list_full(path):
+    path = '/' + path
+    resource = mongo.db.code.find_one({'path': path})
+    if resource['isDir'] == False:
+        return "file has no members"
+    else:
+        children = resource['children']
+        loaded = []
+        for rid in children:
+            doc = mongo.db.code.find_one({'_id': bson.ObjectId(oid=str(rid))})
+            if len(doc) <= 0:
+                continue
+            if doc['isDir']:
+                loaded.append({'rawSrc': None, 'fileName': doc['name']})
+            else:
+                loaded.append({'rawSrc':doc['contents'], 'fileName': doc['name']})
+        return json.dumps(loaded);
+
 
 @app.route('/update-path', defaults={'path': ''})
 @app.route('/update-path/', defaults={'path': ''})

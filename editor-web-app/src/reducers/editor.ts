@@ -188,6 +188,7 @@ export default handleActions<CodePanelState, CodePanelData>({
   },
   [Actions.INIT_APP]: (state, action) => {
     const { workState } = action.payload;
+    alert(action.payload.authState.isAuthenticated);
     if (workState.files.length > 0) {
       const top = workState.files[0];
       return {
@@ -197,7 +198,7 @@ export default handleActions<CodePanelState, CodePanelData>({
         otherFiles: state.otherFiles,
         extraArgs: state.extraArgs,
         workState: action.payload.workState,
-        authState: state.authState
+        authState: action.payload.authState
       }
     } else {
       return {
@@ -207,12 +208,12 @@ export default handleActions<CodePanelState, CodePanelData>({
         otherFiles: state.otherFiles,
         extraArgs: state.extraArgs,
         workState: action.payload.workState,
-        authState: state.authState
+        authState: action.payload.authState
       }
     }
   },
   [Actions.LOG_IN]: (state, action) => {
-    const {authState} = action.payload;
+    const {authState, workState} = action.payload;
     AppToaster.show({
       intent: Intent.SUCCESS,
       message: "Welcome " + authState.user + "!"
@@ -223,7 +224,7 @@ export default handleActions<CodePanelState, CodePanelData>({
       consoleSrc: state.consoleSrc,
       otherFiles: state.otherFiles,
       extraArgs: state.extraArgs,
-      workState: state.workState,
+      workState: workState,
       authState: authState
     }
   }

@@ -91,6 +91,58 @@ export function saveFile(path: string, contents: string, actions: typeof EditorA
       })
     }
 
+
+export function validateTicket (ticket: string, props: CodePanelData,
+  actions: typeof EditorActions) {
+  const url = 'http://localhost:5000/validate/' + ticket;
+  fetch(url, {
+    method: 'GET'
+  }).then(response => response.text()).then((user) => {
+    if (user == "failure"){
+      AppToaster.show({
+        intent: Intent.DANGER,
+        message: 'Something went wrong! Please try again'
+      })
+    } else {
+      const listUrl = STORAGE_SERVICE_URL + 'list-path/' + user + '/';
+      // alert(url);
+      const fileUrl = STORAGE_SERVICE_URL + 'load-rid/';
+      const grabContent = url => fetch(url)
+        .then(res => res.text()).then(obj => {
+          return obj;
+        })
+      fetch(listUrl, {
+        method: 'GET'
+      }).then(response => response.text()).then((responseText) => {
+        const rids: string[] = JSON.parse(responseText);
+        const urls: string[] = rids.map((rid) => {
+          return fileUrl + rid;
+        });
+        Promise.all(urls.map(grabContent)).then((val) => {
+          const objs = val.map(v => JSON.parse(v));
+          const newFiles = objs.map((v,i) => {
+            return {
+              rawSrc: decode(v['contents']),
+              fileName: v['name']
+            };
+          });
+        actions.initApp({
+          workState: {
+            wd: '/' + user + '/',
+            files: newFiles
+          },
+          authState: {
+            isAuthenticated: true,
+            user: user,
+            ticket: ticket
+          }
+        });
+    });
+  });
+    }
+  });
+  }
+
 export function listPath(path: string, actions: typeof EditorActions, props: CodePanelData) {
   const url = STORAGE_SERVICE_URL + 'list-path' + path;
   // alert(url);
@@ -118,8 +170,9 @@ export function listPath(path: string, actions: typeof EditorActions, props: Cod
         workState: {
           wd: props.workState.wd,
           files: newFiles
-        }
-      })
+        },
+        authState: props.authState
+      });
     });
 
   });

@@ -39,33 +39,13 @@ class App extends React.Component<AppProps, AppState>{
   componentDidMount() {
     const { editor, actions } = this.props;
     const workState = editor.workState;
-    // console.log(uri);
-    // if (!editor.authState.isAuthenticated) {
-    //   const url_tokens = window.location.href.split('ticket=');
-    //   let ticket = null;
-    //   if (url_tokens.length > 1) {
-    //     ticket = url_tokens[1];
-    //   }
-    //   if(ticket != null) {
-    //     alert(ticket);
-    //     const validateUrl =
-    //       'https://fed.princeton.edu/cas/serviceValidate?service=http%3A%2F%2Flocalhost%3A3000%2F&ticket=' + ticket;
-    //     fetch (validateUrl, {
-    //       method: 'GET',
-    //       mode: 'no-cors'
-    //     }).then(response => response.text()).then((user) => {
-    //     })
-    //   } else {
-    //     window.location.replace("https://fed.princeton.edu/cas/login?service=http%3A%2F%2Flocalhost%3A3000%2F");
-    //   }
-    // }
-    // https://fed.princeton.edu/cas/serviceValidate?ticket=ST-275245-elL0gHT6LONmEozLVe6z-auth-a&service=http%3A%2F%2Flocalhost%3A3000%2F
-      const tokens = window.location.href.split('ticket=');
-      if (tokens.length > 1 && !editor.authState.isAuthenticated) {
-        const ticket = tokens[1];
-        codeService.validateTicket(ticket, editor, actions);
-      }
+    const tokens = window.location.href.split('ticket=');
+    if (tokens.length > 1 && !editor.authState.isAuthenticated) {
+      const ticket = tokens[1];
+      codeService.validateTicket(ticket, editor, actions);
+    } else {
       storageService.listPath(workState.wd, actions, editor);
+    }
   }
 
   renderAuthView(){
@@ -97,6 +77,7 @@ class App extends React.Component<AppProps, AppState>{
   renderDefaultView() {
     const { editor, actions, children } = this.props;
     const workState = editor.workState;
+
     const fileNodes: ITreeNode[] = workState.files.map((c: CodeFile, i) => {
       const isDir = (c.fileName.indexOf('.java') != -1);
       const icon = isDir ? 'code' : 'folder-close';
