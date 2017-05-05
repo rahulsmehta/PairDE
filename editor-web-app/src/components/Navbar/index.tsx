@@ -49,6 +49,10 @@ class Navbar extends React.Component<NavbarProps, {}> {
       compileClass += " pt-disabled";
       runClass += " pt-disabled";
     }
+    if (!editor.isHome) {
+      renameClass += " pt-disabled";
+      deleteClass += " pt-disabled";
+    }
 
 
 
@@ -91,7 +95,7 @@ class Navbar extends React.Component<NavbarProps, {}> {
       </Popover>
     );
 
-    const renameButton = isEmpty ? (<button className={renameClass}>Rename</button>) :
+    const renameButton = (isEmpty || !editor.isHome) ? (<button className={renameClass}>Rename</button>) :
       (
       <RenameDialog className={renameClass} currentFile={editor.fileName} actions={actions}
           storageService={storageService}
@@ -106,7 +110,7 @@ class Navbar extends React.Component<NavbarProps, {}> {
           storageService.saveFile(path, editor.rawSrc, actions, editor);
         }}>Save</button>
       )
-    const deleteButton = isEmpty ? (<button className={deleteClass}>Delete</button>) :
+    const deleteButton = (isEmpty || !editor.isHome) ? (<button className={deleteClass}>Delete</button>) :
       (
         <button className={deleteClass}
           onClick={() => {
@@ -126,7 +130,9 @@ class Navbar extends React.Component<NavbarProps, {}> {
         >Delete</button>
       )
 
-    const newButton = (
+    const newButton = (!editor.isHome) ? (<button
+        className={"pt-button pt-minimal pt-icon pt-icon-add pt-disabled"}>New
+        </button>) : (
       <NewFileDialog className={"pt-button pt-minimal pt-icon pt-icon-add"}
         storageService={storageService}
         wd={editor.workState.wd}
