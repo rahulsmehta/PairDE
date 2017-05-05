@@ -6,11 +6,11 @@ from flask_pymongo import PyMongo
 from uuid import uuid4
 from bson.objectid import ObjectId
 from flask_cors import CORS, cross_origin
+from flask_socketio import send, emit, SocketIO
 
 app = Flask(__name__)
 CORS(app)
-# flask_uuid = FlaskUUID()
-# flask_uuid.init_app(app)
+socketio = SocketIO(app)
 mongo = PyMongo(app)
 
 """
@@ -73,5 +73,14 @@ def getshared(user):
         loaded.append(loaded_dir)
     return json.dumps(loaded)
 
+@socketio.on('connect', namespace='/')
+def on_connect():
+    emit('code','foobar', namespace='/')
+
+@socketio.on('code', namespace='/')
+def on_code(payload,path):
+    print payload
+    emit('code-sub',payload,namespace='/', broadcast=True)
+
 if __name__ == '__main__':
-    app.run(debug=True, port=7000, threaded=True)
+    socketio.run(app, port=9000, debug=True)

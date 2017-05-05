@@ -3,6 +3,7 @@ click==6.7
 Flask==0.12
 Flask-Cors==3.0.2
 Flask-PyMongo==0.4.1
+Flask-SocketIO==2.8.6
 Flask-UUID==0.2
 itsdangerous==0.24
 Jinja2==2.9.5
@@ -10,5 +11,7 @@ MarkupSafe==1.0
 packaging==16.8
 pymongo==3.4.0
 pyparsing==2.2.0
+python-engineio==1.4.0
+python-socketio==1.7.4
 six==1.10.0
 Werkzeug==0.12.1
