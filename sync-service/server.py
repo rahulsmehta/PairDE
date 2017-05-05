@@ -73,13 +73,8 @@ def getshared(user):
         loaded.append(loaded_dir)
     return json.dumps(loaded)
 
-@socketio.on('connect', namespace='/')
-def on_connect():
-    emit('code','foobar', namespace='/')
-
 @socketio.on('code', namespace='/')
 def on_code(payload,path):
-    print payload
     emit('code-sub',payload,namespace='/', broadcast=True)
 
 if __name__ == '__main__':

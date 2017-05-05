@@ -127,8 +127,6 @@ class App extends React.Component<AppProps, AppState>{
         childNodes: file.children.map((c,i) => mapChildNodes(c, 2*i + 1))
       }
     });
-    console.log('pair ws');
-    console.log(JSON.stringify(pairFileNodes));
 
     const defaultView = (
       <div className = {classNames(style.default, "pt-app")} >
@@ -175,9 +173,13 @@ class App extends React.Component<AppProps, AppState>{
             spacing = {5}
             panelWidths = {[{size: 400, minSize: 0, resize: "dynamic"}]}
           >
-          <PairEditor src={editor.rawSrc} actions={actions}
+          {/*<PairEditor src={editor.rawSrc} actions={actions}
             isEmpty={editor.workState.files.length == 0}
             user={editor.authState.user}
+            parentPath={'/shared/rahulm_mhw3_Assignment2/'}
+          />*/}
+          <Editor src={editor.rawSrc} actions={actions}
+            isEmpty={editor.workState.files.length == 0}
           />
           <Console src={editor.consoleSrc} />
           </PanelGroup>

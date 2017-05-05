@@ -12,6 +12,7 @@ interface IPairEditorProps {
   actions: typeof EditorActions;
   isEmpty: boolean;
   user: string;
+  parentPath: string;
 }
 
 interface IPairEditorState {
@@ -36,9 +37,8 @@ class PairEditor extends React.Component<IPairEditorProps,IPairEditorState> {
   }
 
   render() {
-    console.log(this.state.syncSrc);
     console.log(socket);
-    const {src, actions, isEmpty} = this.props;
+    const {src, actions, isEmpty, parentPath} = this.props;
     const slaveEditor = (
       <div style = {{width: '100%', height: '100%', backgroundColor: '#333'}}>
         <MonacoEditor
@@ -64,7 +64,8 @@ class PairEditor extends React.Component<IPairEditorProps,IPairEditorState> {
             }}
             theme = "vs-dark"
             onChange = {(newValue, _) => {
-              socket.emit('code', newValue, '/');
+              console.log(parentPath);
+              socket.emit('code', newValue, parentPath);
               actions.updateSrc({
                 rawSrc: newValue,
               })
