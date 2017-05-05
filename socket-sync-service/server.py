@@ -12,7 +12,22 @@ CORS(app) # allow cross-origin
 def pong():
     return "pong"
 
+@socketio.on('connect', namespace='/')
+def on_connect():
+    emit('code','foobar', namespace='/')
+
+@socketio.on('code', namespace='/')
+def on_code(payload,path):
+    print payload
+    emit('code-sub',payload,namespace='/')
+
+
+@app.route('/emit', methods=['GET'])
+def emit_code():
+    emit('code','foobar', namespace='/')
+
+
 if __name__ == '__main__':
-    socketio.run(app, port=9000)
+    socketio.run(app, port=9000, debug=True)
     # app.run(debug=True, threaded=True, port=9000)
 

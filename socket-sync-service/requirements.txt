@@ -3,8 +3,6 @@ click==6.7
 Flask==0.12
 Flask-Cors==3.0.2
 Flask-SocketIO==2.8.6
-gevent==1.2.1
-gevent-websocket==0.10.1
 greenlet==0.4.12
 itsdangerous==0.24
 Jinja2==2.9.5
