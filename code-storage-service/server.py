@@ -197,6 +197,8 @@ def load_path(path):
 def rename_path(path):
     data = json.loads(request.data)
     path = "/" + path
+    if (mongo.db.code.find_one({'path': path}) != None):
+        return "file already exists"
     rawpath = path
     splitpath = path.split('/')
     filename = splitpath[len(splitpath) - 1]
