@@ -83,6 +83,30 @@ def list_path(path):
     else:
         return json.dumps(map(str, resource['children']))
 
+@app.route('/list-full', defaults={'path': ''})
+@app.route('/list-full/', defaults={'path': ''})
+@app.route('/list-full/<path:path>', methods=['GET'])
+@cross_origin()
+def list_full(path):
+    path = '/' + path
+    resource = mongo.db.code.find_one({'path': path})
+    if resource is None:
+        return "not found"
+    elif resource['isDir'] == False:
+        return "file has no members"
+    else:
+        children = resource['children']
+        loaded = []
+        for rid in children:
+            doc = mongo.db.code.find_one({'_id': bson.ObjectId(oid=str(rid))})
+            if len(doc) <= 0:
+                continue
+            if doc['isDir']:
+                loaded.append({'rawSrc': None, 'fileName': doc['name']})
+            else:
+                loaded.append({'rawSrc':doc['contents'], 'fileName': doc['name']})
+        return json.dumps(loaded);
+
 
 @app.route('/update-path', defaults={'path': ''})
 @app.route('/update-path/', defaults={'path': ''})
@@ -166,6 +190,7 @@ def load_path(path):
 @app.route('/rename-path', defaults={'path': ''})
 @app.route('/rename-path/', defaults={'path': ''})
 @app.route('/rename-path/<path:path>', methods=['POST'])
+@cross_origin()
 def rename_path(path):
     data = json.loads(request.data)
     path = "/" + path
@@ -177,7 +202,7 @@ def rename_path(path):
         parentPath += splitpath[i] + "/"
     parentPath = parentPath[:-1]
     to_update = mongo.db.code.find_one({'path':path})
-    new_path = '/' + parentPath + data['newName']
+    new_path = parentPath + '/' + data['newName']
     mongo.db.code.update({'path': path},
                          {'name': data['newName'],
                           'isDir': to_update['isDir'],
@@ -305,4 +330,4 @@ def check_add_root():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=4000)
+    app.run(debug=True, port=4000, threaded=True)

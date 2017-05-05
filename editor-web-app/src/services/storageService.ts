@@ -6,6 +6,13 @@ import { AppToaster } from "./toaster";
 
 export const STORAGE_SERVICE_URL = "http://localhost:4000/"
 
+const fixPath = (url) => {
+  if(url.charAt(url.length-1) == '/' && url.length > 1)
+    return url.substring(0,url.length)
+  else
+    return url
+}
+
 export function create(path: string, isDir: boolean, rawSrc: string,
   actions: typeof EditorActions) {
 
@@ -51,7 +58,7 @@ export function deleteFile(path: string, actions: typeof EditorActions) {
 }
 
 export function renameFile(path: string, newName: string, actions: typeof EditorActions){
-      const url = STORAGE_SERVICE_URL + 'rename-path' + path;
+      const url = fixPath(STORAGE_SERVICE_URL + 'rename-path' + path);
       fetch(url, {
         method: 'POST',
         body: JSON.stringify({
@@ -91,35 +98,25 @@ export function saveFile(path: string, contents: string, actions: typeof EditorA
       })
     }
 
-export function listPath(path: string, actions: typeof EditorActions, props: CodePanelData) {
-  const url = STORAGE_SERVICE_URL + 'list-path' + path;
-  const fileUrl = STORAGE_SERVICE_URL + 'load-rid/';
-  const grabContent = url => fetch(url)
-    .then(res => res.text()).then(obj => {
-      return obj;
-    })
-  fetch(url, {
-    method: 'GET'
-  }).then(response => response.text()).then((responseText) => {
-    const rids: string[] = JSON.parse(responseText);
-    const urls: string[] = rids.map((rid) => {
-      return fileUrl + rid;
-    });
-    Promise.all(urls.map(grabContent)).then((val) => {
-      const objs = val.map(v => JSON.parse(v));
-      const newFiles = objs.map((v,i) => {
-        return {
-          rawSrc: decode(v['contents']),
-          fileName: v['name']
-        };
-      })
-      actions.initApp({
-        workState: {
-          wd: props.workState.wd,
-          files: newFiles
-        }
-      })
-    });
 
+export function listPath(path: string, actions: typeof EditorActions, props: CodePanelData) {
+  let url = fixPath(STORAGE_SERVICE_URL + 'list-full' + path);
+  fetch (url, {
+    method: 'GET'
+  }).then(response => response.text()).then(responseText => {
+    const files = JSON.parse(responseText);
+    const newFiles = files.map((c) => {
+      return {
+        fileName: c.fileName,
+        rawSrc: decode(c.rawSrc)
+      }
+    });
+    actions.initApp({
+      workState: {
+        wd: props.workState.wd,
+        files: newFiles
+      },
+      authState: props.authState
+    });
   });
 }

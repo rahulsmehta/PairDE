@@ -20,3 +20,6 @@ export const INIT_APP = 'INIT_APP';
 
 //Side panel actions
 export const CHANGE_SRC_FILE = 'CHANGE_SRC_FILE';
+
+//Auth
+export const LOG_IN = 'LOG_IN';

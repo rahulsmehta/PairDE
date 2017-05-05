@@ -1,5 +1,8 @@
 import {encode, decode} from 'base-64';
 import * as EditorActions from '../actions/editor';
+import {AppToaster} from './toaster';
+import * as storageService from './storageService';
+import {Intent} from '@blueprintjs/core';
 export const CODE_SERVICE_URL = "http://localhost:5000/"
 
 function getUuidAndFile(files: CodeFile[], fileName: string){
@@ -11,6 +14,44 @@ function getUuidAndFile(files: CodeFile[], fileName: string){
     uuid: path[2],
     className: path[3]
   };
+}
+
+export async function validateTicket (ticket: string, props: CodePanelData,
+  actions: typeof EditorActions) {
+  const url = CODE_SERVICE_URL + 'validate/' + ticket;
+  fetch(url, {
+    method: 'GET'
+  }).then(response => response.text()).then((user) => {
+    if (user == "failure"){
+      AppToaster.show({
+        intent: Intent.DANGER,
+        message: 'Something went wrong! Please try again'
+      })
+    } else {
+      const listUrl = storageService.STORAGE_SERVICE_URL + 'list-full/' + user;
+      fetch (listUrl, {
+        method: 'GET'
+      }).then(response => response.text()).then(responseText => {
+        const files = JSON.parse(responseText);
+        const newFiles = files.map((c) => {
+          return {
+            fileName: c.fileName,
+            rawSrc: decode(c.rawSrc)
+          }
+        });
+        actions.logIn({
+          workState: {
+            files: newFiles,
+            wd:'/' + user + '/'
+          },
+          authState: {
+            isAuthenticated: true,
+            user: user,
+            ticket: ticket
+          }});
+        })
+    }
+  });
 }
 
 export function run (props: CodePanelData, actions: typeof EditorActions) {

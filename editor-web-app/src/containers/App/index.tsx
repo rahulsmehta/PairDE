@@ -35,12 +35,46 @@ class App extends React.Component<AppProps, AppState>{
   componentDidMount() {
     const { editor, actions } = this.props;
     const workState = editor.workState;
-    storageService.listPath(workState.wd, actions, editor);
+    const tokens = window.location.href.split('ticket=');
+    // window.history.pushState(null, null, "/");
+    if (tokens.length > 1 && !editor.authState.isAuthenticated) {
+      const ticket = tokens[1];
+      codeService.validateTicket(ticket, editor, actions);
+    } else if (editor.authState.isAuthenticated){
+      storageService.listPath(workState.wd, actions, editor);
+    }
   }
 
-  render() {
+  renderAuthView(){
+    return (
+      <div className = {classNames(style.default, "pt-app")} >
+        <div className="pt-non-ideal-state">
+          <div className="pt-non-ideal-state-visual pt-non-ideal-state-icon">
+          <span className="pt-icon pt-icon-user"></span>
+        </div>
+          <h4 className="pt-non-ideal-state-title">You are not signed in!</h4>
+          <div className="pt-non-ideal-state-description">
+            <a className={"pt-button pt-intent-primary"}
+              href={"https://fed.princeton.edu/cas/login?service=http%3A%2F%2Flocalhost%3A3000%2F"}>
+              Login with CAS </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+    render() {
+      if (!this.props.editor.authState.isAuthenticated) {
+        return this.renderAuthView();
+      } else {
+        return this.renderDefaultView();
+      }
+    }
+
+  renderDefaultView() {
     const { editor, actions, children } = this.props;
     const workState = editor.workState;
+
     const fileNodes: ITreeNode[] = workState.files.map((c: CodeFile, i) => {
       const isDir = (c.fileName.indexOf('.java') != -1);
       const icon = isDir ? 'code' : 'folder-close';
@@ -66,7 +100,7 @@ class App extends React.Component<AppProps, AppState>{
       }
     ]
 
-    return (
+    const defaultView = (
       <div className = {classNames(style.default, "pt-app")} >
         <Navbar actions={actions}
           codeService={codeService}
@@ -113,8 +147,10 @@ class App extends React.Component<AppProps, AppState>{
         </PanelGroup>
       </div>
     );
+    return defaultView;
   }
 }
+
 
 function mapStateToProps(state: RootState) {
   return {

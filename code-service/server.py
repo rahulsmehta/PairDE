@@ -5,6 +5,8 @@ from runner import exec_file
 from os import path
 from flask import Flask, request
 from flask_cors import CORS
+import urllib2
+import xmltodict
 
 app = Flask(__name__)
 
@@ -42,6 +44,8 @@ Architecture of the code service:
 
 """
 
+SERVICE_URL = "http%3A%2F%2Flocalhost%3A3000%2F"
+
 
 # Set endpoint prefix to /v1 for initial API
 # app.config["APPLICATION_ROOT"] = "/v1"
@@ -49,6 +53,18 @@ Architecture of the code service:
 @app.route('/ping', methods=['GET'])
 def pong():
     return "pong"
+
+@app.route('/validate/<string:ticket>', methods=['GET'])
+def validate_cas_ticket(ticket):
+    cas_url = "https://fed.princeton.edu/cas/serviceValidate?service={}&ticket={}"
+    cas_url = cas_url.format(SERVICE_URL, ticket)
+    try:
+        result = urllib2.urlopen(cas_url).read()
+        cas_response = xmltodict.parse(result)
+        user = cas_response['cas:serviceResponse']['cas:authenticationSuccess']['cas:user']
+        return user
+    except:
+        return "failure"
 
 @app.route('/compile/<path:path>', methods=['POST'])
 def compile_blob(path):
@@ -91,4 +107,4 @@ def run(uuid, file_id):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, threaded=True)

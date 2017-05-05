@@ -72,7 +72,12 @@ class NewFileDialog extends React.Component<IDialogProps, IDialogState> {
       this.setState({isOpen: !this.state.isOpen})
     }
 
-    private handleNewFolder = () => {alert('New Folder!')};
+    private handleNewFolder = () => {
+      const {actions, storageService, wd, rawSrc} = this.props;
+      const path = wd + this.state.content;
+      storageService.create(path, true, null, actions);
+      this.setState({isOpen: !this.state.isOpen})
+    }
 
     // private handleRename = () => {
     //   const {content} = this.state;

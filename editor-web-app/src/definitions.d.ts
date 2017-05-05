@@ -23,7 +23,13 @@ declare type CodeFile  = {
 
 declare type WorkState = {
   wd: string;
-  files: CodeFile[]
+  files: CodeFile[];
+}
+
+declare type AuthState = {
+  user?: string;
+  isAuthenticated: boolean;
+  ticket?: string;
 }
 
 declare type CodePanelData = {
@@ -33,6 +39,7 @@ declare type CodePanelData = {
   otherFiles: CodeFile[];
   extraArgs: string[];
   workState: WorkState;
+  authState: AuthState;
 }
 
 declare type CodePanelState = CodePanelData;
