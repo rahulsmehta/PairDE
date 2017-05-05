@@ -10,6 +10,7 @@ import * as storageService from '../../services/storageService';
 import * as syncService from '../../services/syncService';
 
 import Editor from "../../components/Editor";
+import PairEditor from "../../components/PairEditor";
 import Console from "../../components/Console";
 import Navbar from "../../components/Navbar";
 
@@ -174,8 +175,9 @@ class App extends React.Component<AppProps, AppState>{
             spacing = {5}
             panelWidths = {[{size: 400, minSize: 0, resize: "dynamic"}]}
           >
-          <Editor src={editor.rawSrc} actions={actions}
+          <PairEditor src={editor.rawSrc} actions={actions}
             isEmpty={editor.workState.files.length == 0}
+            user={editor.authState.user}
           />
           <Console src={editor.consoleSrc} />
           </PanelGroup>
