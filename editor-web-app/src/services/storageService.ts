@@ -31,7 +31,15 @@ export function create(path: string, isDir: boolean, rawSrc: string,
         fileName: fn,
         rawSrc: rawSrc
       });
-    } else {
+    }
+    else if(responseText == "file already exists") {
+      AppToaster.show({
+        message: "File already exists!",
+        intent: Intent.DANGER,
+        iconName: "edit"
+      })
+    }    
+    else {
       AppToaster.show({
         message: "Failed to create " + fn + "!",
         intent: Intent.DANGER,
@@ -69,6 +77,13 @@ export function renameFile(path: string, newName: string, actions: typeof Editor
           actions.renameCurrent({
             fileName: newName
           });
+        }
+        else if(responseText == "file already exists") {
+          AppToaster.show({
+            message: "File already exists!",
+            intent: Intent.DANGER,
+            iconName: "edit"
+          })
         }
       })
     }

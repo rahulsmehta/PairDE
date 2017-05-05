@@ -145,6 +145,8 @@ def update_path(path):
 def create_path(path):
     data = json.loads(request.data)
     path = "/" + path
+    if (mongo.db.code.find_one({'path': path}) != None):
+        return "file already exists"
     rawpath = path
     splitpath = path.split('/')
     filename = splitpath[len(splitpath) - 1]
@@ -155,6 +157,7 @@ def create_path(path):
 
     if parentPath == "":
         parentId = root()
+        parent = mongo.db.code.find_one({'_id': bson.ObjectId(oid=str(parentId))})
     else:
         parent = mongo.db.code.find_one({'path': parentPath})
         print parent
@@ -194,6 +197,8 @@ def load_path(path):
 def rename_path(path):
     data = json.loads(request.data)
     path = "/" + path
+    if (mongo.db.code.find_one({'path': path}) != None):
+        return "file already exists"
     rawpath = path
     splitpath = path.split('/')
     filename = splitpath[len(splitpath) - 1]
