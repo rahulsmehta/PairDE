@@ -236,6 +236,24 @@ export default handleActions<CodePanelState, CodePanelData>({
       authState: state.authState
     };
   },
+  [Actions.LOCK_GRANTED]: (state, action) => {
+    const newSrc = state.rawSrc;
+    return {
+        rawSrc: newSrc,
+        isHome: state.isHome,
+        fileName: state.fileName,
+        consoleSrc: state.consoleSrc,
+        otherFiles: state.otherFiles,
+        extraArgs: state.extraArgs,
+        workState: state.workState,
+        pairWorkState: {
+          wd: state.pairWorkState.wd,
+          isSlave: action.payload.pairWorkState.isSlave,
+          files: state.pairWorkState.files
+        },
+        authState: state.authState
+    }
+  },
   [Actions.INIT_APP]: (state, action) => {
     const { workState } = action.payload;
     if (workState.files.length > 0) {

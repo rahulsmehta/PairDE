@@ -23,3 +23,6 @@ export const CHANGE_SRC_FILE = 'CHANGE_SRC_FILE';
 
 //Auth
 export const LOG_IN = 'LOG_IN';
+
+//Pair programming
+export const LOCK_GRANTED = 'LOCK_GRANTED';

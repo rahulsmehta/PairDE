@@ -86,14 +86,38 @@ def get_lock(payload, path):
     if (lock_path in locks) and (locks[lock_path] is not None):
         emit('lock_fail', locks[lock_path], namespace='/')
     else:
-        locks[lock_path] = json.dumps({'sid':sid, 'user':lock_request['user']})
-        emit('lock_success', locks[lock_path], namespace='/')
+        locks[lock_path] = {'sid':sid, 'user':lock_request['user']}
+        emit('lock_success', json.dumps(locks[lock_path]), namespace='/')
+
+
+        #TODO: see if this actually works for fixing render issue
+# @app.route('/lock/<sid>', methods=['POST'])
+# def lock(sid):
+#     global locks
+#     lock_request = json.loads(request.data)
+#     lock_path = lock_request['lock_path']
+#     print (lock_path in locks)
+#     if (lock_path in locks) and (locks[lock_path] is not None):
+#         return json.dumps(locks[lock_path])
+#     else:
+#         locks[lock_path] = json.dumps({'sid':sid, 'user':lock_request['user']})
+#         emit('lock_success', locks[lock_path], namespace='/')
 
     # print "Received lock request for {} from {}...acking...".format(payload, request.sid)
 
-# @socketio.on('release_lock', namespace='/')
-# def release_lock(payload,p):
-#     print "Received release lock request for {} from {}...acking...".format(payload, request.sid)
+@socketio.on('release_lock', namespace='/')
+def release_lock(payload,p):
+    print "Received release lock request for {} from {}...acking...".format(payload, request.sid)
+    global locks
+    lock_request = json.loads(payload)
+    lock_path = lock_request['lock_path']
+    sid = request.sid
+    print (lock_path in locks)
+    if (lock_path in locks) and (locks[lock_path] is not None) and (locks[lock_path]['sid'] == sid):
+        del locks[lock_path]
+        emit('release_success', '', namespace='/')
+    else:
+        emit('release_fail', '', namespace='/')
 
 
 @socketio.on('code', namespace='/')

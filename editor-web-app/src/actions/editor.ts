@@ -19,3 +19,5 @@ export const initApp = createAction<CodePanelData>(Actions.INIT_APP);
 export const changeSrcFile = createAction<CodePanelData>(Actions.CHANGE_SRC_FILE);
 
 export const logIn = createAction<CodePanelData>(Actions.LOG_IN);
+
+export const lockGranted = createAction<CodePanelData>(Actions.LOCK_GRANTED);

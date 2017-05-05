@@ -115,7 +115,9 @@ class Navbar extends React.Component<NavbarProps, {}> {
       <button className={startClassName} onClick = {() => {
           socket.emit('get_lock',JSON.stringify({lock_path: editor.pairWorkState.wd, user: editor.authState.user}),'/');
         }}>Start Editing</button> <br/>
-      <button className={stopClassName}>Stop Editing</button>
+      <button className={stopClassName} onClick = {() => {
+          socket.emit('release_lock', JSON.stringify({lock_path: editor.pairWorkState.wd, user: editor.authState.user}), '/');
+        }}>Stop Editing</button>
     </div>
   );
   const partnerButton = (isEmpty || editor.isHome) ?

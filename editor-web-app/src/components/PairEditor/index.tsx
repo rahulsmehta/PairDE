@@ -17,6 +17,7 @@ interface IPairEditorProps {
 }
 
 interface IPairEditorState {
+  isSlave: boolean;
   // socket: SocketIOClient.Socket
 }
 
@@ -25,10 +26,11 @@ class PairEditor extends React.Component<IPairEditorProps,IPairEditorState> {
 
   constructor(props?: IPairEditorProps, context?: any) {
     super(props, context);
+    this.state = {isSlave: props.isSlave};
   }
 
   componentDidMount() {
-    const {socket} = this.props;
+    const {socket, actions} = this.props;
     socket.on('connect', () => console.log('connected'));
     socket.on('code-sub', (payload) => {
       this.props.actions.updateSrc({
@@ -36,9 +38,15 @@ class PairEditor extends React.Component<IPairEditorProps,IPairEditorState> {
       });
     });
     socket.on('lock_success', (payload) => {
+      AppToaster.clear();
       AppToaster.show({
           intent: Intent.SUCCESS,
-          message: "I am the captain now"
+          message: "You are now editing"
+      });
+      actions.lockGranted({
+        pairWorkState: {
+          isSlave: false
+        }
       });
     });
     socket.on('lock_fail', (payload) => {
@@ -46,7 +54,25 @@ class PairEditor extends React.Component<IPairEditorProps,IPairEditorState> {
           intent: Intent.DANGER,
           message: "Someone else is editing!"
       });
-    })
+    });
+    socket.on('release_success', (payload) => {
+      AppToaster.clear();
+      AppToaster.show({
+        intent: Intent.SUCCESS,
+        message: "Completed editing!"
+      });
+      actions.lockGranted({
+        pairWorkState: {
+          isSlave: true
+        }
+      });
+    });
+    socket.on('release_fail', (payload) => {
+      AppToaster.show({
+        intent: Intent.DANGER,
+        message: "Unlock failed"
+      });
+    });
   }
 
   render() {
@@ -100,7 +126,7 @@ class PairEditor extends React.Component<IPairEditorProps,IPairEditorState> {
     if (isEmpty) {
       return emptyEditor;
     }
-    else if (this.props.isSlave){
+    else if (this.state.isSlave){
       return slaveEditor;
     } else {
       return defaultEditor;
