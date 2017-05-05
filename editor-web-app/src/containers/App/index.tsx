@@ -175,8 +175,8 @@ class App extends React.Component<AppProps, AppState>{
           >
           {/*<PairEditor src={editor.rawSrc} actions={actions}
             isEmpty={editor.workState.files.length == 0}
-            user={editor.authState.user}
-            parentPath={'/shared/rahulm_mhw3_Assignment2/'}
+            isSlave={true}
+            initialSrc={editor.rawSrc}
           />*/}
           <Editor src={editor.rawSrc} actions={actions}
             isEmpty={editor.workState.files.length == 0}

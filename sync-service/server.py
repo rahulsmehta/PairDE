@@ -19,6 +19,8 @@ mongo = PyMongo(app)
 # Set endpoint prefix to /v1 for initial API
 # app.config["APPLICATION_ROOT"] = "/v1"
 
+locks = dict({})
+
 @app.route('/ping', methods=['GET'])
 def pong():
     return "pong"

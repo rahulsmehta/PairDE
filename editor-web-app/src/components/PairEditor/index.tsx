@@ -11,8 +11,8 @@ interface IPairEditorProps {
   src: string;
   actions: typeof EditorActions;
   isEmpty: boolean;
-  user: string;
-  parentPath: string;
+  isSlave: boolean;
+  initialSrc: string;
 }
 
 interface IPairEditorState {
@@ -25,7 +25,7 @@ class PairEditor extends React.Component<IPairEditorProps,IPairEditorState> {
 
   constructor(props?: IPairEditorProps, context?: any) {
     super(props, context);
-    this.state = {syncSrc: ""}
+    this.state = {syncSrc: props.initialSrc}
   }
 
   componentDidMount() {
@@ -38,7 +38,7 @@ class PairEditor extends React.Component<IPairEditorProps,IPairEditorState> {
 
   render() {
     console.log(socket);
-    const {src, actions, isEmpty, parentPath} = this.props;
+    const {src, actions, isEmpty} = this.props;
     const slaveEditor = (
       <div style = {{width: '100%', height: '100%', backgroundColor: '#333'}}>
         <MonacoEditor
@@ -64,8 +64,7 @@ class PairEditor extends React.Component<IPairEditorProps,IPairEditorState> {
             }}
             theme = "vs-dark"
             onChange = {(newValue, _) => {
-              console.log(parentPath);
-              socket.emit('code', newValue, parentPath);
+              socket.emit('code', newValue, '/');
               actions.updateSrc({
                 rawSrc: newValue,
               })
@@ -89,7 +88,7 @@ class PairEditor extends React.Component<IPairEditorProps,IPairEditorState> {
     if (isEmpty) {
       return emptyEditor;
     }
-    else if (this.props.user == 'rahulm'){
+    else if (this.props.isSlave){
       return slaveEditor;
     } else {
       return defaultEditor;
