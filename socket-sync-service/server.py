@@ -19,12 +19,7 @@ def on_connect():
 @socketio.on('code', namespace='/')
 def on_code(payload,path):
     print payload
-    emit('code-sub',payload,namespace='/')
-
-
-@app.route('/emit', methods=['GET'])
-def emit_code():
-    emit('code','foobar', namespace='/')
+    emit('code-sub',payload,namespace='/', broadcast=True)
 
 
 if __name__ == '__main__':

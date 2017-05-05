@@ -141,6 +141,7 @@ class App extends React.Component<AppProps, AppState>{
           >
           <PairEditor src={editor.rawSrc} actions={actions}
             isEmpty={editor.workState.files.length == 0}
+            user={editor.authState.user}
           />
           <Console src={editor.consoleSrc} />
           </PanelGroup>
