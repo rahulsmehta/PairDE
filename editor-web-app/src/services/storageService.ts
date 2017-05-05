@@ -70,6 +70,13 @@ export function renameFile(path: string, newName: string, actions: typeof Editor
             fileName: newName
           });
         }
+        else if(responseText == "file already exists") {
+          AppToaster.show({
+            message: "File already exists!",
+            intent: Intent.DANGER,
+            iconName: "edit"
+          })
+        }
       })
     }
 
