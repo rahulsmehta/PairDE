@@ -145,6 +145,8 @@ def update_path(path):
 def create_path(path):
     data = json.loads(request.data)
     path = "/" + path
+    if (mongo.db.code.find_one({'path': path}) != None):
+        return "file already exists"
     rawpath = path
     splitpath = path.split('/')
     filename = splitpath[len(splitpath) - 1]
@@ -165,11 +167,6 @@ def create_path(path):
             return parent['name'] + " is not a folder"
         else:
             parentId = parent['_id']
-    childList = parent['children']
-    for childID in childList:
-        child = mongo.db.code.find_one({'_id': bson.ObjectId(oid=str(childID))})
-        if child['name'] == filename:
-            return "file already exists"
     mongo.db.code.insert(
         {'name': filename, 'children': [], 'contents': data['contents'], 'isDir': data['isDir'], 'parent': parentId,
          'path': rawpath})
