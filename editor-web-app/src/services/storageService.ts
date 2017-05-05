@@ -38,7 +38,7 @@ export function create(path: string, isDir: boolean, rawSrc: string,
         intent: Intent.DANGER,
         iconName: "edit"
       })
-    }    
+    }
     else {
       AppToaster.show({
         message: "Failed to create " + fn + "!",
@@ -131,7 +131,8 @@ export function listPath(path: string, actions: typeof EditorActions, props: Cod
         wd: props.workState.wd,
         files: newFiles
       },
-      authState: props.authState
+      authState: props.authState,
+      pairWorkState: props.pairWorkState
     });
   });
 }

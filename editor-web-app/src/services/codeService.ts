@@ -16,6 +16,23 @@ function getUuidAndFile(files: CodeFile[], fileName: string){
   };
 }
 
+function getUuidAndFilePair(files: CodeFile[], fileName: string){
+  const childArrs: CodeFile[][] = files.map((f,i) => {
+    return f.children;
+  });
+  const childNodes = childArrs.reduce((l,cf) => {
+    return l.concat(cf)
+  })
+  const f = childNodes.filter((fn) => {
+    return fn.fileName == fileName;
+  });
+  const path = f[0].compileId.split('/');
+  return {
+    uuid: path[2],
+    className: path[3]
+  };
+}
+
 export async function validateTicket (ticket: string, props: CodePanelData,
   actions: typeof EditorActions) {
   const url = CODE_SERVICE_URL + 'validate/' + ticket;
@@ -69,8 +86,10 @@ export async function validateTicket (ticket: string, props: CodePanelData,
 }
 
 export function run (props: CodePanelData, actions: typeof EditorActions) {
-  const {workState} = props;
-  const {uuid,className} = getUuidAndFile(workState.files, props.fileName);
+  const {workState, pairWorkState} = props;
+  alert(JSON.stringify(pairWorkState));
+  const {uuid,className} = props.isHome ? getUuidAndFile(workState.files, props.fileName) :
+    getUuidAndFilePair(pairWorkState.files, props.fileName);
   const url = CODE_SERVICE_URL + 'run/' + uuid + '/' + className;
   fetch(url,{
     method: 'POST',
@@ -85,7 +104,11 @@ export function run (props: CodePanelData, actions: typeof EditorActions) {
 }
 
 export function compile (props: CodePanelData, actions: typeof EditorActions) {
-    const path = props.workState.wd + props.fileName;
+    let path = "";
+    if (props.isHome)
+      path = props.workState.wd + props.fileName;
+    else
+      path = props.pairWorkState.wd + props.fileName;
     fetch(CODE_SERVICE_URL + "compile" + path,{
       method: 'POST',
       body: JSON.stringify({
@@ -105,17 +128,25 @@ export function compile (props: CodePanelData, actions: typeof EditorActions) {
           return c;
         }
       });
-      // const updatedPairFiles = props.pairWorkState.files.map((c: CodeFile, i) => {
-      //   if (c.fileName == props.fileName && !props.isHome) {
-      //     return {
-      //       rawSrc: c.rawSrc,
-      //       fileName: c.fileName,
-      //       compileId: class_path
-      //     }
-      //   } else {
-      //     return c;
-      //   }
-      // });
+      const updatedPairFiles: CodeFile[] = props.pairWorkState.files.map((v, i) => {
+        return {
+          fileName: v.fileName,
+          rawSrc: v.rawSrc,
+          isDir: v.isDir,
+          children: v.children.map((f,i) => {
+            if (f.fileName == props.fileName && !props.isHome) {
+              return {
+                fileName: f.fileName,
+                rawSrc: f.rawSrc,
+                compileId: class_path
+              }
+            } else {
+              return f;
+            }
+          })
+        }
+
+      });
       actions.compileFile({
           rawSrc: props.rawSrc,
           fileName: props.fileName,
@@ -123,6 +154,10 @@ export function compile (props: CodePanelData, actions: typeof EditorActions) {
           workState: {
             wd: props.workState.wd,
             files: updatedFiles
+          },
+          pairWorkState: {
+            wd: props.pairWorkState.wd,
+            files: updatedPairFiles
           }
         });
       }

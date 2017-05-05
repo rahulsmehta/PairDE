@@ -127,7 +127,7 @@ class App extends React.Component<AppProps, AppState>{
         label: file.fileName,
         iconName: 'folder-close',
         isExpanded: true,
-        childNodes: file.children.map((c,i) => mapChildNodes(c, 2*i + 1))
+        childNodes: file.children.map((c,j) => mapChildNodes(c, 10*i + j))
       }
     });
 
@@ -153,12 +153,13 @@ class App extends React.Component<AppProps, AppState>{
                   const f = workState.files.filter((fn) => {
                     return fn.fileName == node.label;
                   });
-                  return f[0].rawSrc;
+                  return {src: f[0].rawSrc, id: node.id};
                 }
                 if (node.iconName == 'code'){
+                  const {src} = getSrc(node.label);
                   actions.changeSrcFile({
                     fileName: node.label,
-                    rawSrc: getSrc(node.label),
+                    rawSrc: src,
                     isHome: true
                   });
                 }
@@ -182,13 +183,19 @@ class App extends React.Component<AppProps, AppState>{
                   const f = childNodes.filter((fn) => {
                     return fn.fileName == node.label;
                   });
-                  return f[0].rawSrc;
+                  return {src: f[0].rawSrc, id: node.id};
                 }
                 if (node.iconName == 'code'){
+                  const {src, id} = getSrc(node.label);
+                  const parentIdx = (Math.floor(parseInt(id.toString())/10));
+                  const parentDir = '/shared/' + pairWorkState.files[parentIdx].fileName + '/';
                   actions.changeSrcFile({
                     fileName: node.label,
-                    rawSrc: getSrc(node.label),
-                    isHome: false
+                    rawSrc: src,
+                    isHome: false,
+                    pairWorkState: {
+                      wd: parentDir,
+                    }
                   });
                 }
                 else

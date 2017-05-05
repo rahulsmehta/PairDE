@@ -17,7 +17,7 @@ const initialState: CodePanelData = {
     files: []
   },
   pairWorkState: {
-    wd: '/shared',
+    wd: '/shared/',
     files: []
   },
   authState: {
@@ -27,6 +27,7 @@ const initialState: CodePanelData = {
 
 export default handleActions<CodePanelState, CodePanelData>({
   [Actions.COMPILE_FILE]: (state, action) => {
+    alert(JSON.stringify(action.payload.pairWorkState));
     return {
       rawSrc: state.rawSrc,
       isHome: state.isHome,
@@ -35,7 +36,7 @@ export default handleActions<CodePanelState, CodePanelData>({
       otherFiles: action.payload.otherFiles,
       extraArgs: state.extraArgs,
       workState: action.payload.workState,
-      pairWorkState: state.pairWorkState,
+      pairWorkState: action.payload.pairWorkState,
       authState: state.authState
     };
   },
@@ -181,7 +182,7 @@ export default handleActions<CodePanelState, CodePanelData>({
     // in workState
 
     const newFiles = state.workState.files.map((v,i) => {
-      if (v.fileName == state.fileName) {
+      if (v.fileName == state.fileName && state.isHome) {
         return {
           fileName: v.fileName,
           compileId: v.compileId,
@@ -192,6 +193,30 @@ export default handleActions<CodePanelState, CodePanelData>({
       }
     });
 
+    const newPairFiles: CodeFile[] = state.pairWorkState.files.map((v,i) => {
+        return {
+          fileName: v.fileName,
+          rawSrc: v.rawSrc,
+          isDir: v.isDir,
+          children: v.children.map((f,i) => {
+            if (f.fileName == state.fileName && !state.isHome) {
+              return {
+                fileName: f.fileName,
+                compileId: f.compileId,
+                rawSrc: state.rawSrc
+              }
+            } else {
+              return f;
+            }
+          })
+        };
+    });
+
+    let newPairWd = state.pairWorkState.wd;
+    if (action.payload.pairWorkState) {
+      // alert(action.payload.pairWorkState.wd);
+      newPairWd = action.payload.pairWorkState.wd;
+    }
     return {
       rawSrc: action.payload.rawSrc,
       isHome: action.payload.isHome,
@@ -203,7 +228,10 @@ export default handleActions<CodePanelState, CodePanelData>({
         wd: state.workState.wd,
         files: newFiles
       },
-      pairWorkState: state.pairWorkState,
+      pairWorkState: {
+        wd: newPairWd,
+        files: newPairFiles
+      },
       authState: state.authState
     };
   },
@@ -238,10 +266,6 @@ export default handleActions<CodePanelState, CodePanelData>({
   },
   [Actions.LOG_IN]: (state, action) => {
     const {authState, workState} = action.payload;
-    AppToaster.show({
-      intent: Intent.SUCCESS,
-      message: "Welcome " + authState.user + "!"
-    })
     return {
       rawSrc: state.rawSrc,
       isHome: state.isHome,
