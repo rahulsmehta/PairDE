@@ -2,6 +2,8 @@ import * as React from 'react';
 import * as classNames from "classnames";
 import MonacoEditor from "react-monaco-editor";
 import * as EditorActions from '../../actions/editor';
+import { AppToaster } from '../../services/toaster';
+import { Intent } from '@blueprintjs/core';
 // const io = require('socket.io-client');
 
 
@@ -33,6 +35,18 @@ class PairEditor extends React.Component<IPairEditorProps,IPairEditorState> {
         rawSrc: payload
       });
     });
+    socket.on('lock_success', (payload) => {
+      AppToaster.show({
+          intent: Intent.SUCCESS,
+          message: "I am the captain now"
+      });
+    });
+    socket.on('lock_fail', (payload) => {
+      AppToaster.show({
+          intent: Intent.DANGER,
+          message: "Someone else is editing!"
+      });
+    })
   }
 
   render() {

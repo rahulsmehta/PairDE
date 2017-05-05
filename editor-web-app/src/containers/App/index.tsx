@@ -157,6 +157,7 @@ class App extends React.Component<AppProps, AppState>{
           storageService={storageService}
           editor={editor}
           isSlave={editor.pairWorkState.isSlave}
+          socket={socket}
         />
 
         <PanelGroup

@@ -13,6 +13,7 @@ CORS(app)
 socketio = SocketIO(app)
 mongo = PyMongo(app)
 
+
 """
 """
 
@@ -76,12 +77,23 @@ def getshared(user):
     return json.dumps(loaded)
 
 @socketio.on('get_lock', namespace='/')
-def on_init(payload, path):
-    print "Received lock request from {}...acking...".format(request.sid)
+def get_lock(payload, path):
+    global locks
+    lock_request = json.loads(payload)
+    lock_path = lock_request['lock_path']
+    sid = request.sid
+    print (lock_path in locks)
+    if (lock_path in locks) and (locks[lock_path] is not None):
+        emit('lock_fail', locks[lock_path], namespace='/')
+    else:
+        locks[lock_path] = json.dumps({'sid':sid, 'user':lock_request['user']})
+        emit('lock_success', locks[lock_path], namespace='/')
 
-@socketio.on('release_lock', namespace='/')
-def on_init(payload, path):
-    print "Received release lock request from {}...acking...".format(request.sid)
+    # print "Received lock request for {} from {}...acking...".format(payload, request.sid)
+
+# @socketio.on('release_lock', namespace='/')
+# def release_lock(payload,p):
+#     print "Received release lock request for {} from {}...acking...".format(payload, request.sid)
 
 
 @socketio.on('code', namespace='/')
@@ -90,4 +102,5 @@ def on_code(payload,path):
     emit('code-sub',payload,namespace='/', broadcast=True)
 
 if __name__ == '__main__':
+    app.secret_key = 'cos333'
     socketio.run(app, port=9000, debug=True)

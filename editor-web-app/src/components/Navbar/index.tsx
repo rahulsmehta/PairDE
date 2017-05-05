@@ -17,6 +17,7 @@ interface NavbarProps {
   storageService: typeof StorageService;
   editor: CodePanelData;
   isSlave: boolean;
+  socket: SocketIOClient.Socket;
 }
 
 class Navbar extends React.Component<NavbarProps, {}> {
@@ -34,7 +35,7 @@ class Navbar extends React.Component<NavbarProps, {}> {
   }
 
   render() {
-    const {storageService, codeService, actions, editor, isSlave} = this.props;
+    const {storageService, codeService, actions, editor, isSlave, socket} = this.props;
     const tooltipStyle = {paddingRight: "10px"};
     const isEmpty = editor.workState.files.length == 0;
 
@@ -111,7 +112,9 @@ class Navbar extends React.Component<NavbarProps, {}> {
     startClassName += 'pt-disabled';
   const partnerPopover = (
     <div>
-      <button className={startClassName}>Start Editing</button> <br/>
+      <button className={startClassName} onClick = {() => {
+          socket.emit('get_lock',JSON.stringify({lock_path: editor.pairWorkState.wd, user: editor.authState.user}),'/');
+        }}>Start Editing</button> <br/>
       <button className={stopClassName}>Stop Editing</button>
     </div>
   );
