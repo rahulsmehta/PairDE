@@ -26,6 +26,7 @@ declare type CodeFile  = {
 declare type WorkState = {
   wd: string;
   files: CodeFile[];
+  isSlave?: boolean;
 }
 
 declare type AuthState = {

@@ -145,7 +145,8 @@ export function compile (props: CodePanelData, actions: typeof EditorActions) {
           },
           pairWorkState: {
             wd: props.pairWorkState.wd,
-            files: updatedPairFiles
+            files: updatedPairFiles,
+            isSlave: props.pairWorkState.isSlave
           }
         });
       }

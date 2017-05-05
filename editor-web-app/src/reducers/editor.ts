@@ -18,7 +18,8 @@ const initialState: CodePanelData = {
   },
   pairWorkState: {
     wd: '/shared/',
-    files: []
+    files: [],
+    isSlave: true
   },
   authState: {
     isAuthenticated: false
@@ -229,7 +230,8 @@ export default handleActions<CodePanelState, CodePanelData>({
       },
       pairWorkState: {
         wd: newPairWd,
-        files: newPairFiles
+        files: newPairFiles,
+        isSlave: state.pairWorkState.isSlave
       },
       authState: state.authState
     };

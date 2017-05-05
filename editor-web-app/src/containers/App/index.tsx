@@ -48,7 +48,8 @@ class App extends React.Component<AppProps, AppState>{
         syncService.listShared(actions, editor, validateAction.authState.user).then((responseObj) => {
           validateAction['pairWorkState'] = {
             wd: '/shared',
-            files: responseObj
+            files: responseObj,
+            isSlave: editor.pairWorkState.isSlave
           }
           actions.initApp(validateAction);
         })
@@ -136,8 +137,6 @@ class App extends React.Component<AppProps, AppState>{
 
 
 
-    const isSlave = (editor.authState.user == 'mhw3');
-    // const isSlave = true;
     const editorComponent = (editor.isHome) ? (
       <Editor src={editor.rawSrc} actions={actions}
         isEmpty={editor.workState.files.length == 0}
@@ -145,7 +144,7 @@ class App extends React.Component<AppProps, AppState>{
     ) : (
       <PairEditor src={editor.rawSrc} actions={actions}
         isEmpty={false}
-        isSlave={isSlave}
+        isSlave={editor.pairWorkState.isSlave}
         fileName={editor.fileName}
         socket={socket}
       />
@@ -157,7 +156,7 @@ class App extends React.Component<AppProps, AppState>{
           codeService={codeService}
           storageService={storageService}
           editor={editor}
-          isSlave={isSlave}
+          isSlave={editor.pairWorkState.isSlave}
         />
 
         <PanelGroup
