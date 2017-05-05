@@ -32,7 +32,7 @@ def create(u1, u2, assignment):
         return "file already exists"
     shared = mongo.db.code.find_one({'path': "/shared"})
     mongo.db.code.insert(
-        {'name': dirname, 'children': [], 'contents': null, 'isDir': True, 'parent': shared['_id'],
+        {'name': dirname, 'children': [], 'contents': None, 'isDir': True, 'parent': shared['_id'],
          'path': path})
     newDir = mongo.db.code.find_one({'path': path})
     mongo.db.code.update({'_id': shared['_id']}, {"$addToSet": {'children': newDir['_id']}})
@@ -43,6 +43,8 @@ def getshared(user):
     #Return list of all shared directories belonging to user
     reg1 = user + '_.*'
     reg2 = '.*_' + user + '_.*'
+
+    #TODO - fix this logic
     list1 = list(mongo.db.code.find({"name": {"$regex": reg1}}))
     list2 = list(mongo.db.code.find({"name": {"$regex": reg2}}))
     merged = []
@@ -56,17 +58,20 @@ def getshared(user):
         return "User has no shared directories"
     loaded = []
     for directory in merged:
-        loaded.append({'rawSrc': None, 'fileName': directory['name'], 'isDir': True})
+        # loaded.append({'rawSrc': None, 'fileName': directory['name'], 'isDir': True})
+        loaded_dir = {'rawSrc': None, 'fileName': directory['name'], 'isDir': True}
+        loaded_dir['children'] = []
         children = directory['children']
         for rid in children:
             doc = mongo.db.code.find_one({'_id': bson.ObjectId(oid=str(rid))})
             if len(doc) <= 0:
                 continue
             if doc['isDir']:
-                loaded.append({'rawSrc': None, 'fileName': doc['name'], 'isDir': True})
+                loaded_dir['children'].append({'rawSrc': None, 'fileName': doc['name'], 'isDir': True})
             else:
-                loaded.append({'rawSrc':doc['contents'], 'fileName': doc['name'], 'isDir': False})
-    return json.dumps(loaded);
+                loaded_dir['children'].append({'rawSrc':doc['contents'], 'fileName': doc['name'], 'isDir': False})
+        loaded.append(loaded_dir)
+    return json.dumps(loaded)
 
 if __name__ == '__main__':
     app.run(debug=True, port=7000, threaded=True)
