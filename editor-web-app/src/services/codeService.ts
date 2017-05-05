@@ -70,24 +70,12 @@ export async function validateTicket (ticket: string, props: CodePanelData,
             res(JSON.stringify(obj));
           });
         });
-        // actions.logIn({
-        //   workState: {
-        //     files: newFiles,
-        //     wd:'/' + user + '/'
-        //   },
-        //   authState: {
-        //     isAuthenticated: true,
-        //     user: user,
-        //     ticket: ticket
-        //   }});
-        // })
     }
   });
 }
 
 export function run (props: CodePanelData, actions: typeof EditorActions) {
   const {workState, pairWorkState} = props;
-  alert(JSON.stringify(pairWorkState));
   const {uuid,className} = props.isHome ? getUuidAndFile(workState.files, props.fileName) :
     getUuidAndFilePair(pairWorkState.files, props.fileName);
   const url = CODE_SERVICE_URL + 'run/' + uuid + '/' + className;

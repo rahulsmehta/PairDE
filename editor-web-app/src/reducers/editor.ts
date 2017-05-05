@@ -27,7 +27,6 @@ const initialState: CodePanelData = {
 
 export default handleActions<CodePanelState, CodePanelData>({
   [Actions.COMPILE_FILE]: (state, action) => {
-    alert(JSON.stringify(action.payload.pairWorkState));
     return {
       rawSrc: state.rawSrc,
       isHome: state.isHome,
