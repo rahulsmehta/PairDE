@@ -197,8 +197,6 @@ def load_path(path):
 def rename_path(path):
     data = json.loads(request.data)
     path = "/" + path
-    if (mongo.db.code.find_one({'path': path}) != None):
-        return "file already exists"
     rawpath = path
     splitpath = path.split('/')
     filename = splitpath[len(splitpath) - 1]
@@ -206,6 +204,9 @@ def rename_path(path):
     for i in range(1, len(splitpath) - 1):
         parentPath += splitpath[i] + "/"
     parentPath = parentPath[:-1]
+    new_path = parentPath + '/' + data['newName']
+    if (mongo.db.code.find_one({'path': new_path}) != None):
+        return "file already exists"
     to_update = mongo.db.code.find_one({'path':path})
     new_path = parentPath + '/' + data['newName']
     mongo.db.code.update({'path': path},
@@ -330,6 +331,12 @@ def check_add_root():
     if root == None:
         mongo.db.code.insert(
             {'name': "root", 'children': [], 'contents': None, 'isDir': True, 'parent': None, 'path': "/"})
+    shared = mongo.db.code.find_one({"path": "/shared"})
+    if shared == None:
+        mongo.db.code.insert(
+            {'name': "shared", 'children': [], 'contents': None, 'isDir': True, 'parent': getRoot(), 'path': "/shared"})
+        shareddir = mongo.db.code.find_one({'path': "/shared"})
+        mongo.db.code.update({'path': "/"}, {"$addToSet": {'children': shareddir['_id']}})
     getRoot()
     return 1
 

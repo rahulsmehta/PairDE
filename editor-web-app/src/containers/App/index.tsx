@@ -7,8 +7,10 @@ import * as EditorActions from '../../actions/editor';
 
 import * as codeService from '../../services/codeService';
 import * as storageService from '../../services/storageService';
+import * as syncService from '../../services/syncService';
 
 import Editor from "../../components/Editor";
+import PairEditor from "../../components/PairEditor";
 import Console from "../../components/Console";
 import Navbar from "../../components/Navbar";
 
@@ -19,6 +21,9 @@ import MonacoEditor from "react-monaco-editor";
 const PanelGroup = require("react-panelgroup");
 import { Breadcrumb, Classes, Button, ITreeNode, Tree, Tooltip,
          Position, Intent, Popover, EditableText} from "@blueprintjs/core";
+
+const io = require('socket.io-client');
+let socket = io(`http://localhost:9000`, {transports: ['websocket']});
 
 import { encode } from 'base-64';
 
@@ -36,10 +41,19 @@ class App extends React.Component<AppProps, AppState>{
     const { editor, actions } = this.props;
     const workState = editor.workState;
     const tokens = window.location.href.split('ticket=');
-    // window.history.pushState(null, null, "/");
     if (tokens.length > 1 && !editor.authState.isAuthenticated) {
       const ticket = tokens[1];
-      codeService.validateTicket(ticket, editor, actions);
+      codeService.validateTicket(ticket, editor, actions).then((str) => {
+        let validateAction = JSON.parse(str);
+        syncService.listShared(actions, editor, validateAction.authState.user).then((responseObj) => {
+          validateAction['pairWorkState'] = {
+            wd: '/shared',
+            files: responseObj,
+            isSlave: editor.pairWorkState.isSlave
+          }
+          actions.initApp(validateAction);
+        })
+      })
     } else if (editor.authState.isAuthenticated){
       storageService.listPath(workState.wd, actions, editor);
     }
@@ -73,7 +87,7 @@ class App extends React.Component<AppProps, AppState>{
 
   renderDefaultView() {
     const { editor, actions, children } = this.props;
-    const workState = editor.workState;
+    const { workState, pairWorkState } = editor;
 
     const fileNodes: ITreeNode[] = workState.files.map((c: CodeFile, i) => {
       const isDir = (c.fileName.indexOf('.java') != -1);
@@ -84,7 +98,7 @@ class App extends React.Component<AppProps, AppState>{
         label: c.fileName,
         id: i
       }
-      if (editor.fileName == c.fileName) {
+      if (editor.fileName == c.fileName && editor.isHome) {
         result['isSelected'] = true;
       }
       return result;
@@ -100,12 +114,50 @@ class App extends React.Component<AppProps, AppState>{
       }
     ]
 
+    const mapChildNodes = (c: CodeFile, i): ITreeNode => {
+      const code = (c.isDir == undefined || !c.isDir);
+      let result = {
+        id: i,
+        label: c.fileName,
+        iconName: code ? 'code' : 'folder-close'
+      }
+      if ((c.fileName == editor.fileName) && !editor.isHome)
+        result['isSelected'] = true;
+      return result;
+    };
+    const pairFileNodes: ITreeNode[] = pairWorkState.files.map((file: CodeFile, i) => {
+      return {
+        id: i,
+        label: file.fileName,
+        iconName: 'folder-close',
+        isExpanded: true,
+        childNodes: file.children.map((c,j) => mapChildNodes(c, 10*i + j))
+      }
+    });
+
+
+
+    const editorComponent = (editor.isHome) ? (
+      <Editor src={editor.rawSrc} actions={actions}
+        isEmpty={editor.workState.files.length == 0}
+      />
+    ) : (
+      <PairEditor src={editor.rawSrc} actions={actions}
+        isEmpty={false}
+        isSlave={editor.pairWorkState.isSlave}
+        fileName={editor.fileName}
+        socket={socket}
+      />
+    )
+
     const defaultView = (
       <div className = {classNames(style.default, "pt-app")} >
         <Navbar actions={actions}
           codeService={codeService}
           storageService={storageService}
           editor={editor}
+          isSlave={editor.pairWorkState.isSlave}
+          socket={socket}
         />
 
         <PanelGroup
@@ -114,6 +166,7 @@ class App extends React.Component<AppProps, AppState>{
           style={{paddingLeft: "10px"}}
         >
           <div>
+            <b>My Documents</b>
             <Tree
               contents = {treeNodes}
               onNodeClick = {((node, _) => {
@@ -121,12 +174,49 @@ class App extends React.Component<AppProps, AppState>{
                   const f = workState.files.filter((fn) => {
                     return fn.fileName == node.label;
                   });
-                  return f[0].rawSrc;
+                  return {src: f[0].rawSrc, id: node.id};
                 }
                 if (node.iconName == 'code'){
+                  const {src} = getSrc(node.label);
                   actions.changeSrcFile({
                     fileName: node.label,
-                    rawSrc: getSrc(node.label)
+                    rawSrc: src,
+                    isHome: true
+                  });
+                }
+                else
+                  alert('Dir!');
+              })}
+            />
+
+            <br />
+            <b>Partner Assignments</b>
+            <Tree
+              contents = {pairFileNodes}
+              onNodeClick = {((node, _) => {
+                const getSrc = fileName => {
+                  const childArrs: CodeFile[][] = pairWorkState.files.map((f,i) => {
+                    return f.children;
+                  });
+                  const childNodes = childArrs.reduce((l,cf) => {
+                    return l.concat(cf)
+                  })
+                  const f = childNodes.filter((fn) => {
+                    return fn.fileName == node.label;
+                  });
+                  return {src: f[0].rawSrc, id: node.id};
+                }
+                if (node.iconName == 'code'){
+                  const {src, id} = getSrc(node.label);
+                  const parentIdx = (Math.floor(parseInt(id.toString())/10));
+                  const parentDir = '/shared/' + pairWorkState.files[parentIdx].fileName + '/';
+                  actions.changeSrcFile({
+                    fileName: node.label,
+                    rawSrc: src,
+                    isHome: false,
+                    pairWorkState: {
+                      wd: parentDir,
+                    }
                   });
                 }
                 else
@@ -138,9 +228,7 @@ class App extends React.Component<AppProps, AppState>{
             spacing = {5}
             panelWidths = {[{size: 400, minSize: 0, resize: "dynamic"}]}
           >
-          <Editor src={editor.rawSrc} actions={actions}
-            isEmpty={editor.workState.files.length == 0}
-          />
+          {editorComponent}
           <Console src={editor.consoleSrc} />
           </PanelGroup>
 

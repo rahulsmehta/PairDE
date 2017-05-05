@@ -19,11 +19,14 @@ declare type CodeFile  = {
   rawSrc: string;
   fileName: string;
   compileId?: string;
+  isDir?: boolean;
+  children?: CodeFile[];
 }
 
 declare type WorkState = {
   wd: string;
   files: CodeFile[];
+  isSlave?: boolean;
 }
 
 declare type AuthState = {
@@ -34,11 +37,13 @@ declare type AuthState = {
 
 declare type CodePanelData = {
   rawSrc: string;
+  isHome: boolean;
   fileName?: string;
   consoleSrc?: string;
   otherFiles: CodeFile[];
   extraArgs: string[];
   workState: WorkState;
+  pairWorkState: WorkState;
   authState: AuthState;
 }
 

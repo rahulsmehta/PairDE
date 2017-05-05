@@ -16,6 +16,8 @@ interface NavbarProps {
   codeService: typeof CodeService;
   storageService: typeof StorageService;
   editor: CodePanelData;
+  isSlave: boolean;
+  socket: SocketIOClient.Socket;
 }
 
 class Navbar extends React.Component<NavbarProps, {}> {
@@ -33,7 +35,7 @@ class Navbar extends React.Component<NavbarProps, {}> {
   }
 
   render() {
-    const {storageService, codeService, actions, editor} = this.props;
+    const {storageService, codeService, actions, editor, isSlave, socket} = this.props;
     const tooltipStyle = {paddingRight: "10px"};
     const isEmpty = editor.workState.files.length == 0;
 
@@ -48,6 +50,16 @@ class Navbar extends React.Component<NavbarProps, {}> {
       deleteClass += " pt-disabled";
       compileClass += " pt-disabled";
       runClass += " pt-disabled";
+    }
+    if (!editor.isHome) {
+      renameClass += " pt-disabled";
+      deleteClass += " pt-disabled";
+    }
+
+    if (isSlave && !editor.isHome) {
+      saveClass += ' pt-disabled';
+      compileClass += ' pt-disabled';
+      runClass += ' pt-disabled';
     }
 
 
@@ -79,7 +91,7 @@ class Navbar extends React.Component<NavbarProps, {}> {
       >{this.formatCommandName(editor.fileName, editor.extraArgs)}</button>
     </div>
   );
-  const runButton = isEmpty ? (<button className={runClass}>Run</button>) :
+  const runButton = (isEmpty || (isSlave && !editor.isHome)) ? (<button className={runClass}>Run</button>) :
       (
       <Popover
         content = {runPopover}
@@ -91,7 +103,37 @@ class Navbar extends React.Component<NavbarProps, {}> {
       </Popover>
     );
 
-    const renameButton = isEmpty ? (<button className={renameClass}>Rename</button>) :
+  let partnerClass = "pt-button pt-minimal pt-icon-people ";
+  let startClassName = "pt-button pt-icon pt-minimal pt-icon-edit ";
+  let stopClassName = "pt-button pt-icon pt-minimal pt-icon-stop ";
+  if (isSlave)
+    stopClassName += 'pt-disabled';
+  else
+    startClassName += 'pt-disabled';
+  const partnerPopover = (
+    <div>
+      <button className={startClassName} onClick = {() => {
+          socket.emit('get_lock',JSON.stringify({lock_path: editor.pairWorkState.wd, user: editor.authState.user}),'/');
+        }}>Start Editing</button> <br/>
+      <button className={stopClassName} onClick = {() => {
+          socket.emit('release_lock', JSON.stringify({lock_path: editor.pairWorkState.wd, user: editor.authState.user}), '/');
+        }}>Stop Editing</button>
+    </div>
+  );
+  const partnerButton = (isEmpty || editor.isHome) ?
+      (<button className={partnerClass + 'pt-disabled'}>Partner</button>) :
+      (
+      <Popover
+        content = {partnerPopover}
+        popoverClassName="pt-popover-content-sizing"
+        position={Position.BOTTOM}
+        useSmartArrowPositioning={true}
+      >
+        <button className={partnerClass}>Partner</button>
+      </Popover>
+    );
+
+    const renameButton = (isEmpty || !editor.isHome) ? (<button className={renameClass}>Rename</button>) :
       (
       <RenameDialog className={renameClass} currentFile={editor.fileName} actions={actions}
           storageService={storageService}
@@ -102,11 +144,12 @@ class Navbar extends React.Component<NavbarProps, {}> {
     const saveButton = isEmpty ? (<button className={saveClass}>Save</button>) :
       (
       <button className={saveClass} onClick = {() => {
-          const path = editor.workState.wd + editor.fileName;
+          let path = (editor.isHome) ? editor.workState.wd : editor.pairWorkState.wd;
+          path += editor.fileName;
           storageService.saveFile(path, editor.rawSrc, actions, editor);
         }}>Save</button>
       )
-    const deleteButton = isEmpty ? (<button className={deleteClass}>Delete</button>) :
+    const deleteButton = (isEmpty || !editor.isHome) ? (<button className={deleteClass}>Delete</button>) :
       (
         <button className={deleteClass}
           onClick={() => {
@@ -126,7 +169,9 @@ class Navbar extends React.Component<NavbarProps, {}> {
         >Delete</button>
       )
 
-    const newButton = (
+    const newButton = (!editor.isHome) ? (<button
+        className={"pt-button pt-minimal pt-icon pt-icon-add pt-disabled"}>New
+        </button>) : (
       <NewFileDialog className={"pt-button pt-minimal pt-icon pt-icon-add"}
         storageService={storageService}
         wd={editor.workState.wd}
@@ -138,9 +183,6 @@ class Navbar extends React.Component<NavbarProps, {}> {
    return (
     <nav className={classNames("pt-navbar", "pt-dark")} >
       <div className="pt-navbar-group pt-align-left">
-        <div className="pt-navbar-heading">
-          {/* editable text used to be here */}
-        </div>
         {newButton}
         {renameButton}
         <span className="pt-navbar-divider"></span>
@@ -156,13 +198,7 @@ class Navbar extends React.Component<NavbarProps, {}> {
         >Compile</button>
         {runButton}
         <span className="pt-navbar-divider"></span>
-        <Tooltip
-          content = "No partner assigned"
-          intent = {Intent.WARNING}
-          position = {Position.BOTTOM}
-          >
-          <button className="pt-button pt-minimal pt-icon-changes pt-disabled">Switch</button>
-        </Tooltip>
+          {partnerButton}
         <span className="pt-navbar-divider"></span>
         <Tooltip content={"Logged in as " + editor.authState.user} position = {Position.BOTTOM_RIGHT}>
           <button className="pt-button pt-minimal pt-icon-user"></button>
