@@ -330,6 +330,12 @@ def check_add_root():
     if root == None:
         mongo.db.code.insert(
             {'name': "root", 'children': [], 'contents': None, 'isDir': True, 'parent': None, 'path': "/"})
+    shared = mongo.db.code.find_one({"path": "/shared"})
+    if shared == None:
+        mongo.db.code.insert(
+            {'name': "shared", 'children': [], 'contents': None, 'isDir': True, 'parent': getRoot(), 'path': "/shared"})
+        shareddir = mongo.db.code.find_one({'path': "/shared"})
+        mongo.db.code.update({'path': "/"}, {"$addToSet": {'children': shareddir['_id']}})
     getRoot()
     return 1
 
