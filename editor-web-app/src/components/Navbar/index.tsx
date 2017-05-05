@@ -103,7 +103,7 @@ class Navbar extends React.Component<NavbarProps, {}> {
     </div>
   );
   const partnerButton = (isEmpty || editor.isHome) ?
-      (<button className={partnerClass + 'pt-disabled'}>Pair Programming</button>) :
+      (<button className={partnerClass + 'pt-disabled'}>Partner</button>) :
       (
       <Popover
         content = {partnerPopover}
@@ -111,7 +111,7 @@ class Navbar extends React.Component<NavbarProps, {}> {
         position={Position.BOTTOM}
         useSmartArrowPositioning={true}
       >
-        <button className={partnerClass}>Pair Programming</button>
+        <button className={partnerClass}>Partner</button>
       </Popover>
     );
 
