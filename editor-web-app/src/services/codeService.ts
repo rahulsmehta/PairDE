@@ -19,7 +19,7 @@ function getUuidAndFile(files: CodeFile[], fileName: string){
 export async function validateTicket (ticket: string, props: CodePanelData,
   actions: typeof EditorActions) {
   const url = CODE_SERVICE_URL + 'validate/' + ticket;
-  fetch(url, {
+  return fetch(url, {
     method: 'GET'
   }).then(response => response.text()).then((user) => {
     if (user == "failure"){
@@ -29,7 +29,7 @@ export async function validateTicket (ticket: string, props: CodePanelData,
       })
     } else {
       const listUrl = storageService.STORAGE_SERVICE_URL + 'list-full/' + user;
-      fetch (listUrl, {
+      return fetch (listUrl, {
         method: 'GET'
       }).then(response => response.text()).then(responseText => {
         const files = JSON.parse(responseText);
@@ -39,7 +39,7 @@ export async function validateTicket (ticket: string, props: CodePanelData,
             rawSrc: decode(c.rawSrc)
           }
         });
-        actions.logIn({
+        const obj = ({
           workState: {
             files: newFiles,
             wd:'/' + user + '/'
@@ -49,7 +49,21 @@ export async function validateTicket (ticket: string, props: CodePanelData,
             user: user,
             ticket: ticket
           }});
-        })
+          return new Promise<string>((res, rej) => {
+            res(JSON.stringify(obj));
+          });
+        });
+        // actions.logIn({
+        //   workState: {
+        //     files: newFiles,
+        //     wd:'/' + user + '/'
+        //   },
+        //   authState: {
+        //     isAuthenticated: true,
+        //     user: user,
+        //     ticket: ticket
+        //   }});
+        // })
     }
   });
 }

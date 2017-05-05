@@ -19,6 +19,8 @@ declare type CodeFile  = {
   rawSrc: string;
   fileName: string;
   compileId?: string;
+  isDir?: boolean;
+  children?: CodeFile[];
 }
 
 declare type WorkState = {
@@ -39,6 +41,7 @@ declare type CodePanelData = {
   otherFiles: CodeFile[];
   extraArgs: string[];
   workState: WorkState;
+  pairWorkState: WorkState;
   authState: AuthState;
 }
 

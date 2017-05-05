@@ -15,6 +15,10 @@ const initialState: CodePanelData = {
     wd: '/',
     files: []
   },
+  pairWorkState: {
+    wd: '/shared',
+    files: []
+  },
   authState: {
     isAuthenticated: false
   }
@@ -29,6 +33,7 @@ export default handleActions<CodePanelState, CodePanelData>({
       otherFiles: action.payload.otherFiles,
       extraArgs: state.extraArgs,
       workState: action.payload.workState,
+      pairWorkState: state.pairWorkState,
       authState: state.authState
     };
   },
@@ -43,6 +48,7 @@ export default handleActions<CodePanelState, CodePanelData>({
       consoleSrc: action.payload.consoleSrc,
       extraArgs: state.extraArgs,
       workState: state.workState,
+      pairWorkState: state.pairWorkState,
       authState: state.authState
     };
   },
@@ -54,6 +60,7 @@ export default handleActions<CodePanelState, CodePanelData>({
       otherFiles: state.otherFiles,
       extraArgs: state.extraArgs,
       workState: state.workState,
+      pairWorkState: state.pairWorkState,
       authState: state.authState
     };
   },
@@ -79,6 +86,7 @@ export default handleActions<CodePanelState, CodePanelData>({
         wd: state.workState.wd,
         files: updatedFiles
       },
+      pairWorkState: state.pairWorkState,
       authState: state.authState
     }
   },
@@ -116,6 +124,7 @@ export default handleActions<CodePanelState, CodePanelData>({
         wd: state.workState.wd,
         files: newFiles
       },
+      pairWorkState: state.pairWorkState,
       authState: state.authState
     }
   },
@@ -127,6 +136,7 @@ export default handleActions<CodePanelState, CodePanelData>({
       otherFiles: state.otherFiles,
       extraArgs: action.payload.extraArgs,
       workState: state.workState,
+      pairWorkState: state.pairWorkState,
       authState: state.authState
     }
   },
@@ -154,6 +164,7 @@ export default handleActions<CodePanelState, CodePanelData>({
         wd: state.workState.wd,
         files: newFiles
       },
+      pairWorkState: state.pairWorkState,
       authState: state.authState
     };
   },
@@ -183,6 +194,7 @@ export default handleActions<CodePanelState, CodePanelData>({
         wd: state.workState.wd,
         files: newFiles
       },
+      pairWorkState: state.pairWorkState,
       authState: state.authState
     };
   },
@@ -197,6 +209,7 @@ export default handleActions<CodePanelState, CodePanelData>({
         otherFiles: state.otherFiles,
         extraArgs: state.extraArgs,
         workState: action.payload.workState,
+        pairWorkState: action.payload.pairWorkState,
         authState: action.payload.authState
       }
     } else {
@@ -207,6 +220,7 @@ export default handleActions<CodePanelState, CodePanelData>({
         otherFiles: state.otherFiles,
         extraArgs: state.extraArgs,
         workState: action.payload.workState,
+        pairWorkState: action.payload.pairWorkState,
         authState: action.payload.authState
       }
     }
@@ -224,6 +238,7 @@ export default handleActions<CodePanelState, CodePanelData>({
       otherFiles: state.otherFiles,
       extraArgs: state.extraArgs,
       workState: workState,
+      pairWorkState: state.pairWorkState,
       authState: authState
     }
   }

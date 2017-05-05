@@ -7,6 +7,7 @@ import * as EditorActions from '../../actions/editor';
 
 import * as codeService from '../../services/codeService';
 import * as storageService from '../../services/storageService';
+import * as syncService from '../../services/syncService';
 
 import Editor from "../../components/Editor";
 import Console from "../../components/Console";
@@ -36,10 +37,18 @@ class App extends React.Component<AppProps, AppState>{
     const { editor, actions } = this.props;
     const workState = editor.workState;
     const tokens = window.location.href.split('ticket=');
-    // window.history.pushState(null, null, "/");
     if (tokens.length > 1 && !editor.authState.isAuthenticated) {
       const ticket = tokens[1];
-      codeService.validateTicket(ticket, editor, actions);
+      codeService.validateTicket(ticket, editor, actions).then((str) => {
+        let validateAction = JSON.parse(str);
+        syncService.listShared(actions, editor, validateAction.authState.user).then((responseObj) => {
+          validateAction['pairWorkState'] = {
+            wd: '/shared',
+            files: responseObj
+          }
+          actions.initApp(validateAction);
+        })
+      })
     } else if (editor.authState.isAuthenticated){
       storageService.listPath(workState.wd, actions, editor);
     }
@@ -73,7 +82,7 @@ class App extends React.Component<AppProps, AppState>{
 
   renderDefaultView() {
     const { editor, actions, children } = this.props;
-    const workState = editor.workState;
+    const { workState, pairWorkState } = editor;
 
     const fileNodes: ITreeNode[] = workState.files.map((c: CodeFile, i) => {
       const isDir = (c.fileName.indexOf('.java') != -1);
@@ -100,6 +109,26 @@ class App extends React.Component<AppProps, AppState>{
       }
     ]
 
+    const mapChildNodes = (c: CodeFile, i): ITreeNode => {
+      let code = (c.isDir == undefined || !c.isDir);
+      return {
+        id: i,
+        label: c.fileName,
+        iconName: code ? 'code' : 'folder-close'
+      }
+    };
+    const pairFileNodes: ITreeNode[] = pairWorkState.files.map((file: CodeFile, i) => {
+      return {
+        id: i,
+        label: file.fileName,
+        iconName: 'folder-close',
+        isExpanded: true,
+        childNodes: file.children.map((c,i) => mapChildNodes(c, 2*i + 1))
+      }
+    });
+    console.log('pair ws');
+    console.log(JSON.stringify(pairFileNodes));
+
     const defaultView = (
       <div className = {classNames(style.default, "pt-app")} >
         <Navbar actions={actions}
@@ -114,6 +143,7 @@ class App extends React.Component<AppProps, AppState>{
           style={{paddingLeft: "10px"}}
         >
           <div>
+            <b>My Documents</b>
             <Tree
               contents = {treeNodes}
               onNodeClick = {((node, _) => {
@@ -132,6 +162,12 @@ class App extends React.Component<AppProps, AppState>{
                 else
                   alert('Dir!');
               })}
+            />
+
+            <br />
+            <b>Partner Assignments</b>
+            <Tree
+              contents = {pairFileNodes}
             />
           </div>
           <PanelGroup direction = "column" id = "console-panel" borderColor = "darkgray"
