@@ -7,6 +7,7 @@ import {encode, decode} from 'base-64';
 
 const initialState: CodePanelData = {
   rawSrc: "",
+  isHome: true,
   consoleSrc: "",
   fileName: "",
   otherFiles: [],
@@ -28,6 +29,7 @@ export default handleActions<CodePanelState, CodePanelData>({
   [Actions.COMPILE_FILE]: (state, action) => {
     return {
       rawSrc: state.rawSrc,
+      isHome: state.isHome,
       fileName: state.fileName,
       consoleSrc: action.payload.consoleSrc,
       otherFiles: action.payload.otherFiles,
@@ -43,6 +45,7 @@ export default handleActions<CodePanelState, CodePanelData>({
   [Actions.RUN_FILE]: (state, action) => {
     return {
       rawSrc: state.rawSrc,
+      isHome: state.isHome,
       fileName: state.fileName,
       otherFiles: state.otherFiles,
       consoleSrc: action.payload.consoleSrc,
@@ -55,6 +58,7 @@ export default handleActions<CodePanelState, CodePanelData>({
   [Actions.UPDATE_SRC]: (state, action) => {
     return {
       rawSrc: action.payload.rawSrc,
+      isHome: state.isHome,
       fileName: state.fileName,
       consoleSrc: state.consoleSrc,
       otherFiles: state.otherFiles,
@@ -78,6 +82,7 @@ export default handleActions<CodePanelState, CodePanelData>({
     });
     return {
       rawSrc: state.rawSrc,
+      isHome: state.isHome,
       fileName: action.payload.fileName,
       consoleSrc: state.consoleSrc,
       otherFiles: updatedFiles,
@@ -117,6 +122,7 @@ export default handleActions<CodePanelState, CodePanelData>({
     return {
       rawSrc: '',
       fileName: action.payload.fileName,
+      isHome: state.isHome,
       consoleSrc: state.consoleSrc,
       otherFiles: state.otherFiles,
       extraArgs: state.extraArgs,
@@ -131,6 +137,7 @@ export default handleActions<CodePanelState, CodePanelData>({
   [Actions.ARG_CHANGE]: (state, action) => {
     return {
       rawSrc: state.rawSrc,
+      isHome: state.isHome,
       fileName: state.fileName,
       consoleSrc: state.consoleSrc,
       otherFiles: state.otherFiles,
@@ -156,6 +163,7 @@ export default handleActions<CodePanelState, CodePanelData>({
     });
     return {
       rawSrc: newFile.rawSrc,
+      isHome: state.isHome,
       fileName: newFile.fileName,
       consoleSrc: state.consoleSrc,
       otherFiles: state.otherFiles,
@@ -186,6 +194,7 @@ export default handleActions<CodePanelState, CodePanelData>({
 
     return {
       rawSrc: action.payload.rawSrc,
+      isHome: action.payload.isHome,
       fileName: action.payload.fileName,
       consoleSrc: state.consoleSrc,
       otherFiles: state.otherFiles,
@@ -204,6 +213,7 @@ export default handleActions<CodePanelState, CodePanelData>({
       const top = workState.files[0];
       return {
         rawSrc: top.rawSrc,
+        isHome: state.isHome,
         fileName: top.fileName,
         consoleSrc: state.consoleSrc,
         otherFiles: state.otherFiles,
@@ -215,6 +225,7 @@ export default handleActions<CodePanelState, CodePanelData>({
     } else {
       return {
         rawSrc: "",
+        isHome: state.isHome,
         fileName: "Untitled.java",
         consoleSrc: state.consoleSrc,
         otherFiles: state.otherFiles,
@@ -233,6 +244,7 @@ export default handleActions<CodePanelState, CodePanelData>({
     })
     return {
       rawSrc: state.rawSrc,
+      isHome: state.isHome,
       fileName: state.fileName,
       consoleSrc: state.consoleSrc,
       otherFiles: state.otherFiles,

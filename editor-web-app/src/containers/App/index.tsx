@@ -94,7 +94,7 @@ class App extends React.Component<AppProps, AppState>{
         label: c.fileName,
         id: i
       }
-      if (editor.fileName == c.fileName) {
+      if (editor.fileName == c.fileName && editor.isHome) {
         result['isSelected'] = true;
       }
       return result;
@@ -111,12 +111,15 @@ class App extends React.Component<AppProps, AppState>{
     ]
 
     const mapChildNodes = (c: CodeFile, i): ITreeNode => {
-      let code = (c.isDir == undefined || !c.isDir);
-      return {
+      const code = (c.isDir == undefined || !c.isDir);
+      let result = {
         id: i,
         label: c.fileName,
         iconName: code ? 'code' : 'folder-close'
       }
+      if ((c.fileName == editor.fileName) && !editor.isHome)
+        result['isSelected'] = true;
+      return result;
     };
     const pairFileNodes: ITreeNode[] = pairWorkState.files.map((file: CodeFile, i) => {
       return {
@@ -155,7 +158,8 @@ class App extends React.Component<AppProps, AppState>{
                 if (node.iconName == 'code'){
                   actions.changeSrcFile({
                     fileName: node.label,
-                    rawSrc: getSrc(node.label)
+                    rawSrc: getSrc(node.label),
+                    isHome: true
                   });
                 }
                 else
@@ -167,6 +171,29 @@ class App extends React.Component<AppProps, AppState>{
             <b>Partner Assignments</b>
             <Tree
               contents = {pairFileNodes}
+              onNodeClick = {((node, _) => {
+                const getSrc = fileName => {
+                  const childArrs: CodeFile[][] = pairWorkState.files.map((f,i) => {
+                    return f.children;
+                  });
+                  const childNodes = childArrs.reduce((l,cf) => {
+                    return l.concat(cf)
+                  })
+                  const f = childNodes.filter((fn) => {
+                    return fn.fileName == node.label;
+                  });
+                  return f[0].rawSrc;
+                }
+                if (node.iconName == 'code'){
+                  actions.changeSrcFile({
+                    fileName: node.label,
+                    rawSrc: getSrc(node.label),
+                    isHome: false
+                  });
+                }
+                else
+                  alert('Dir!');
+              })}
             />
           </div>
           <PanelGroup direction = "column" id = "console-panel" borderColor = "darkgray"

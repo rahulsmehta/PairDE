@@ -95,7 +95,7 @@ export function compile (props: CodePanelData, actions: typeof EditorActions) {
     }).then(r => r.text()).then((resp) => {
       const {compiler_errors, class_path} = JSON.parse(resp);
       const updatedFiles = props.workState.files.map((c: CodeFile, i) => {
-        if (c.fileName == props.fileName) {
+        if (c.fileName == props.fileName && props.isHome) {
           return {
             rawSrc: c.rawSrc,
             fileName: c.fileName,
@@ -105,6 +105,17 @@ export function compile (props: CodePanelData, actions: typeof EditorActions) {
           return c;
         }
       });
+      // const updatedPairFiles = props.pairWorkState.files.map((c: CodeFile, i) => {
+      //   if (c.fileName == props.fileName && !props.isHome) {
+      //     return {
+      //       rawSrc: c.rawSrc,
+      //       fileName: c.fileName,
+      //       compileId: class_path
+      //     }
+      //   } else {
+      //     return c;
+      //   }
+      // });
       actions.compileFile({
           rawSrc: props.rawSrc,
           fileName: props.fileName,
