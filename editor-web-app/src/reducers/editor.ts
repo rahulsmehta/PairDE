@@ -188,7 +188,6 @@ export default handleActions<CodePanelState, CodePanelData>({
   },
   [Actions.INIT_APP]: (state, action) => {
     const { workState } = action.payload;
-    alert(action.payload.authState.isAuthenticated);
     if (workState.files.length > 0) {
       const top = workState.files[0];
       return {

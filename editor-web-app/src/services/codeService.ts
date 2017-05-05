@@ -33,10 +33,10 @@ export async function validateTicket (ticket: string, props: CodePanelData,
         method: 'GET'
       }).then(response => response.text()).then(responseText => {
         const files = JSON.parse(responseText);
-        const newFiles = files.map((c:CodeFile) => {
+        const newFiles = files.map((c) => {
           return {
             fileName: c.fileName,
-            rawSrc: c.rawSrc == null ? decode(c.rawSrc) : ""
+            rawSrc: decode(c.rawSrc)
           }
         });
         actions.logIn({

@@ -90,7 +90,9 @@ def list_path(path):
 def list_full(path):
     path = '/' + path
     resource = mongo.db.code.find_one({'path': path})
-    if resource['isDir'] == False:
+    if resource is None:
+        return "not found"
+    elif resource['isDir'] == False:
         return "file has no members"
     else:
         children = resource['children']
@@ -188,6 +190,7 @@ def load_path(path):
 @app.route('/rename-path', defaults={'path': ''})
 @app.route('/rename-path/', defaults={'path': ''})
 @app.route('/rename-path/<path:path>', methods=['POST'])
+@cross_origin()
 def rename_path(path):
     data = json.loads(request.data)
     path = "/" + path
@@ -199,7 +202,7 @@ def rename_path(path):
         parentPath += splitpath[i] + "/"
     parentPath = parentPath[:-1]
     to_update = mongo.db.code.find_one({'path':path})
-    new_path = '/' + parentPath + data['newName']
+    new_path = parentPath + '/' + data['newName']
     mongo.db.code.update({'path': path},
                          {'name': data['newName'],
                           'isDir': to_update['isDir'],

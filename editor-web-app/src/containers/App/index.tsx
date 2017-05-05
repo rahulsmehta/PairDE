@@ -17,10 +17,6 @@ import * as style from './style.css';
 
 import MonacoEditor from "react-monaco-editor";
 const PanelGroup = require("react-panelgroup");
-const CAS = require('cas');
-const uri = require('urijs');
-const cas = new CAS({base_url: 'https://fed.princeton.edu/cas/login',
-  service: 'http%3A%2F%2Flocalhost%3A3000%2F'});
 import { Breadcrumb, Classes, Button, ITreeNode, Tree, Tooltip,
          Position, Intent, Popover, EditableText} from "@blueprintjs/core";
 
@@ -40,10 +36,11 @@ class App extends React.Component<AppProps, AppState>{
     const { editor, actions } = this.props;
     const workState = editor.workState;
     const tokens = window.location.href.split('ticket=');
+    // window.history.pushState(null, null, "/");
     if (tokens.length > 1 && !editor.authState.isAuthenticated) {
       const ticket = tokens[1];
       codeService.validateTicket(ticket, editor, actions);
-    } else {
+    } else if (editor.authState.isAuthenticated){
       storageService.listPath(workState.wd, actions, editor);
     }
   }
