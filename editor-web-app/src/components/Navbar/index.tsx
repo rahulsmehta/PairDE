@@ -95,6 +95,26 @@ class Navbar extends React.Component<NavbarProps, {}> {
       </Popover>
     );
 
+  let partnerClass = "pt-button pt-minimal pt-icon-people ";
+  const partnerPopover = (
+    <div>
+      <button className="pt-button pt-icon pt-minimal pt-icon-edit">Start Editing</button> <br/>
+      <button className="pt-button pt-icon pt-minimal pt-icon-stop">Stop Editing</button>
+    </div>
+  );
+  const partnerButton = (isEmpty || editor.isHome) ?
+      (<button className={partnerClass + 'pt-disabled'}>Pair Programming</button>) :
+      (
+      <Popover
+        content = {partnerPopover}
+        popoverClassName="pt-popover-content-sizing"
+        position={Position.BOTTOM}
+        useSmartArrowPositioning={true}
+      >
+        <button className={partnerClass}>Pair Programming</button>
+      </Popover>
+    );
+
     const renameButton = (isEmpty || !editor.isHome) ? (<button className={renameClass}>Rename</button>) :
       (
       <RenameDialog className={renameClass} currentFile={editor.fileName} actions={actions}
@@ -145,9 +165,6 @@ class Navbar extends React.Component<NavbarProps, {}> {
    return (
     <nav className={classNames("pt-navbar", "pt-dark")} >
       <div className="pt-navbar-group pt-align-left">
-        <div className="pt-navbar-heading">
-          {/* editable text used to be here */}
-        </div>
         {newButton}
         {renameButton}
         <span className="pt-navbar-divider"></span>
@@ -163,13 +180,7 @@ class Navbar extends React.Component<NavbarProps, {}> {
         >Compile</button>
         {runButton}
         <span className="pt-navbar-divider"></span>
-        <Tooltip
-          content = "No partner assigned"
-          intent = {Intent.WARNING}
-          position = {Position.BOTTOM}
-          >
-          <button className="pt-button pt-minimal pt-icon-changes pt-disabled">Switch</button>
-        </Tooltip>
+          {partnerButton}
         <span className="pt-navbar-divider"></span>
         <Tooltip content={"Logged in as " + editor.authState.user} position = {Position.BOTTOM_RIGHT}>
           <button className="pt-button pt-minimal pt-icon-user"></button>
