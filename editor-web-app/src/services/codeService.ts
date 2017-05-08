@@ -39,12 +39,7 @@ export async function validateTicket (ticket: string, props: CodePanelData,
   return fetch(url, {
     method: 'GET'
   }).then(response => response.text()).then((user) => {
-    if (user == "failure"){
-      AppToaster.show({
-        intent: Intent.DANGER,
-        message: 'Something went wrong! Please try again'
-      })
-    } else {
+    if (user != "failure"){
       const listUrl = storageService.STORAGE_SERVICE_URL + 'list-full/' + user;
       return fetch (listUrl, {
         method: 'GET'

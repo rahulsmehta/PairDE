@@ -162,10 +162,10 @@ class App extends React.Component<AppProps, AppState>{
 
         <PanelGroup
           id = "split-panel" borderColor="darkgray" spacing={5}
-          panelWidths={[{size: 200, minSize:0, resize: "dynamic"},]}
+          panelWidths={[{size: 240, minSize:0, resize: "dynamic"},]}
           style={{paddingLeft: "10px"}}
         >
-          <div>
+          <div style={{paddingLeft: 5}}>
             <b>My Documents</b>
             <Tree
               contents = {treeNodes}
