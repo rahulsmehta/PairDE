@@ -58,7 +58,7 @@ def getshared(user):
             merged.append(z)
 
     if len(merged) == 0:
-        return "User has no shared directories"
+        return json.dumps([])
     loaded = []
     for directory in merged:
         # loaded.append({'rawSrc': None, 'fileName': directory['name'], 'isDir': True})

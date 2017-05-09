@@ -48,22 +48,29 @@ class App extends React.Component<AppProps, AppState>{
       const ticket = tokens[1];
       codeService.validateTicket(ticket, editor, actions).then((str) => {
         let validateAction = JSON.parse(str);
-        syncService.listShared(actions, editor, validateAction.authState.user).then((responseObj) => {
-          validateAction['pairWorkState'] = {
-            wd: '/shared',
-            files: responseObj,
-            isSlave: editor.pairWorkState.isSlave
-          }
-          validateAction['authState'] = {
-            isAuthenticated: true,
-            user: validateAction.authState.user,
-            ticket: ticket
-          }
-          actions.initApp(validateAction);
+        syncService.listShared(actions, editor, validateAction.authState.user).then((sharedFiles) => {
+          const newWd = '/' + validateAction.authState.user;
+          storageService.listPath(newWd, editor).then((myFiles) => {
+            validateAction['pairWorkState'] = {
+              wd: '/shared',
+              files: sharedFiles,
+              isSlave: editor.pairWorkState.isSlave
+            }
+            validateAction['authState'] = {
+              isAuthenticated: true,
+              user: validateAction.authState.user,
+              ticket: ticket
+            }
+            validateAction['workState'] = {
+              wd: newWd + '/',
+              files: myFiles
+            }
+            actions.initApp(validateAction);
+          })
         })
       })
     } else if (editor.authState.isAuthenticated){
-      storageService.listPath(workState.wd, actions, editor);
+      // storageService.listPath(workState.wd, actions, editor);
     }
   }
 

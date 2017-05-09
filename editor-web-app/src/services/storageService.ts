@@ -116,25 +116,18 @@ export function saveFile(path: string, contents: string, actions: typeof EditorA
     }
 
 
-export function listPath(path: string, actions: typeof EditorActions, props: CodePanelData) {
+export function listPath(path: string, props: CodePanelData) {
   let url = fixPath(STORAGE_SERVICE_URL + 'list-full' + path);
-  fetch (url, {
+  return fetch (url, {
     method: 'GET'
   }).then(response => response.text()).then(responseText => {
     const files = JSON.parse(responseText);
-    const newFiles = files.map((c) => {
+    const newFiles: CodeFile[] = files.map((c) => {
       return {
         fileName: c.fileName,
         rawSrc: decode(c.rawSrc)
       }
     });
-    actions.initApp({
-      workState: {
-        wd: props.workState.wd,
-        files: newFiles
-      },
-      authState: props.authState,
-      pairWorkState: props.pairWorkState
+    return newFiles;
     });
-  });
 }
