@@ -40,9 +40,9 @@ class Login extends React.Component<{}, {}>{
       <div className = {classNames(style.default, "pt-app")} >
         <div className="pt-non-ideal-state">
           <div className="pt-non-ideal-state-visual pt-non-ideal-state-icon">
-          <span className="pt-icon pt-icon-user"></span>
+          <span className="pt-icon pt-icon-large pt-icon-people"></span>
         </div>
-          <h4 className="pt-non-ideal-state-title">You are not signed in!</h4>
+          <h3 className="pt-non-ideal-state-title">Welcome to PairDE!</h3>
           <div className="pt-non-ideal-state-description">
             <a className={"pt-button pt-intent-primary"}
               href={"https://fed.princeton.edu/cas/login?service=" + casPath}>
