@@ -87,7 +87,7 @@ def get_lock(payload, path):
         emit('lock_fail', locks[lock_path], namespace='/')
     else:
         locks[lock_path] = {'sid':sid, 'user':lock_request['user']}
-        emit('lock_success', json.dumps(locks[lock_path]), namespace='/')
+        emit('lock_success', str(sid), namespace='/')
 
 
         #TODO: see if this actually works for fixing render issue
@@ -115,7 +115,7 @@ def release_lock(payload,p):
     print (lock_path in locks)
     if (lock_path in locks) and (locks[lock_path] is not None) and (locks[lock_path]['sid'] == sid):
         del locks[lock_path]
-        emit('release_success', '', namespace='/')
+        emit('release_success', str(sid), namespace='/', broadcast=True)
     else:
         emit('release_fail', '', namespace='/')
 
