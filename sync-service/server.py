@@ -87,7 +87,7 @@ def get_lock(payload, path):
         emit('lock_fail', locks[lock_path], namespace='/')
     else:
         locks[lock_path] = {'sid':sid, 'user':lock_request['user']}
-        emit('lock_success', str(sid), namespace='/')
+        emit('lock_success', str(sid), namespace='/', broadcast=True)
 
 
         #TODO: see if this actually works for fixing render issue
