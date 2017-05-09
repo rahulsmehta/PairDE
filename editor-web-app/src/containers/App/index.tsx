@@ -64,7 +64,8 @@ class App extends React.Component<AppProps, AppState>{
 
   renderAuthView(){
     const casPath = (Utils.isProd()) ? "http%3A%2F%2Fpairde.herokuapp.com%2F" :
-      "http%3A%2F%2Flocalhost%3A3000%2F";
+      "http%3A%2F%2Flocalhost%3A3000%2Feditor%2F";
+      // "http%3A%2F%2Flocalhost%3A3000%2F";
 
     return (
       <div className = {classNames(style.default, "pt-app")} >
