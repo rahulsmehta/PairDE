@@ -1,4 +1,5 @@
 import json
+import os
 
 from compiler import write_temp_decoded, compile_decoded
 from runner import exec_file
@@ -44,7 +45,8 @@ Architecture of the code service:
 
 """
 
-SERVICE_URL = "http%3A%2F%2Flocalhost%3A3000%2F"
+SERVICE_URL = "http%3A%2F%2Flocalhost%3A3000%2F" if os.environ['ENV'] != 'PRODUCTION' else \
+    "http%3A%2F%2Fpairde.herokuapp.com%2F"
 
 
 # Set endpoint prefix to /v1 for initial API
