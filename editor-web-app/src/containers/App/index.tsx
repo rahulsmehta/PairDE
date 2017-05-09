@@ -54,6 +54,11 @@ class App extends React.Component<AppProps, AppState>{
             files: responseObj,
             isSlave: editor.pairWorkState.isSlave
           }
+          validateAction['authState'] = {
+            isAuthenticated: true,
+            user: validateAction.authState.user,
+            ticket: ticket
+          }
           actions.initApp(validateAction);
         })
       })
@@ -62,37 +67,7 @@ class App extends React.Component<AppProps, AppState>{
     }
   }
 
-  renderAuthView(){
-    const casPath = (Utils.isProd()) ? "http%3A%2F%2Fpairde.herokuapp.com%2F" :
-      "http%3A%2F%2Flocalhost%3A3000%2Feditor%2F";
-      // "http%3A%2F%2Flocalhost%3A3000%2F";
-
-    return (
-      <div className = {classNames(style.default, "pt-app")} >
-        <div className="pt-non-ideal-state">
-          <div className="pt-non-ideal-state-visual pt-non-ideal-state-icon">
-          <span className="pt-icon pt-icon-user"></span>
-        </div>
-          <h4 className="pt-non-ideal-state-title">You are not signed in!</h4>
-          <div className="pt-non-ideal-state-description">
-            <a className={"pt-button pt-intent-primary"}
-              href={"https://fed.princeton.edu/cas/login?service=" + casPath}>
-              Login with CAS </a>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-    render() {
-      if (!this.props.editor.authState.isAuthenticated) {
-        return this.renderAuthView();
-      } else {
-        return this.renderDefaultView();
-      }
-    }
-
-  renderDefaultView() {
+  render () {
     const { editor, actions, children } = this.props;
     const { workState, pairWorkState } = editor;
 

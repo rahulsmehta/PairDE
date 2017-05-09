@@ -33,7 +33,7 @@ import { encode } from 'base-64';
 class Login extends React.Component<{}, {}>{
 
   render(){
-    const casPath = (Utils.isProd()) ? "http%3A%2F%2Fpairde.herokuapp.com%2F" :
+    const casPath = (Utils.isProd()) ? "http%3A%2F%2Fpairde.herokuapp.com%2Feditor%2F" :
       "http%3A%2F%2Flocalhost%3A3000%2Feditor%2F";
 
     return (
