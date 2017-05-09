@@ -127,4 +127,4 @@ def on_code(payload,path):
 
 if __name__ == '__main__':
     app.secret_key = 'cos333'
-    socketio.run(app, port=9000, debug=True)
+    socketio.run(host='0.0.0.0', app, port=9000, debug=True)

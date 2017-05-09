@@ -342,4 +342,4 @@ def check_add_root():
 
 
 if __name__ == '__main__':
-    app.run(debug=True, port=4000, threaded=True)
+    app.run(host='0.0.0.0', debug=True, port=4000, threaded=True)
