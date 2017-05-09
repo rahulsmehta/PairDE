@@ -62,7 +62,7 @@ def find(rid):
     if len(target) == 0:
         return "failure"
     else:
-        return "success"
+        return rid
 
 
 @app.route('/root', methods=['GET'])
@@ -173,7 +173,7 @@ def create_path(path):
     child = mongo.db.code.find_one({'path': rawpath})
     mongo.db.code.update({'_id': parentId}, {"$addToSet": {'children': child['_id']}})
 
-    return "success"
+    return str(child["_id"])
 
 
 @app.route('/load-path', defaults={'path': ''})
@@ -214,7 +214,7 @@ def rename_path(path):
                           'isDir': to_update['isDir'],
                           'contents': to_update['contents'],
                           'path': new_path})
-    return "success"
+    return str(to_update["_id"])
 
 
 @app.route('/load-rid/<rid>', methods=['GET'])
@@ -257,7 +257,7 @@ def move_path(destinationPath):
     # update its parent and path
     mongo.db.code.update({'_id': source["_id"]},
                          {"$set": {'parent': target['_id'], 'path': destinationPath + "/" + source['name']}})
-    return "success"
+    return str(source["_id"])
 
 
 @app.route('/move-rid/<destinationID>', methods=['POST'])
@@ -282,7 +282,7 @@ def move_rid(destinationID):
     # update its parent and path
     mongo.db.code.update({'_id': source["_id"]},
                          {"$set": {'parent': target['_id'], 'path': target['path'] + "/" + source['name']}})
-    return "success"
+    return str(source["_id"])
 
 
 @app.route('/delete-path', defaults={'path': ''})
