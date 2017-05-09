@@ -173,8 +173,6 @@ class App extends React.Component<AppProps, AppState>{
                     isHome: true
                   });
                 }
-                else
-                  alert('Dir!');
               })}
             />
 
@@ -208,8 +206,6 @@ class App extends React.Component<AppProps, AppState>{
                     }
                   });
                 }
-                else
-                  alert('Dir!');
               })}
             />
           </div>
