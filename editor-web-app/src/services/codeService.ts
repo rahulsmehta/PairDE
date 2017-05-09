@@ -3,7 +3,9 @@ import * as EditorActions from '../actions/editor';
 import {AppToaster} from './toaster';
 import * as storageService from './storageService';
 import {Intent} from '@blueprintjs/core';
-export const CODE_SERVICE_URL = "http://localhost:5000/"
+import * as Utils from '../utils';
+export const CODE_SERVICE_URL = Utils.isProd() ?
+  "http://ec2-34-207-206-82.compute-1.amazonaws.com:5000/" : "http://localhost:5000/"
 
 function getUuidAndFile(files: CodeFile[], fileName: string){
   const result = files.filter((c: CodeFile, i) => {

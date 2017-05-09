@@ -4,7 +4,9 @@ import * as EditorActions from '../actions/editor';
 import { Intent } from "@blueprintjs/core";
 import { AppToaster } from "./toaster";
 
-export const SYNC_SERVICE_URL = "http://localhost:9000/"
+import * as Utils from '../utils';
+export const SYNC_SERVICE_URL = Utils.isProd() ?
+  "http://ec2-34-207-206-82.compute-1.amazonaws.com:9000/" : "http://localhost:9000/"
 
 
 export function listShared(actions: typeof EditorActions, props: CodePanelData, user: string) {
