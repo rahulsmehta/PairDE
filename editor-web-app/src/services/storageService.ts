@@ -4,7 +4,9 @@ import * as EditorActions from '../actions/editor';
 import { Intent } from "@blueprintjs/core";
 import { AppToaster } from "./toaster";
 
-export const STORAGE_SERVICE_URL = "http://localhost:4000/"
+import * as Utils from '../utils';
+export const STORAGE_SERVICE_URL = Utils.isProd() ?
+  "http://ec2-34-207-206-82.compute-1.amazonaws.com:4000/" : "http://localhost:4000/";
 
 const fixPath = (url) => {
   if(url.charAt(url.length-1) == '/' && url.length > 1)
@@ -114,25 +116,18 @@ export function saveFile(path: string, contents: string, actions: typeof EditorA
     }
 
 
-export function listPath(path: string, actions: typeof EditorActions, props: CodePanelData) {
+export function listPath(path: string, props: CodePanelData) {
   let url = fixPath(STORAGE_SERVICE_URL + 'list-full' + path);
-  fetch (url, {
+  return fetch (url, {
     method: 'GET'
   }).then(response => response.text()).then(responseText => {
     const files = JSON.parse(responseText);
-    const newFiles = files.map((c) => {
+    const newFiles: CodeFile[] = files.map((c) => {
       return {
         fileName: c.fileName,
         rawSrc: decode(c.rawSrc)
       }
     });
-    actions.initApp({
-      workState: {
-        wd: props.workState.wd,
-        files: newFiles
-      },
-      authState: props.authState,
-      pairWorkState: props.pairWorkState
+    return newFiles;
     });
-  });
 }

@@ -8,11 +8,13 @@ import * as EditorActions from '../../actions/editor';
 import * as codeService from '../../services/codeService';
 import * as storageService from '../../services/storageService';
 import * as syncService from '../../services/syncService';
+import * as Utils from '../../utils';
 
 import Editor from "../../components/Editor";
 import PairEditor from "../../components/PairEditor";
 import Console from "../../components/Console";
 import Navbar from "../../components/Navbar";
+
 
 
 import * as style from './style.css';
@@ -23,7 +25,8 @@ import { Breadcrumb, Classes, Button, ITreeNode, Tree, Tooltip,
          Position, Intent, Popover, EditableText} from "@blueprintjs/core";
 
 const io = require('socket.io-client');
-let socket = io(`http://localhost:9000`, {transports: ['websocket']});
+const ioPath = Utils.isProd() ? "http://ec2-34-207-206-82.compute-1.amazonaws.com:9000" : "http://localhost:9000";
+let socket = io(ioPath, {transports: ['websocket']});
 
 import { encode } from 'base-64';
 
@@ -45,47 +48,33 @@ class App extends React.Component<AppProps, AppState>{
       const ticket = tokens[1];
       codeService.validateTicket(ticket, editor, actions).then((str) => {
         let validateAction = JSON.parse(str);
-        syncService.listShared(actions, editor, validateAction.authState.user).then((responseObj) => {
-          validateAction['pairWorkState'] = {
-            wd: '/shared',
-            files: responseObj,
-            isSlave: editor.pairWorkState.isSlave
-          }
-          actions.initApp(validateAction);
+        syncService.listShared(actions, editor, validateAction.authState.user).then((sharedFiles) => {
+          const newWd = '/' + validateAction.authState.user;
+          storageService.listPath(newWd, editor).then((myFiles) => {
+            validateAction['pairWorkState'] = {
+              wd: '/shared',
+              files: sharedFiles,
+              isSlave: editor.pairWorkState.isSlave
+            }
+            validateAction['authState'] = {
+              isAuthenticated: true,
+              user: validateAction.authState.user,
+              ticket: ticket
+            }
+            validateAction['workState'] = {
+              wd: newWd + '/',
+              files: myFiles
+            }
+            actions.initApp(validateAction);
+          })
         })
       })
     } else if (editor.authState.isAuthenticated){
-      storageService.listPath(workState.wd, actions, editor);
+      // storageService.listPath(workState.wd, actions, editor);
     }
   }
 
-  renderAuthView(){
-    return (
-      <div className = {classNames(style.default, "pt-app")} >
-        <div className="pt-non-ideal-state">
-          <div className="pt-non-ideal-state-visual pt-non-ideal-state-icon">
-          <span className="pt-icon pt-icon-user"></span>
-        </div>
-          <h4 className="pt-non-ideal-state-title">You are not signed in!</h4>
-          <div className="pt-non-ideal-state-description">
-            <a className={"pt-button pt-intent-primary"}
-              href={"https://fed.princeton.edu/cas/login?service=http%3A%2F%2Flocalhost%3A3000%2F"}>
-              Login with CAS </a>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-    render() {
-      if (!this.props.editor.authState.isAuthenticated) {
-        return this.renderAuthView();
-      } else {
-        return this.renderDefaultView();
-      }
-    }
-
-  renderDefaultView() {
+  render () {
     const { editor, actions, children } = this.props;
     const { workState, pairWorkState } = editor;
 
@@ -184,8 +173,6 @@ class App extends React.Component<AppProps, AppState>{
                     isHome: true
                   });
                 }
-                else
-                  alert('Dir!');
               })}
             />
 
@@ -219,8 +206,6 @@ class App extends React.Component<AppProps, AppState>{
                     }
                   });
                 }
-                else
-                  alert('Dir!');
               })}
             />
           </div>

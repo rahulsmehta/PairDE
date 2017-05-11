@@ -9,7 +9,7 @@ Functionality:
 """
 
 import sys
-from os import path, mkdir, chdir
+from os import path, mkdir, chdir, getcwd
 import base64
 import subprocess
 import hashlib
@@ -48,6 +48,8 @@ def compile_decoded(src_path):
     try:
         dir_path = '/'.join(t[:-1])
         chdir(dir_path)
+        print getcwd()
+#        print 'javac',src_name
         compiler_result = subprocess.check_output(['javac', src_name],
                                                   stderr=subprocess.STDOUT)
         return compiler_result, class_path

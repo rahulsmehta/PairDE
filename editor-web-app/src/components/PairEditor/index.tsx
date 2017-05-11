@@ -31,6 +31,7 @@ class PairEditor extends React.Component<IPairEditorProps,IPairEditorState> {
 
   componentDidMount() {
     const {socket, actions} = this.props;
+    console.log(socket);
     socket.on('connect', () => console.log('connected'));
     socket.on('code-sub', (payload) => {
       this.props.actions.updateSrc({
@@ -39,15 +40,22 @@ class PairEditor extends React.Component<IPairEditorProps,IPairEditorState> {
     });
     socket.on('lock_success', (payload) => {
       AppToaster.clear();
-      AppToaster.show({
-          intent: Intent.SUCCESS,
-          message: "You are now editing"
-      });
-      actions.lockGranted({
-        pairWorkState: {
-          isSlave: false
-        }
-      });
+      if (payload == socket.id) {
+        AppToaster.show({
+            intent: Intent.PRIMARY,
+            message: "You are now editing"
+        });
+        actions.lockGranted({
+          pairWorkState: {
+            isSlave: false
+          }
+        });
+      } else {
+        AppToaster.show({
+          intent: Intent.PRIMARY,
+          message: "Your partner is now editing"
+        })
+      }
     });
     socket.on('lock_fail', (payload) => {
       AppToaster.show({
@@ -57,15 +65,22 @@ class PairEditor extends React.Component<IPairEditorProps,IPairEditorState> {
     });
     socket.on('release_success', (payload) => {
       AppToaster.clear();
-      AppToaster.show({
-        intent: Intent.SUCCESS,
-        message: "Completed editing!"
-      });
-      actions.lockGranted({
-        pairWorkState: {
-          isSlave: true
-        }
-      });
+      if(payload == socket.id){
+        AppToaster.show({
+          intent: Intent.PRIMARY,
+          message: "Completed editing!"
+        });
+        actions.lockGranted({
+          pairWorkState: {
+            isSlave: true
+          }
+        });
+      } else {
+        AppToaster.show({
+          intent: Intent.PRIMARY,
+          message: "Your partner is no longer editing"
+        })
+      }
     });
     socket.on('release_fail', (payload) => {
       AppToaster.show({
