@@ -76,9 +76,9 @@ class RenameDialog extends React.Component<IDialogProps, IDialogState> {
     private toggleDialog = () => this.setState({ isOpen: !this.state.isOpen });
     private updateContents = (c) => this.setState( {isOpen: this.state.isOpen, content: c} );
 
-    private validateName = (fn) => {
-      const re = new RegExp('[A-Z].*\.java$')
-      return re.test(fn);
+    private validateName = (fn: string) => {
+      const re = new RegExp('^[A-Z][A-Za-z0-9]*\.java$');
+      return re.test(fn) && fn.length > 0;
     }
 }
 
