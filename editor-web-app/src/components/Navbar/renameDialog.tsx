@@ -61,23 +61,41 @@ class RenameDialog extends React.Component<IDialogProps, IDialogState> {
     private handleRename = () => {
       const {content} = this.state;
       const {storageService, currentFile, wd, actions} = this.props;
-      if (!this.validateName(content)) {
+      if (this.validateFileName(currentFile)) {
+        if (!this.validateFileName(content)) {
           AppToaster.show({
             message: "Invalid class name!",
             intent: Intent.DANGER
           });
-      } else {
-        const path = wd + currentFile;
-        storageService.renameFile(path, content, actions);
-        this.setState({isOpen: !this.state.isOpen})
+        } else {
+          const path = wd + currentFile;
+          storageService.renameFile(path, content, actions);
+          this.setState({isOpen: !this.state.isOpen})
+        }
+      } else if (this.validateDirName(currentFile)) {
+        if (!this.validateDirName(content)) {
+          AppToaster.show({
+            message: "Invalid folder name!",
+            intent: Intent.DANGER
+          });
+        } else {
+          const path = wd + currentFile;
+          storageService.renameFile(path, content, actions);
+          this.setState({isOpen: !this.state.isOpen})
+        }
       }
     }
 
     private toggleDialog = () => this.setState({ isOpen: !this.state.isOpen });
     private updateContents = (c) => this.setState( {isOpen: this.state.isOpen, content: c} );
 
-    private validateName = (fn: string) => {
+    private validateFileName = (fn: string) => {
       const re = new RegExp('^[A-Z][A-Za-z0-9]*\.java$');
+      return re.test(fn) && fn.length > 0;
+    }
+
+    private validateDirName = (fn: string) => {
+      const re = new RegExp('^[A-Za-z0-9_]*$');
       return re.test(fn) && fn.length > 0;
     }
 }
