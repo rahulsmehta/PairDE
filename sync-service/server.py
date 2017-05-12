@@ -13,7 +13,6 @@ CORS(app)
 socketio = SocketIO(app)
 mongo = PyMongo(app)
 
-
 """
 """
 
@@ -22,13 +21,15 @@ mongo = PyMongo(app)
 
 locks = dict({})
 
+
 @app.route('/ping', methods=['GET'])
 def pong():
     return "pong"
 
+
 @app.route('/create-shared/<u1>/<u2>/<assignment>', methods=['POST'])
 def create(u1, u2, assignment):
-    #Create a new shared directory with path /shared/u1_u2_assignment
+    # Create a new shared directory with path /shared/u1_u2_assignment
     dirname = u1 + "_" + u2 + "_" + assignment
     path = "/shared/" + dirname
     if (mongo.db.code.find_one({'path': path}) != None):
@@ -41,13 +42,14 @@ def create(u1, u2, assignment):
     mongo.db.code.update({'_id': shared['_id']}, {"$addToSet": {'children': newDir['_id']}})
     return "success"
 
+
 @app.route('/list-shared/<user>', methods=['GET'])
 def getshared(user):
-    #Return list of all shared directories belonging to user
+    # Return list of all shared directories belonging to user
     reg1 = user + '_.*'
     reg2 = '.*_' + user + '_.*'
 
-    #TODO - fix this logic
+    # TODO - fix this logic
     list1 = list(mongo.db.code.find({"name": {"$regex": reg1}}))
     list2 = list(mongo.db.code.find({"name": {"$regex": reg2}}))
     merged = []
@@ -72,9 +74,10 @@ def getshared(user):
             if doc['isDir']:
                 loaded_dir['children'].append({'rawSrc': None, 'fileName': doc['name'], 'isDir': True})
             else:
-                loaded_dir['children'].append({'rawSrc':doc['contents'], 'fileName': doc['name'], 'isDir': False})
+                loaded_dir['children'].append({'rawSrc': doc['contents'], 'fileName': doc['name'], 'isDir': False})
         loaded.append(loaded_dir)
     return json.dumps(loaded)
+
 
 @socketio.on('get_lock', namespace='/')
 def get_lock(payload, path):
@@ -86,27 +89,17 @@ def get_lock(payload, path):
     if (lock_path in locks) and (locks[lock_path] is not None):
         emit('lock_fail', locks[lock_path], namespace='/')
     else:
-        locks[lock_path] = {'sid':sid, 'user':lock_request['user']}
+        locks[lock_path] = {'sid': sid, 'user': lock_request['user']}
         emit('lock_success', str(sid), namespace='/', broadcast=True)
 
 
-        #TODO: see if this actually works for fixing render issue
-# @app.route('/lock/<sid>', methods=['POST'])
-# def lock(sid):
-#     global locks
-#     lock_request = json.loads(request.data)
-#     lock_path = lock_request['lock_path']
-#     print (lock_path in locks)
-#     if (lock_path in locks) and (locks[lock_path] is not None):
-#         return json.dumps(locks[lock_path])
-#     else:
-#         locks[lock_path] = json.dumps({'sid':sid, 'user':lock_request['user']})
-#         emit('lock_success', locks[lock_path], namespace='/')
+@socketio.on('disconnect', namespace='/')
+def on_disconnect():
+    print "bye bye"
 
-    # print "Received lock request for {} from {}...acking...".format(payload, request.sid)
 
 @socketio.on('release_lock', namespace='/')
-def release_lock(payload,p):
+def release_lock(payload, p):
     print "Received release lock request for {} from {}...acking...".format(payload, request.sid)
     global locks
     lock_request = json.loads(payload)
@@ -121,9 +114,10 @@ def release_lock(payload,p):
 
 
 @socketio.on('code', namespace='/')
-def on_code(payload,path):
+def on_code(payload, path):
     print "Received payload from {}".format(request.sid)
-    emit('code-sub',request.sid,namespace='/', broadcast=True)
+    emit('code-sub', request.sid, namespace='/', broadcast=True)
+
 
 if __name__ == '__main__':
     app.secret_key = 'cos333'
