@@ -16,6 +16,7 @@ declare interface RunFileRequest {
 }
 
 declare type CodeFile  = {
+  rid: string;
   rawSrc: string;
   fileName: string;
   compileId?: string;

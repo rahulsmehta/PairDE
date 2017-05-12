@@ -17,11 +17,13 @@ export function listShared(actions: typeof EditorActions, props: CodePanelData, 
     const files: CodeFile[] = JSON.parse(responseText);
     const decodedFiles:CodeFile[] = files.map((c,i) => {
       return {
+          rid: "",
           fileName: c.fileName,
           rawSrc: c.rawSrc,
           isDir: c.isDir,
           children: c.children.map((f,i) => {
             return {
+              rid: "",
               fileName: f.fileName,
               rawSrc: decode(f.rawSrc),
               isDir:f.isDir

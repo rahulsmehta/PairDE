@@ -73,6 +73,7 @@ export default handleActions<CodePanelState, CodePanelData>({
     const updatedFiles: CodeFile[] = state.workState.files.map((c, i) => {
       if (c.fileName == state.fileName) {
         return {
+          rid: "",
           fileName: action.payload.fileName,
           compileId: c.compileId,
           rawSrc: c.rawSrc
@@ -107,6 +108,7 @@ export default handleActions<CodePanelState, CodePanelData>({
       newFiles = newFiles.map((c) => {
         if(c.fileName == state.fileName) {
           return {
+            rid: "",
             fileName: c.fileName,
             compileId: c.compileId,
             rawSrc: action.payload.rawSrc
@@ -117,6 +119,7 @@ export default handleActions<CodePanelState, CodePanelData>({
       });
     }
     newFiles.push({
+      rid: "",
       fileName: action.payload.fileName,
       rawSrc: ''
     });
@@ -195,12 +198,14 @@ export default handleActions<CodePanelState, CodePanelData>({
 
     const newPairFiles: CodeFile[] = state.pairWorkState.files.map((v,i) => {
         return {
+          rid: "",
           fileName: v.fileName,
           rawSrc: v.rawSrc,
           isDir: v.isDir,
           children: v.children.map((f,i) => {
             if (f.fileName == state.fileName && !state.isHome) {
               return {
+                rid: "",
                 fileName: f.fileName,
                 compileId: f.compileId,
                 rawSrc: state.rawSrc

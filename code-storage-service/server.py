@@ -102,9 +102,10 @@ def list_full(path):
             if len(doc) <= 0:
                 continue
             if doc['isDir']:
-                loaded.append({'rawSrc': None, 'fileName': doc['name']})
+                loaded.append({'rid': str(doc['_id']),'rawSrc': None, 'fileName': doc['name']})
             else:
-                loaded.append({'rawSrc':doc['contents'], 'fileName': doc['name']})
+                print
+                loaded.append({'rid': str(doc['_id']), 'rawSrc':doc['contents'], 'fileName': doc['name']})
         return json.dumps(loaded);
 
 
