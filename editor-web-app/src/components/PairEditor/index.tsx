@@ -34,9 +34,10 @@ class PairEditor extends React.Component<IPairEditorProps,IPairEditorState> {
     console.log(socket);
     socket.on('connect', () => console.log('connected'));
     socket.on('code-sub', (payload) => {
-      if (payload != socket.id) {
+      const response = JSON.parse(payload);
+      if (response.sid != socket.id) {
         this.props.actions.updateSrc({
-          rawSrc: payload
+          rawSrc: response.code
         });
       }
     });
