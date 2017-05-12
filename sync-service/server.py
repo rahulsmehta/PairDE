@@ -123,7 +123,7 @@ def release_lock(payload,p):
 @socketio.on('code', namespace='/')
 def on_code(payload,path):
     print "Received payload from {}".format(request.sid)
-    emit('code-sub',payload,namespace='/', broadcast=True)
+    emit('code-sub',request.sid,namespace='/', broadcast=True)
 
 if __name__ == '__main__':
     app.secret_key = 'cos333'

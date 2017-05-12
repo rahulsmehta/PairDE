@@ -25,6 +25,7 @@ declare type CodeFile  = {
 }
 
 declare type WorkState = {
+  root?: string;
   wd: string;
   files: CodeFile[];
   isSlave?: boolean;

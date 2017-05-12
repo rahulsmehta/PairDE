@@ -183,6 +183,11 @@ export default handleActions<CodePanelState, CodePanelData>({
   [Actions.CHANGE_SRC_FILE]: (state, action) => {
     // before returning state, update rawSrc for the org file
     // in workState
+    const isDir = (fn) => {
+      const re = new RegExp('^[A-Za-z0-9_]*$');
+      let toTest = fn.replace('/','').replace('/','');
+      return re.test(toTest) && toTest.length > 0;
+    }
 
     const newFiles = state.workState.files.map((v,i) => {
       if (v.fileName == state.fileName && state.isHome) {
@@ -217,11 +222,18 @@ export default handleActions<CodePanelState, CodePanelData>({
         };
     });
 
+    let newWd = state.workState.wd;
+    if (isDir(action.payload.fileName) &&
+      newWd.indexOf(action.payload.fileName) == -1) {
+      newWd += action.payload.fileName + '/';
+    }
+
     let newPairWd = state.pairWorkState.wd;
     if (action.payload.pairWorkState) {
       // alert(action.payload.pairWorkState.wd);
       newPairWd = action.payload.pairWorkState.wd;
     }
+    alert('Working dir: ' + newWd);
     return {
       rawSrc: action.payload.rawSrc,
       isHome: action.payload.isHome,
@@ -230,10 +242,12 @@ export default handleActions<CodePanelState, CodePanelData>({
       otherFiles: state.otherFiles,
       extraArgs: state.extraArgs,
       workState: {
-        wd: state.workState.wd,
+        root: state.workState.root,
+        wd: newWd,
         files: newFiles
       },
       pairWorkState: {
+        root: state.pairWorkState.root,
         wd: newPairWd,
         files: newPairFiles,
         isSlave: state.pairWorkState.isSlave

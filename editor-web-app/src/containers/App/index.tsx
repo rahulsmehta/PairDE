@@ -63,6 +63,7 @@ class App extends React.Component<AppProps, AppState>{
             }
             validateAction['workState'] = {
               wd: newWd + '/',
+              root: newWd + '/',
               files: myFiles
             }
             actions.initApp(validateAction);
@@ -102,7 +103,7 @@ class App extends React.Component<AppProps, AppState>{
       {
         hasCaret: false,
         iconName: "folder-close",
-        label: workState.wd,
+        label: workState.root,
         id: 50,
         isExpanded: true,
         childNodes: fileNodes

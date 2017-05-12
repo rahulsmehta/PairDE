@@ -34,9 +34,11 @@ class PairEditor extends React.Component<IPairEditorProps,IPairEditorState> {
     console.log(socket);
     socket.on('connect', () => console.log('connected'));
     socket.on('code-sub', (payload) => {
-      this.props.actions.updateSrc({
-        rawSrc: payload
-      });
+      if (payload == socket.id) {
+        this.props.actions.updateSrc({
+          rawSrc: payload
+        });
+      }
     });
     socket.on('lock_success', (payload) => {
       AppToaster.clear();
