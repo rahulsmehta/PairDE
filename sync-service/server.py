@@ -85,7 +85,6 @@ def get_lock(payload, path):
     lock_request = json.loads(payload)
     lock_path = lock_request['lock_path']
     sid = request.sid
-    print (lock_path in locks)
     if (lock_path in locks) and (locks[lock_path] is not None):
         emit('lock_fail', locks[lock_path], namespace='/')
     else:
@@ -95,7 +94,13 @@ def get_lock(payload, path):
 
 @socketio.on('disconnect', namespace='/')
 def on_disconnect():
-    print "bye bye"
+    global locks
+    for k,v in locks.iteritems():
+        if v['sid'] == request.sid:
+            print "{} disconnected...releasing lock".format(request.sid)
+            del locks[k]
+            emit('release_success', request.sid, namespace='/', broadcast=True)
+
 
 
 @socketio.on('release_lock', namespace='/')
@@ -105,7 +110,6 @@ def release_lock(payload, p):
     lock_request = json.loads(payload)
     lock_path = lock_request['lock_path']
     sid = request.sid
-    print (lock_path in locks)
     if (lock_path in locks) and (locks[lock_path] is not None) and (locks[lock_path]['sid'] == sid):
         del locks[lock_path]
         emit('release_success', str(sid), namespace='/', broadcast=True)

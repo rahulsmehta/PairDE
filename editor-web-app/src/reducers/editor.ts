@@ -233,7 +233,6 @@ export default handleActions<CodePanelState, CodePanelData>({
       // alert(action.payload.pairWorkState.wd);
       newPairWd = action.payload.pairWorkState.wd;
     }
-    alert('Working dir: ' + newWd);
     return {
       rawSrc: action.payload.rawSrc,
       isHome: action.payload.isHome,

@@ -34,7 +34,7 @@ class PairEditor extends React.Component<IPairEditorProps,IPairEditorState> {
     console.log(socket);
     socket.on('connect', () => console.log('connected'));
     socket.on('code-sub', (payload) => {
-      if (payload == socket.id) {
+      if (payload != socket.id) {
         this.props.actions.updateSrc({
           rawSrc: payload
         });
@@ -93,7 +93,7 @@ class PairEditor extends React.Component<IPairEditorProps,IPairEditorState> {
   }
 
   render() {
-    const {src, actions, isEmpty, fileName, socket} = this.props;
+    const {src, actions, isEmpty, isSlave, fileName, socket} = this.props;
     const slaveEditor = (
       <div style = {{width: '100%', height: '100%', backgroundColor: '#333'}}>
         <MonacoEditor
@@ -119,10 +119,12 @@ class PairEditor extends React.Component<IPairEditorProps,IPairEditorState> {
             }}
             theme = "vs-dark"
             onChange = {(newValue, _) => {
-              socket.emit('code', newValue, '/');
-              actions.updateSrc({
-                rawSrc: newValue,
-              })
+              if (!isSlave) {
+                socket.emit('code', newValue, '/');
+                actions.updateSrc({
+                  rawSrc: newValue,
+                })
+              }
             }}
         />
       </div>
