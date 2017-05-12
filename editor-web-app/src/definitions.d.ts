@@ -42,7 +42,6 @@ declare type CodePanelData = {
   isHome: boolean;
   fileName?: string;
   consoleSrc?: string;
-  otherFiles: CodeFile[];
   extraArgs: string[];
   workState: WorkState;
   pairWorkState: WorkState;
