@@ -25,7 +25,7 @@ export function listShared(actions: typeof EditorActions, props: CodePanelData, 
             return {
               rid: "",
               fileName: f.fileName,
-              rawSrc: decode(f.rawSrc),
+              rawSrc: f.rawSrc == null ? null : decode(f.rawSrc),
               isDir:f.isDir
             }
           })

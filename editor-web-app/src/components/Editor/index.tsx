@@ -8,6 +8,7 @@ interface EditorProps {
   src: string;
   actions: typeof EditorActions;
   isEmpty: boolean;
+  isDir: boolean;
 }
 
 class Editor extends React.Component<EditorProps,{}> {
@@ -16,7 +17,7 @@ class Editor extends React.Component<EditorProps,{}> {
     super(props, context);
   }
   render() {
-    const {src, actions, isEmpty} = this.props;
+    const {src, actions, isEmpty, isDir} = this.props;
     const defaultEditor = (
       <div style = {{width: '100%', height: '100%', backgroundColor: '#333'}}>
         <MonacoEditor
@@ -48,8 +49,23 @@ class Editor extends React.Component<EditorProps,{}> {
         </div>
       </div>
     );
+    const dirEditor = (
+      <div style = {{width: '100%', height: '100%'}}>
+        <div className={"pt-non-ideal-state"}>
+          <div className={"pt-non-ideal-state-visual pt-non-ideal-state-icon"}>
+            <span className={"pt-icon pt-icon-folder-open"}></span>
+          </div>
+          <h4 className={"pt-non-ideal-state-title"}>Select a file to edit</h4>
+          <div className={"pt-non-ideal-state-description"}>
+            Select or create a new file.
+          </div>
+        </div>
+      </div>
+    );
     if (isEmpty) {
       return emptyEditor;
+    } else if (isDir) {
+      return dirEditor;
     }
     else {
       return defaultEditor;

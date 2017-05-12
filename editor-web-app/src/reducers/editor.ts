@@ -6,7 +6,7 @@ import { Intent } from "@blueprintjs/core";
 import {encode, decode} from 'base-64';
 
 const initialState: CodePanelData = {
-  rawSrc: "",
+  rawSrc: null,
   isHome: true,
   consoleSrc: "",
   fileName: "",

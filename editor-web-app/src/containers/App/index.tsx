@@ -74,6 +74,12 @@ class App extends React.Component<AppProps, AppState>{
     }
   }
 
+  private isDir = (fn: string) => {
+    const re = new RegExp('^[A-Za-z0-9_]*$');
+    let toTest = fn.replace('/','').replace('/','');
+    return re.test(toTest) && toTest.length > 0;
+  }
+
   render () {
     const { editor, actions, children } = this.props;
     const { workState, pairWorkState } = editor;
@@ -92,16 +98,17 @@ class App extends React.Component<AppProps, AppState>{
       }
       return result;
     });
-    const treeNodes: ITreeNode[] = [
+    let topNode: ITreeNode =
       {
         hasCaret: false,
         iconName: "folder-close",
         label: workState.wd,
-        id: 10,
+        id: 50,
         isExpanded: true,
         childNodes: fileNodes
       }
-    ]
+    topNode.isSelected = (editor.fileName == workState.wd);
+    const treeNodes = [topNode];
 
     const mapChildNodes = (c: CodeFile, i): ITreeNode => {
       const code = (c.isDir == undefined || !c.isDir);
@@ -129,6 +136,7 @@ class App extends React.Component<AppProps, AppState>{
     const editorComponent = (editor.isHome) ? (
       <Editor src={editor.rawSrc} actions={actions}
         isEmpty={editor.workState.files.length == 0}
+        isDir={this.isDir(editor.fileName)}
       />
     ) : (
       <PairEditor src={editor.rawSrc} actions={actions}
@@ -170,6 +178,12 @@ class App extends React.Component<AppProps, AppState>{
                   actions.changeSrcFile({
                     fileName: node.label,
                     rawSrc: src,
+                    isHome: true
+                  });
+                } else {
+                  actions.changeSrcFile({
+                    fileName: node.label,
+                    rawSrc: "",
                     isHome: true
                   });
                 }

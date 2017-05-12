@@ -36,7 +36,7 @@ export function create(path: string, isDir: boolean, rawSrc: string,
     }
     else if(responseText == "file already exists") {
       AppToaster.show({
-        message: "File already exists!",
+        message: "Resource already exists!",
         intent: Intent.DANGER,
         iconName: "edit"
       })
@@ -125,7 +125,7 @@ export function listPath(path: string, props: CodePanelData) {
     const newFiles: CodeFile[] = files.map((c) => {
       return {
         fileName: c.fileName,
-        rawSrc: decode(c.rawSrc)
+        rawSrc: c.rawSrc == null ? null : decode(c.rawSrc)
       }
     });
     return newFiles;
