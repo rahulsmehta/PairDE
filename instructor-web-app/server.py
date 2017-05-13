@@ -1,14 +1,17 @@
 import json
 import bson
 import re
-from flask import Flask, request, render_template
+import csv
+import os
+from flask import Flask, request, render_template, url_for
+from werkzeug import secure_filename
 # from flask_uuid import FlaskUUID
 from flask_pymongo import PyMongo
 from uuid import uuid4
 from bson.objectid import ObjectId
 from flask_cors import CORS, cross_origin
 
-UPLOAD_FOLDER = '/path/to/the/uploads'
+UPLOAD_FOLDER = '/uploads/'
 ALLOWED_EXTENSIONS = set(['java', 'csv'])
 
 app = Flask(__name__)
@@ -41,6 +44,7 @@ def assignmentPage(name):
     return render_template('assignmentPage.html', name = name, 
         files = files, due=due, partners=partners)
 
+@app.route('/assignment/newAssignment')
 @app.route("/newAssignment")
 def newAssignment():
     return render_template('newAssignment.html')
@@ -48,12 +52,16 @@ def newAssignment():
 @app.route("/newAssignment", methods=['POST'])
 def create():
     name = request.form["name"]
-    #partners = request.form["partners"]
     duedate = request.form["due"]
     nameReg = "^[A-Za-z0-9_]*$"
     nameMatch = re.match(nameReg, name)
     if nameMatch is None:
         return "Invalid FileName"
+    file = request.files['partners']
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        return redirect(url_for('create'))
     partner_list = ["ethanrc_rahulmd", "mhw3_davidsp"]
     mongo.db.assignments.insert({'name': name, 'files': ["Point2D.java", "HelloWorld.java"], 
         'due': duedate, 'partners': partner_list})
@@ -61,3 +69,5 @@ def create():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+            

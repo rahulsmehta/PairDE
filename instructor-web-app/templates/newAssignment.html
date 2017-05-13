@@ -22,15 +22,15 @@
           <button class="pt-button pt-minimal pt-icon-cog"></button>
         </div>
       </nav>
-      <form action="/newAssignment" method="post">
+      <form action="newAssignment" method="post" enctype = "multipart/form-data">
         Assignment Title: <input type="text" name="name"><br>
-        Due Date: <input type="date" name="due"><br>
+        Due Date: <input type="datetime-local" name="due"><br>
         Upload Starting Files: <label class="pt-file-upload">
-          <input type="file" :modifier/>
+          <input type="file"/>
           <span class="pt-file-upload-input">Choose file...</span>
         </label><br>
         Upload Partnerships: <label class="pt-file-upload">
-          <input type="file" name="partners" accept=".csv" :modifier/>
+          <input type="file" name="partners" accept=".csv"/>
           <span class="pt-file-upload-input">Choose CSV file...</span>
         </label><br>
         <input type="submit" value="Create Assignment">
