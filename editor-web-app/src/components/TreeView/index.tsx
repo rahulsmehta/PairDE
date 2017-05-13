@@ -1,15 +1,17 @@
 import * as React from 'react';
 import * as classNames from "classnames";
-import MonacoEditor from "react-monaco-editor";
 import * as EditorActions from '../../actions/editor';
 import { AppToaster } from '../../services/toaster';
-import { Intent } from '@blueprintjs/core';
-// const io = require('socket.io-client');
+import * as codeService from "../../services/codeService";
+import { Breadcrumb, Classes, Button, ITreeNode, Tree, Tooltip,
+         Position, Intent, Popover, EditableText} from "@blueprintjs/core";
 
 
 interface ITreeViewProps{
   root: CodeFile;
   selected: string; //file or directory rid
+  isHome: boolean;
+  actions: typeof EditorActions;
 }
 
 // interface ITreeViewState {
@@ -32,15 +34,21 @@ class TreeView extends React.Component<ITreeViewProps,{}> {
     return re.test(toTest) && toTest.length > 0;
   }
 
-  private getWdRec = (cwd: string, rid: string, node: CodeFile): string => {
+  private getWdRec (cwd: string, rid: string, node: CodeFile): string {
     if(node.rid == rid && this.isDir(node.fileName)) {
-      return cwd + node.fileName + '/';
+      let newCwd = cwd + node.fileName;
+      if (newCwd.charAt(newCwd.length - 1) != '/')
+        newCwd += '/'
+      return newCwd;
     } else if (node.rid == rid && !this.isDir(node.fileName)) {
-      return cwd;
-    } else if (node.children.length > 0) {
+      let newCwd = cwd;
+      if (cwd.charAt(cwd.length - 1) != '/')
+        newCwd += '/'
+      return newCwd;
+    } else if (node.children) {
       //if node.children.length > 0 then is a directory
       const childNodes = node.children;
-      const newCwd = cwd + node.fileName + '/'
+      const newCwd = cwd + node.fileName;
       let result = childNodes.map((childFile: CodeFile) => {
         return this.getWdRec(newCwd, rid, childFile);
       });
@@ -57,17 +65,148 @@ class TreeView extends React.Component<ITreeViewProps,{}> {
     }
   }
 
-  getWd(fileRid: string) {
+  private getWd(fileRid: string): string {
     const root = this.props.root;
-    const cwd = root.fileName + '/';
-    return this.getWdRec(cwd, fileRid, root);
+    return this.getWdRec("", fileRid, root);
+  }
+
+  private getFileRec (rid: string, node: CodeFile): CodeFile {
+    if(node.rid == rid && this.isDir(node.fileName)) {
+      return node;
+    } else if (node.rid == rid && !this.isDir(node.fileName)) {
+      return node;
+    } else if (node.children) {
+      //if node.children.length > 0 then is a directory
+      const childNodes = node.children;
+      let result = childNodes.map((childFile: CodeFile) => {
+        return this.getFileRec(rid, childFile);
+      });
+      result = result.filter((f) => {
+        return f != null;
+      });
+      if (result.length > 0) {
+        return result[0];
+      } else {
+        return null;
+      }
+    } else {
+      return null;
+    }
+  }
+
+  private getFile(fileRid: string): CodeFile {
+    const root = this.props.root;
+    return this.getFileRec(fileRid, root);
+  }
+
+  private buildTreeView (root: CodeFile): ITreeNode[] {
+    // const fileNodes: ITreeNode[] = root.children.map((c: CodeFile) => {
+    //   const isCode = (c.fileName.indexOf('.java') != -1);
+    //   const icon = isCode ? 'code' : 'folder-close';
+    //   let result = {
+    //     hasCaret: !isCode,
+    //     iconName: icon,
+    //     label: c.fileName,
+    //     id: c.rid
+    //   }
+    //   if (this.props.selected == c.rid && this.props.isHome) {
+    //     result['isSelected'] = true;
+    //     if (!isCode) {
+    //       result['isExpanded'] = true;
+
+    //     }
+    //   }
+    //   return result;
+    // });
+    // const rootNode: ITreeNode = {
+    //   iconName: "folder-close",
+    //   label: root.fileName,
+    //   id: 'root',
+    //   childNodes: fileNodes,
+    //   isExpanded: true
+    // };
+    let rootNode = this.buildTreeViewRec(root);
+    return [rootNode];
+  }
+
+  private buildTreeViewRec (node: CodeFile): ITreeNode {
+    let resultNode: ITreeNode = null;
+    if (!node.fileName) {
+      resultNode = {
+        id: node.rid,
+        label: this.props.root.fileName,
+        hasCaret: true,
+        iconName: 'foler-close',
+        isExpanded: true
+      }
+    } else {
+      const isCode = (node.fileName.indexOf('.java') != -1);
+      const icon = isCode ? 'code' : 'folder-close';
+      resultNode = {
+        id: node.rid,
+        label: node.fileName,
+        hasCaret: !isCode,
+        iconName: icon,
+        isExpanded: true
+      }
+    }
+    if (this.props.selected == node.rid && this.props.isHome)
+      resultNode['isSelected'] = true;
+    if (node.children) {
+      let childNodes: ITreeNode[] = node.children.map((cf) => {
+        return this.buildTreeViewRec(cf);
+      });
+      resultNode['childNodes'] = childNodes;
+      return resultNode;
+    } else {
+      return resultNode;
+    }
   }
 
 
   render() {
     // in the onNodeClick handler in the treeview component,
     // dispatch the CHANGE_FILE event after calling getWd on the
-    // particular file - then this can be caught in the reducer
+
+    // alert(JSON.stringify(this.props.root));
+    // alert(this.props.selected);
+    const nodes = this.buildTreeView(this.props.root);
+    const { actions } = this.props;
+    return (
+      <Tree
+        contents = {nodes}
+        onNodeClick = {((node, _) => {
+          const rid = node.id.toString();
+          const codeFile = this.getFile(rid);
+          const wd = this.getWd(rid);
+          const src = codeFile.rawSrc;
+
+          if (src != null) { //is a code file
+            actions.changeSrcFile({
+              fileName: node.label,
+              rawSrc: src,
+              isHome: true,
+              rid: rid,
+              workState: {
+                wd: wd
+              }
+            });
+          } else {
+            console.log(JSON.stringify(codeFile.children));
+            actions.changeSrcFile({
+              fileName: node.label,
+              rawSrc: null,
+              isHome: true,
+              rid: rid,
+              workState: {
+                wd: wd
+              }
+            });
+          }
+        })}
+      />
+    )
+
   }
 
 }

@@ -103,11 +103,12 @@ export function compile (props: CodePanelData, actions: typeof EditorActions) {
     }).then(r => r.text()).then((resp) => {
       const {compiler_errors, class_path} = JSON.parse(resp);
       const updatedFiles = props.workState.files.map((c: CodeFile, i) => {
-        if (c.fileName == props.fileName && props.isHome) {
+        if (c.rid == props.rid && props.isHome) {
           return {
             rawSrc: c.rawSrc,
             fileName: c.fileName,
-            compileId: class_path
+            compileId: class_path,
+            rid: c.rid
           }
         } else {
           return c;
@@ -137,7 +138,8 @@ export function compile (props: CodePanelData, actions: typeof EditorActions) {
       actions.compileFile({
           rawSrc: props.rawSrc,
           fileName: props.fileName,
-          consoleSrc: compiler_errors ? compiler_errors : "Compilation successful",
+          consoleSrc: compiler_errors ? compiler_errors :
+            "Sucessfully compiled " + props.fileName,
           workState: {
             wd: props.workState.wd,
             files: updatedFiles

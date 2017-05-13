@@ -14,6 +14,7 @@ import Editor from "../../components/Editor";
 import PairEditor from "../../components/PairEditor";
 import Console from "../../components/Console";
 import Navbar from "../../components/Navbar";
+import TreeView from "../../components/TreeView";
 
 
 
@@ -66,6 +67,7 @@ class App extends React.Component<AppProps, AppState>{
               root: newWd + '/',
               files: myFiles
             }
+            console.log(JSON.stringify(myFiles));
             actions.initApp(validateAction);
           })
         })
@@ -85,31 +87,12 @@ class App extends React.Component<AppProps, AppState>{
     const { editor, actions, children } = this.props;
     const { workState, pairWorkState } = editor;
 
-    const fileNodes: ITreeNode[] = workState.files.map((c: CodeFile, i) => {
-      const isDir = (c.fileName.indexOf('.java') != -1);
-      const icon = isDir ? 'code' : 'folder-close';
-      let result = {
-        hasCaret: !isDir,
-        iconName: icon,
-        label: c.fileName,
-        id: i
-      }
-      if (editor.fileName == c.fileName && editor.isHome) {
-        result['isSelected'] = true;
-      }
-      return result;
-    });
-    let topNode: ITreeNode =
-      {
-        hasCaret: false,
-        iconName: "folder-close",
-        label: workState.root,
-        id: 50,
-        isExpanded: true,
-        childNodes: fileNodes
-      }
-    topNode.isSelected = (editor.fileName == workState.wd);
-    const treeNodes = [topNode];
+    const rootFile: CodeFile = {
+      rid: 'root',
+      rawSrc: null,
+      fileName: workState.root,
+      children: workState.files
+    }
 
     const mapChildNodes = (c: CodeFile, i): ITreeNode => {
       const code = (c.isDir == undefined || !c.isDir);
@@ -131,8 +114,6 @@ class App extends React.Component<AppProps, AppState>{
         childNodes: file.children.map((c,j) => mapChildNodes(c, 10*i + j))
       }
     });
-
-
 
     const editorComponent = (editor.isHome) ? (
       <Editor src={editor.rawSrc} actions={actions}
@@ -165,30 +146,11 @@ class App extends React.Component<AppProps, AppState>{
         >
           <div style={{paddingLeft: 5}}>
             <b>My Documents</b>
-            <Tree
-              contents = {treeNodes}
-              onNodeClick = {((node, _) => {
-                const getSrc = fileName => {
-                  const f = workState.files.filter((fn) => {
-                    return fn.fileName == node.label;
-                  });
-                  return {src: f[0].rawSrc, id: node.id};
-                }
-                if (node.iconName == 'code'){
-                  const {src} = getSrc(node.label);
-                  actions.changeSrcFile({
-                    fileName: node.label,
-                    rawSrc: src,
-                    isHome: true
-                  });
-                } else {
-                  actions.changeSrcFile({
-                    fileName: node.label,
-                    rawSrc: "",
-                    isHome: true
-                  });
-                }
-              })}
+            <TreeView
+              root={rootFile}
+              selected={editor.rid}
+              isHome={editor.isHome}
+              actions={actions}
             />
 
             <br />

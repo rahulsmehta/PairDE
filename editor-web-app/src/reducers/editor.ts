@@ -10,6 +10,7 @@ const initialState: CodePanelData = {
   isHome: true,
   consoleSrc: "",
   fileName: "",
+  rid: null,
   extraArgs: [],
   workState: {
     wd: '/',
@@ -31,6 +32,7 @@ export default handleActions<CodePanelState, CodePanelData>({
       rawSrc: state.rawSrc,
       isHome: state.isHome,
       fileName: state.fileName,
+      rid: state.rid,
       consoleSrc: action.payload.consoleSrc,
       extraArgs: state.extraArgs,
       workState: action.payload.workState,
@@ -46,6 +48,7 @@ export default handleActions<CodePanelState, CodePanelData>({
       rawSrc: state.rawSrc,
       isHome: state.isHome,
       fileName: state.fileName,
+      rid: state.rid,
       consoleSrc: action.payload.consoleSrc,
       extraArgs: state.extraArgs,
       workState: state.workState,
@@ -58,6 +61,7 @@ export default handleActions<CodePanelState, CodePanelData>({
       rawSrc: action.payload.rawSrc,
       isHome: state.isHome,
       fileName: state.fileName,
+      rid: state.rid,
       consoleSrc: state.consoleSrc,
       extraArgs: state.extraArgs,
       workState: state.workState,
@@ -82,6 +86,7 @@ export default handleActions<CodePanelState, CodePanelData>({
       rawSrc: state.rawSrc,
       isHome: state.isHome,
       fileName: action.payload.fileName,
+      rid: state.rid,
       consoleSrc: state.consoleSrc,
       extraArgs: state.extraArgs,
       workState: {
@@ -122,6 +127,7 @@ export default handleActions<CodePanelState, CodePanelData>({
       rawSrc: '',
       fileName: action.payload.fileName,
       isHome: state.isHome,
+      rid: state.rid,
       consoleSrc: state.consoleSrc,
       extraArgs: state.extraArgs,
       workState: {
@@ -137,6 +143,7 @@ export default handleActions<CodePanelState, CodePanelData>({
       rawSrc: state.rawSrc,
       isHome: state.isHome,
       fileName: state.fileName,
+      rid: state.rid,
       consoleSrc: state.consoleSrc,
       extraArgs: action.payload.extraArgs,
       workState: state.workState,
@@ -162,6 +169,7 @@ export default handleActions<CodePanelState, CodePanelData>({
       rawSrc: newFile.rawSrc,
       isHome: state.isHome,
       fileName: newFile.fileName,
+      rid: state.rid,
       consoleSrc: state.consoleSrc,
       extraArgs: state.extraArgs,
       workState: {
@@ -182,11 +190,12 @@ export default handleActions<CodePanelState, CodePanelData>({
     }
 
     const newFiles = state.workState.files.map((v,i) => {
-      if (v.fileName == state.fileName && state.isHome) {
+      if (v.rid == state.rid && state.isHome) {
         return {
           fileName: v.fileName,
           compileId: v.compileId,
-          rawSrc: state.rawSrc
+          rawSrc: state.rawSrc,
+          rid: v.rid
         };
       } else {
         return v;
@@ -229,6 +238,7 @@ export default handleActions<CodePanelState, CodePanelData>({
       rawSrc: action.payload.rawSrc,
       isHome: action.payload.isHome,
       fileName: action.payload.fileName,
+      rid: action.payload.rid,
       consoleSrc: state.consoleSrc,
       extraArgs: state.extraArgs,
       workState: {
@@ -252,6 +262,7 @@ export default handleActions<CodePanelState, CodePanelData>({
         isHome: state.isHome,
         fileName: state.fileName,
         consoleSrc: state.consoleSrc,
+        rid: state.rid,
         extraArgs: state.extraArgs,
         workState: state.workState,
         pairWorkState: {
@@ -270,6 +281,7 @@ export default handleActions<CodePanelState, CodePanelData>({
         rawSrc: top.rawSrc,
         isHome: state.isHome,
         fileName: top.fileName,
+        rid: top.rid,
         consoleSrc: state.consoleSrc,
         extraArgs: state.extraArgs,
         workState: action.payload.workState,
@@ -281,6 +293,7 @@ export default handleActions<CodePanelState, CodePanelData>({
         rawSrc: "",
         isHome: state.isHome,
         fileName: "Untitled.java",
+        rid: state.rid,
         consoleSrc: state.consoleSrc,
         extraArgs: state.extraArgs,
         workState: action.payload.workState,
@@ -295,6 +308,7 @@ export default handleActions<CodePanelState, CodePanelData>({
       rawSrc: state.rawSrc,
       isHome: state.isHome,
       fileName: state.fileName,
+      rid: state.rid,
       consoleSrc: state.consoleSrc,
       extraArgs: state.extraArgs,
       workState: workState,

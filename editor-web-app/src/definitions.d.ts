@@ -40,6 +40,7 @@ declare type AuthState = {
 declare type CodePanelData = {
   rawSrc: string;
   isHome: boolean;
+  rid: string;
   fileName?: string;
   consoleSrc?: string;
   extraArgs: string[];

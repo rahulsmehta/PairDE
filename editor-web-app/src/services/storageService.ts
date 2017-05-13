@@ -123,9 +123,15 @@ export function listPath(path: string, props: CodePanelData) {
   }).then(response => response.text()).then(responseText => {
     const files = JSON.parse(responseText);
     const newFiles: CodeFile[] = files.map((c) => {
+      let childFiles = null;
+      if (c.children) {
+        childFiles = c.children;
+      }
       return {
         fileName: c.fileName,
-        rawSrc: c.rawSrc == null ? null : decode(c.rawSrc)
+        rawSrc: c.rawSrc == null ? null : decode(c.rawSrc),
+        rid: c.rid,
+        children: childFiles
       }
     });
     return newFiles;

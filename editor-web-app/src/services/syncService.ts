@@ -23,10 +23,10 @@ export function listShared(actions: typeof EditorActions, props: CodePanelData, 
           isDir: c.isDir,
           children: c.children.map((f,i) => {
             return {
-              rid: "",
               fileName: f.fileName,
               rawSrc: f.rawSrc == null ? null : decode(f.rawSrc),
-              isDir:f.isDir
+              isDir: f.isDir,
+              rid: f.rid
             }
           })
       }

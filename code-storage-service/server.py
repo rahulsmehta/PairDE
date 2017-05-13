@@ -78,21 +78,16 @@ def root():
 def list_path(path):
     path = '/' + path
     resource = mongo.db.code.find_one({'path': path})
-    if resource['isDir'] == False:
+    if not resource['isDir']:
         return "file has no members"
     else:
         return json.dumps(map(str, resource['children']))
 
-@app.route('/list-full', defaults={'path': ''})
-@app.route('/list-full/', defaults={'path': ''})
-@app.route('/list-full/<path:path>', methods=['GET'])
-@cross_origin()
-def list_full(path):
-    path = '/' + path
+def list_full_rec(path):
     resource = mongo.db.code.find_one({'path': path})
     if resource is None:
         return "not found"
-    elif resource['isDir'] == False:
+    elif not resource['isDir']:
         return "file has no members"
     else:
         children = resource['children']
@@ -102,11 +97,42 @@ def list_full(path):
             if len(doc) <= 0:
                 continue
             if doc['isDir']:
-                loaded.append({'rid': str(doc['_id']),'rawSrc': None, 'fileName': doc['name']})
+                dir_path = '/'.join([path, doc['name']])
+                dir_children = json.loads(list_full_rec(dir_path))
+                loaded.append({'rid': str(doc['_id']), 'rawSrc': None, 'fileName': doc['name'],
+                               'children': dir_children})
             else:
-                print
-                loaded.append({'rid': str(doc['_id']), 'rawSrc':doc['contents'], 'fileName': doc['name']})
-        return json.dumps(loaded);
+                loaded.append({'rid': str(doc['_id']), 'rawSrc': doc['contents'], 'fileName': doc['name']})
+        return json.dumps(loaded)
+
+@app.route('/list-full', defaults={'path': ''})
+@app.route('/list-full/', defaults={'path': ''})
+@app.route('/list-full/<path:path>', methods=['GET'])
+@cross_origin()
+def list_full(path):
+    path = '/' + path
+    return list_full_rec(path)
+    # path = '/' + path
+    # resource = mongo.db.code.find_one({'path': path})
+    # if resource is None:
+    #     return "not found"
+    # elif not resource['isDir']:
+    #     return "file has no members"
+    # else:
+    #     children = resource['children']
+    #     loaded = []
+    #     for rid in children:
+    #         doc = mongo.db.code.find_one({'_id': bson.ObjectId(oid=str(rid))})
+    #         if len(doc) <= 0:
+    #             continue
+    #         if doc['isDir']:
+    #             dir_path = '/'.join([path, doc['name']])
+    #             dir_children = list_full(dir_path)
+    #             print str(dir_children)
+    #             loaded.append({'rid': str(doc['_id']), 'rawSrc': None, 'fileName': doc['name']}) #, 'children': dir_children})
+    #         else:
+    #             loaded.append({'rid': str(doc['_id']), 'rawSrc': doc['contents'], 'fileName': doc['name']})
+    #     return json.dumps(loaded)
 
 
 @app.route('/update-path', defaults={'path': ''})
@@ -208,7 +234,7 @@ def rename_path(path):
     new_path = parentPath + '/' + data['newName']
     if (mongo.db.code.find_one({'path': new_path}) != None):
         return "file already exists"
-    to_update = mongo.db.code.find_one({'path':path})
+    to_update = mongo.db.code.find_one({'path': path})
     new_path = parentPath + '/' + data['newName']
     mongo.db.code.update({'path': path},
                          {'name': data['newName'],
@@ -303,7 +329,7 @@ def delete_path(path):
 
     print parentPath
 
-    mongo.db.code.update({'path':parentPath}, {"$pull": {'children': bson.ObjectId(oid=str(rid))}})
+    mongo.db.code.update({'path': parentPath}, {"$pull": {'children': bson.ObjectId(oid=str(rid))}})
 
     if target['isDir'] == True:
         regpath = target['path'] + '/'
