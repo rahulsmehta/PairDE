@@ -22,11 +22,18 @@
           <button class="pt-button pt-minimal pt-icon-cog"></button>
         </div>
       </nav>
-      <p> Welcome, {{instructor}} </p>
-      <p> Assignments </p>
+      <h1> Assignment: {{name}} </h1>
+      <h2> Due: {{due}} </h2>
+      <h2> Files: </h2>
       <ul>
-        {% for n in assignment_list %}
-        <li> <a href="{{n.href}}">{{n.name}}</a></li>
+        {% for n in files %}
+        <li>{{n}}</li>
+        {% endfor %}
+      </ul>
+      <h2> Partners: </h2>
+      <ul>
+        {% for n in partners %}
+        <li>{{n}}</li>
         {% endfor %}
       </ul>
     </div>
