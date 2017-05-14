@@ -179,6 +179,13 @@ class App extends React.Component<AppProps, AppState>{
                   const payload = {'user': editor.authState.user,
                                    'path': parentDir}
                   socket.emit('join_session', JSON.stringify(payload));
+                  {/*if (!editor.isHome && !pairWorkState.isSlave) {
+                    alert('fofoo');
+                    socket.emit('pair_file_change', JSON.stringify({
+                      lockPath: parentDir,
+                      rid: node.id
+                    }));
+                  }*/}
                   actions.changeSrcFile({
                     fileName: node.label,
                     rid: node.id,

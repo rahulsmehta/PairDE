@@ -160,14 +160,14 @@ export function compile (props: CodePanelData, actions: typeof EditorActions) {
       }); */
       const updatedPairFiles: CodeFile[] = props.pairWorkState.files.map((v, i) => {
         return {
-          rid: "",
+          rid: v.rid,
           fileName: v.fileName,
           rawSrc: v.rawSrc,
           isDir: v.isDir,
           children: v.children.map((f,i) => {
             if (f.fileName == props.fileName && !props.isHome) {
               return {
-                rid: "",
+                rid: f.rid,
                 fileName: f.fileName,
                 rawSrc: f.rawSrc,
                 compileId: class_path
