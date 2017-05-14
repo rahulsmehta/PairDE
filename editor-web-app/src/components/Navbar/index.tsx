@@ -146,7 +146,7 @@ class Navbar extends React.Component<NavbarProps, {}> {
         />
       )
 
-    const saveButton = isEmpty ? (<button className={saveClass}>Save</button>) :
+    const saveButton = isEmpty || (!editor.isHome && isSlave) ? (<button className={saveClass}>Save</button>) :
       (
       <button className={saveClass} onClick = {() => {
           let path = (editor.isHome) ? editor.workState.wd : editor.pairWorkState.wd;
