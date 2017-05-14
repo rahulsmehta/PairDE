@@ -86,6 +86,7 @@ class App extends React.Component<AppProps, AppState>{
   render () {
     const { editor, actions, children } = this.props;
     const { workState, pairWorkState } = editor;
+    console.log('rendering container, editor home? ' + editor.isHome + ', is slave? ' + editor.pairWorkState.isSlave);
 
     const rootFile: CodeFile = {
       rid: 'root',

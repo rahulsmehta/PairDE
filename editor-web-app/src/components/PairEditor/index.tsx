@@ -29,6 +29,13 @@ class PairEditor extends React.Component<IPairEditorProps,IPairEditorState> {
     this.state = {isSlave: props.isSlave};
   }
 
+  componentWillReceiveProps (props?: IPairEditorProps, context?: any) {
+    console.log('got new props ' + JSON.stringify(props.isSlave));
+    this.setState({
+      isSlave: props.isSlave
+    });
+  }
+
   componentDidMount() {
     const {socket, actions} = this.props;
     console.log(socket);
@@ -94,6 +101,7 @@ class PairEditor extends React.Component<IPairEditorProps,IPairEditorState> {
   }
 
   render() {
+    console.log('rerendering paireditor - slave?:' + this.state.isSlave);
     const {src, actions, isEmpty, isSlave, fileName, socket} = this.props;
     const slaveEditor = (
       <div style = {{width: '100%', height: '100%', backgroundColor: '#333'}}>
@@ -110,7 +118,7 @@ class PairEditor extends React.Component<IPairEditorProps,IPairEditorState> {
       </div>
     );
     const defaultEditor = (
-      <div style = {{width: '100%', height: '100%', backgroundColor: '#333'}}>
+      <div key={0} style = {{width: '100%', height: '100%', backgroundColor: '#333'}}>
         <MonacoEditor
             value = {src}
             language = "java"
@@ -143,14 +151,14 @@ class PairEditor extends React.Component<IPairEditorProps,IPairEditorState> {
         </div>
       </div>
     );
-    if (isEmpty) {
-      return emptyEditor;
-    }
-    else if (this.state.isSlave){
+    if (!this.state.isSlave && !isEmpty) {
+      return defaultEditor;
+    } else if (this.state.isSlave && !isEmpty) {
       return slaveEditor;
     } else {
-      return defaultEditor;
+      return emptyEditor;
     }
+
   }
 
 }

@@ -26,6 +26,7 @@ class Navbar extends React.Component<NavbarProps, {}> {
     super(props, context);
   }
 
+
   formatCommandName(fileName: string, extraArgs?: string[]) {
     let result = 'java ' + fileName.replace('.java','');
     if (extraArgs.length > 0) {
