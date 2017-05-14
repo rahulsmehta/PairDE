@@ -6,6 +6,7 @@ from runner import exec_file
 from os import path
 from flask import Flask, request
 from flask_cors import CORS
+import requests
 import urllib2
 import xmltodict
 
@@ -56,6 +57,7 @@ SERVICE_URL = "http%3A%2F%2Flocalhost%3A3000%2Feditor%2F" if os.environ['ENV'] !
 def pong():
     return "pong"
 
+
 @app.route('/validate/<string:ticket>', methods=['GET'])
 def validate_cas_ticket(ticket):
     cas_url = "https://fed.princeton.edu/cas/serviceValidate?service={}&ticket={}"
@@ -64,6 +66,12 @@ def validate_cas_ticket(ticket):
         result = urllib2.urlopen(cas_url).read()
         cas_response = xmltodict.parse(result)
         user = cas_response['cas:serviceResponse']['cas:authenticationSuccess']['cas:user']
+        home_dir = requests.get('http://localhost:4000/list-full/{}'.format(user))
+        if home_dir.text == 'not found':
+            home_create = requests.post('http://localhost:4000/create-path/{}'.format(user),
+                                        data = json.dumps({'isDir': True, 'contents': None}))
+            hw_create = requests.post('http://localhost:4000/create-path/{}/HelloWorld.java'.format(user),
+                                        data = json.dumps({'isDir': False, 'contents': ""}))
         return user
     except:
         return "failure"
