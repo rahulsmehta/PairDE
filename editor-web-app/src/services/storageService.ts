@@ -62,7 +62,8 @@ export function deleteFile(path: string, actions: typeof EditorActions) {
       const tokens = path.split('/');
       const fn = tokens[tokens.length-1];
       actions.deleteFile({
-        fileName: fn
+        fileName: fn,
+        rid: responseBody['rid']
       });
     }
   })

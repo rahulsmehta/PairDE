@@ -35,6 +35,11 @@ class Navbar extends React.Component<NavbarProps, {}> {
   }
 
   render() {
+    const isDir = (fn) => {
+      const re = new RegExp('^[A-Za-z0-9_]*$');
+      let toTest = fn.replace('/','').replace('/','');
+      return re.test(toTest) && toTest.length > 0;
+    }
     const {storageService, codeService, actions, editor, isSlave, socket} = this.props;
     const tooltipStyle = {paddingRight: "10px"};
     const isEmpty = editor.workState.files.length == 0;
@@ -156,7 +161,12 @@ class Navbar extends React.Component<NavbarProps, {}> {
             AppToaster.show({
               action: {
                 onClick: () => {
-                  const path = editor.workState.wd + editor.fileName;
+                  let path = editor.workState.wd;
+                  if (!isDir(editor.fileName)) {
+                    path += editor.fileName;
+                  } else {
+                    path = path.substring(0,path.length-1);
+                  }
                   storageService.deleteFile(path, actions)
                 },
                 text: 'Delete',

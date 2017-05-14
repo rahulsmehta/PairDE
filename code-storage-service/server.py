@@ -32,7 +32,6 @@ TODO: Implement storage service with headless git repo
 
 def getRoot():
     root = list(mongo.db.code.find({'path': "/"}))
-    print root[0]["_id"]
     return root[0]["_id"]
 
 
@@ -90,6 +89,7 @@ def list_full_rec(path):
     elif not resource['isDir']:
         return "file has no members"
     else:
+        print path
         children = resource['children']
         loaded = []
         for rid in children:
@@ -216,6 +216,19 @@ def load_path(path):
     else:
         return target[0]['contents']
 
+def rename_path_rec(id_arr, old_name, new_name):
+    # print "Recursing on " + str(id_arr)
+    old_replace = '/' + old_name + '/'
+    new_replace = '/' + new_name + '/'
+    for child_id in id_arr:
+        child_obj = mongo.db.code.find_one({'_id': child_id})
+        child_path = child_obj['path']
+        child_path = child_path.replace(old_replace, new_replace)
+        print "new path: " + child_path
+        child_obj['path'] = child_path
+        children = [] if 'children' not in child_obj.keys() else child_obj['children']
+        mongo.db.code.update({'_id':child_id},child_obj)
+        rename_path_rec(children, old_name, new_name)
 
 @app.route('/rename-path', defaults={'path': ''})
 @app.route('/rename-path/', defaults={'path': ''})
@@ -236,12 +249,26 @@ def rename_path(path):
         return "file already exists"
     to_update = mongo.db.code.find_one({'path': path})
     new_path = parentPath + '/' + data['newName']
+    children = [] if 'children' not in to_update.keys() else to_update['children']
+    # todo: handle renames arbitrarily many levels deep
+    old_name = to_update['name']
+    rename_path_rec(children, old_name, data['newName'])
+    # for child_id in children:
+    #     old_name = to_update['name']
+    #     child_obj = mongo.db.code.find_one({'_id':child_id})
+    #     child_path = child_obj['path']
+    #     child_path = child_path.replace(old_name,data['newName'])
+    #     child_obj['path'] = child_path
+    #     mongo.db.code.update({'_id':child_id},child_obj)
+
     mongo.db.code.update({'path': path},
                          {'name': data['newName'],
                           'isDir': to_update['isDir'],
                           'contents': to_update['contents'],
+                          'children': children,
                           'path': new_path})
     return "success"
+
 
 
 @app.route('/load-rid/<rid>', methods=['GET'])
@@ -334,7 +361,10 @@ def delete_path(path):
     if target['isDir'] == True:
         regpath = target['path'] + '/'
         mongo.db.code.remove({"path": {"$regex": regpath}})
-    return json.dumps(mongo.db.code.remove({'path': path}))
+    to_delete = mongo.db.code.find_one({'path':path})
+    del_res = mongo.db.code.remove({'path': path})
+    n_del = del_res['n']
+    return json.dumps({'n':n_del, 'rid':str(to_delete['_id'])})
 
 
 @app.route('/delete-rid/<rid>', methods=['DELETE'])

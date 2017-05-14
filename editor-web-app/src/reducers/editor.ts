@@ -70,18 +70,37 @@ export default handleActions<CodePanelState, CodePanelData>({
     };
   },
   [Actions.RENAME_CURRENT]: (state, action) => {
-    const updatedFiles: CodeFile[] = state.workState.files.map((c, i) => {
-      if (c.fileName == state.fileName) {
-        return {
-          rid: "",
-          fileName: action.payload.fileName,
-          compileId: c.compileId,
-          rawSrc: c.rawSrc
+    const isDir = (fn) => {
+      const re = new RegExp('^[A-Za-z0-9_]*$');
+      let toTest = fn.replace('/','').replace('/','');
+      return re.test(toTest) && toTest.length > 0;
+    }
+    const renameFileRec = (files: CodeFile[], rid: string): CodeFile[] => {
+      return files.map(c => {
+        if (c.rid == rid) {
+          let newFile = c;
+          c.fileName = action.payload.fileName;
+          return c;
+        } else if (isDir(c.fileName)) {
+          let newFile = c;
+          let newChildren = renameFileRec(c.children, rid);
+          newFile.children = newChildren;
+          return newFile;
+        } else {
+          return c;
         }
-      } else {
-        return c;
-      }
-    });
+      });
+    }
+    const updatedFiles: CodeFile[] = renameFileRec(state.workState.files, state.rid);
+    let newWd = state.workState.wd;
+    if (isDir(action.payload.fileName)) {
+      //update wd
+      let tokens = newWd.split('/');
+      tokens[tokens.length-2] = action.payload.fileName;
+      newWd = tokens.join('/');
+    }
+    //todo: above, make it recursive to rename stuff nested within dirs,
+    //todo #2: when renaming a directory, update the working dir as well
     return {
       rawSrc: state.rawSrc,
       isHome: state.isHome,
@@ -90,8 +109,9 @@ export default handleActions<CodePanelState, CodePanelData>({
       consoleSrc: state.consoleSrc,
       extraArgs: state.extraArgs,
       workState: {
-        wd: state.workState.wd,
-        files: updatedFiles
+        wd: newWd,
+        files: updatedFiles,
+        root: state.workState.root
       },
       pairWorkState: state.pairWorkState,
       authState: state.authState
@@ -108,15 +128,11 @@ export default handleActions<CodePanelState, CodePanelData>({
       let toTest = fn.replace('/','').replace('/','');
       return re.test(toTest) && toTest.length > 0;
     }
-    //inserted new file is determined by wd +
     const toInsert: CodeFile = {
       rid: action.payload.rid,
       fileName: action.payload.fileName,
       rawSrc: ''
     };
-    alert(state.workState.wd);
-    // need an updateFile() function that, given rid, finds it in
-    // the fs tree and updates its src to action.payload.rawSrc
     const updateFiles = (files: CodeFile[], rid: string): CodeFile[] => {
       return files.map(c => {
         if (c.rid == rid) {
@@ -145,6 +161,8 @@ export default handleActions<CodePanelState, CodePanelData>({
     const insertFileRec = (files: CodeFile[], cwd: string): CodeFile[] => {
       if (cwd == state.workState.wd){
         let newFiles = files;
+        if (!newFiles)
+          newFiles = []
         newFiles.push(toInsert);
         return newFiles;
       } else {
@@ -163,6 +181,8 @@ export default handleActions<CodePanelState, CodePanelData>({
     }
     let newFiles = updateFiles(state.workState.files, state.rid);
     newFiles = insertFileRec(newFiles, state.workState.root);
+    let newWd = isDir(action.payload.fileName) ? state.workState.wd + action.payload.fileName + '/' :
+      state.workState.wd;
     return {
       rawSrc: '',
       fileName: action.payload.fileName,
@@ -171,7 +191,7 @@ export default handleActions<CodePanelState, CodePanelData>({
       consoleSrc: state.consoleSrc,
       extraArgs: state.extraArgs,
       workState: {
-        wd: state.workState.wd,
+        wd: newWd,
         files: newFiles,
         root: state.workState.root
       },
@@ -193,13 +213,39 @@ export default handleActions<CodePanelState, CodePanelData>({
     }
   },
   [Actions.DELETE_FILE]: (state, action) => {
-    const newFiles = state.workState.files.filter((c) => {
-      return c.fileName != action.payload.fileName
-    });
+    const isDir = (fn) => {
+      const re = new RegExp('^[A-Za-z0-9_]*$');
+      let toTest = fn.replace('/','').replace('/','');
+      return re.test(toTest) && toTest.length > 0;
+    }
+    const deleteRec = (files: CodeFile[], rid) => {
+      return files.filter(c => {
+        if (c.rid == rid) {
+          return null;
+        } else if (isDir(c.fileName)) {
+          const newFile = c;
+          newFile.children = deleteRec(c.children, rid);
+          return newFile;
+        } else {
+          return c;
+        }
+      });
+    };
+
+    const newFiles = deleteRec(state.workState.files, action.payload.rid);
     const newFile = (newFiles.length > 0) ? newFiles[0] : {
       rawSrc: '',
-      fileName: ''
+      fileName: '',
+      rid: ''
     }
+    let newWd = state.workState.root;
+    // if (isDir(action.payload.fileName)) {
+    //   //update wd
+    //   let tokens = newWd.split('/');
+    //   tokens = tokens.slice(0,tokens.length-2);
+    //   tokens.push('')
+    //   newWd = tokens.join('/');
+    // }
     AppToaster.clear();
     AppToaster.show({
       message: "Successfully deleted!",
@@ -210,11 +256,11 @@ export default handleActions<CodePanelState, CodePanelData>({
       rawSrc: newFile.rawSrc,
       isHome: state.isHome,
       fileName: newFile.fileName,
-      rid: state.rid,
+      rid: newFile.rid,
       consoleSrc: state.consoleSrc,
       extraArgs: state.extraArgs,
       workState: {
-        wd: state.workState.wd,
+        wd: newWd,
         files: newFiles,
         root: state.workState.root
       },
@@ -257,7 +303,8 @@ export default handleActions<CodePanelState, CodePanelData>({
       });
     }
 
-    const newFiles = isDir(action.payload.fileName) ? state.workState.files : updateFiles(state.workState.files, state.rid);
+    const newFiles = isDir(action.payload.fileName) ?
+      state.workState.files : updateFiles(state.workState.files, state.rid);
     const newPairFiles: CodeFile[] = state.pairWorkState.files.map((v,i) => {
         return {
           rid: "",

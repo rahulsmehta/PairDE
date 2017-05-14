@@ -58,6 +58,12 @@ class RenameDialog extends React.Component<IDialogProps, IDialogState> {
         );
     }
 
+    private isDir = (fn) => {
+      const re = new RegExp('^[A-Za-z0-9_]*$');
+      let toTest = fn.replace('/','').replace('/','');
+      return re.test(toTest) && toTest.length > 0;
+    }
+
     private handleRename = () => {
       const {content} = this.state;
       const {storageService, currentFile, wd, actions} = this.props;
@@ -79,7 +85,7 @@ class RenameDialog extends React.Component<IDialogProps, IDialogState> {
             intent: Intent.DANGER
           });
         } else {
-          const path = wd + currentFile;
+          const path = this.isDir(currentFile) ? wd.substring(0,wd.length-1) : wd + currentFile;
           storageService.renameFile(path, content, actions);
           this.setState({isOpen: !this.state.isOpen})
         }

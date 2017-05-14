@@ -48,7 +48,7 @@ class TreeView extends React.Component<ITreeViewProps,{}> {
     } else if (node.children) {
       //if node.children.length > 0 then is a directory
       const childNodes = node.children;
-      const newCwd = cwd + node.fileName;
+      const newCwd = cwd + node.fileName + '/';
       let result = childNodes.map((childFile: CodeFile) => {
         return this.getWdRec(newCwd, rid, childFile);
       });
@@ -66,7 +66,9 @@ class TreeView extends React.Component<ITreeViewProps,{}> {
   }
 
   private getWd(fileRid: string): string {
-    const root = this.props.root;
+    let root = this.props.root;
+    if (root.fileName.charAt(root.fileName.length-1) == '/')
+      root.fileName = root.fileName.substring(0,root.fileName.length-1);
     return this.getWdRec("", fileRid, root);
   }
 
