@@ -6,11 +6,11 @@ import { Intent } from "@blueprintjs/core";
 import {encode, decode} from 'base-64';
 
 const initialState: CodePanelData = {
-  rawSrc: "",
+  rawSrc: null,
   isHome: true,
   consoleSrc: "",
   fileName: "",
-  otherFiles: [],
+  rid: null,
   extraArgs: [],
   workState: {
     wd: '/',
@@ -32,8 +32,8 @@ export default handleActions<CodePanelState, CodePanelData>({
       rawSrc: state.rawSrc,
       isHome: state.isHome,
       fileName: state.fileName,
+      rid: state.rid,
       consoleSrc: action.payload.consoleSrc,
-      otherFiles: action.payload.otherFiles,
       extraArgs: state.extraArgs,
       workState: action.payload.workState,
       pairWorkState: action.payload.pairWorkState,
@@ -48,7 +48,7 @@ export default handleActions<CodePanelState, CodePanelData>({
       rawSrc: state.rawSrc,
       isHome: state.isHome,
       fileName: state.fileName,
-      otherFiles: state.otherFiles,
+      rid: state.rid,
       consoleSrc: action.payload.consoleSrc,
       extraArgs: state.extraArgs,
       workState: state.workState,
@@ -61,8 +61,8 @@ export default handleActions<CodePanelState, CodePanelData>({
       rawSrc: action.payload.rawSrc,
       isHome: state.isHome,
       fileName: state.fileName,
+      rid: state.rid,
       consoleSrc: state.consoleSrc,
-      otherFiles: state.otherFiles,
       extraArgs: state.extraArgs,
       workState: state.workState,
       pairWorkState: state.pairWorkState,
@@ -70,27 +70,48 @@ export default handleActions<CodePanelState, CodePanelData>({
     };
   },
   [Actions.RENAME_CURRENT]: (state, action) => {
-    const updatedFiles: CodeFile[] = state.workState.files.map((c, i) => {
-      if (c.fileName == state.fileName) {
-        return {
-          fileName: action.payload.fileName,
-          compileId: c.compileId,
-          rawSrc: c.rawSrc
+    const isDir = (fn) => {
+      const re = new RegExp('^[A-Za-z0-9_]*$');
+      let toTest = fn.replace('/','').replace('/','');
+      return re.test(toTest) && toTest.length > 0;
+    }
+    const renameFileRec = (files: CodeFile[], rid: string): CodeFile[] => {
+      return files.map(c => {
+        if (c.rid == rid) {
+          let newFile = c;
+          c.fileName = action.payload.fileName;
+          return c;
+        } else if (isDir(c.fileName)) {
+          let newFile = c;
+          let newChildren = renameFileRec(c.children, rid);
+          newFile.children = newChildren;
+          return newFile;
+        } else {
+          return c;
         }
-      } else {
-        return c;
-      }
-    });
+      });
+    }
+    const updatedFiles: CodeFile[] = renameFileRec(state.workState.files, state.rid);
+    let newWd = state.workState.wd;
+    if (isDir(action.payload.fileName)) {
+      //update wd
+      let tokens = newWd.split('/');
+      tokens[tokens.length-2] = action.payload.fileName;
+      newWd = tokens.join('/');
+    }
+    //todo: above, make it recursive to rename stuff nested within dirs,
+    //todo #2: when renaming a directory, update the working dir as well
     return {
       rawSrc: state.rawSrc,
       isHome: state.isHome,
       fileName: action.payload.fileName,
+      rid: state.rid,
       consoleSrc: state.consoleSrc,
-      otherFiles: updatedFiles,
       extraArgs: state.extraArgs,
       workState: {
-        wd: state.workState.wd,
-        files: updatedFiles
+        wd: newWd,
+        files: updatedFiles,
+        root: state.workState.root
       },
       pairWorkState: state.pairWorkState,
       authState: state.authState
@@ -102,34 +123,77 @@ export default handleActions<CodePanelState, CodePanelData>({
       intent: Intent.SUCCESS,
       iconName: "tick"
     });
-    let newFiles = state.workState.files;
-    if (newFiles.length > 0) {
-      newFiles = newFiles.map((c) => {
-        if(c.fileName == state.fileName) {
+    const isDir = (fn) => {
+      const re = new RegExp('^[A-Za-z0-9_]*$');
+      let toTest = fn.replace('/','').replace('/','');
+      return re.test(toTest) && toTest.length > 0;
+    }
+    const toInsert: CodeFile = {
+      rid: action.payload.rid,
+      fileName: action.payload.fileName,
+      rawSrc: ''
+    };
+    const updateFiles = (files: CodeFile[], rid: string): CodeFile[] => {
+      return files.map(c => {
+        if (c.rid == rid) {
           return {
             fileName: c.fileName,
             compileId: c.compileId,
-            rawSrc: action.payload.rawSrc
+            rawSrc: action.payload.rawSrc,
+            rid: c.rid,
+            children: c.children
+          }
+        } else if (c.children) {
+          const newChild = updateFiles(c.children, rid);
+          return {
+            fileName: c.fileName,
+            rid: c.rid,
+            rawSrc: null,
+            children: newChild
           }
         } else {
           return c;
         }
       });
     }
-    newFiles.push({
-      fileName: action.payload.fileName,
-      rawSrc: ''
-    });
+    // so we want to insert toInsert in the CodeFile
+    // corresponding to state.workState.wd
+    const insertFileRec = (files: CodeFile[], cwd: string): CodeFile[] => {
+      if (cwd == state.workState.wd){
+        let newFiles = files;
+        if (!newFiles)
+          newFiles = []
+        newFiles.push(toInsert);
+        return newFiles;
+      } else {
+        return files.map(c => {
+          if (isDir(c.fileName)) {
+            const newWd = cwd + c.fileName + '/';
+            const newChild = insertFileRec(c.children, newWd);
+            let newDir = c;
+            newDir.children = newChild;
+            return newDir;
+          } else {
+            return c;
+          }
+        });
+      }
+    }
+    let newFiles = updateFiles(state.workState.files, state.rid);
+    newFiles = insertFileRec(newFiles, state.workState.root);
+    let newWd = isDir(action.payload.fileName) ? state.workState.wd + action.payload.fileName + '/' :
+      state.workState.wd;
     return {
       rawSrc: '',
       fileName: action.payload.fileName,
       isHome: state.isHome,
+      rid: action.payload.rid,
       consoleSrc: state.consoleSrc,
-      otherFiles: state.otherFiles,
       extraArgs: state.extraArgs,
       workState: {
-        wd: state.workState.wd,
-        files: newFiles
+        wd: newWd,
+        files: newFiles,
+        root: state.workState.root
       },
       pairWorkState: state.pairWorkState,
       authState: state.authState
@@ -140,8 +204,8 @@ export default handleActions<CodePanelState, CodePanelData>({
       rawSrc: state.rawSrc,
       isHome: state.isHome,
       fileName: state.fileName,
+      rid: state.rid,
       consoleSrc: state.consoleSrc,
-      otherFiles: state.otherFiles,
       extraArgs: action.payload.extraArgs,
       workState: state.workState,
       pairWorkState: state.pairWorkState,
@@ -149,13 +213,39 @@ export default handleActions<CodePanelState, CodePanelData>({
     }
   },
   [Actions.DELETE_FILE]: (state, action) => {
-    const newFiles = state.workState.files.filter((c) => {
-      return c.fileName != action.payload.fileName
-    });
+    const isDir = (fn) => {
+      const re = new RegExp('^[A-Za-z0-9_]*$');
+      let toTest = fn.replace('/','').replace('/','');
+      return re.test(toTest) && toTest.length > 0;
+    }
+    const deleteRec = (files: CodeFile[], rid) => {
+      return files.filter(c => {
+        if (c.rid == rid) {
+          return null;
+        } else if (isDir(c.fileName)) {
+          const newFile = c;
+          newFile.children = deleteRec(c.children, rid);
+          return newFile;
+        } else {
+          return c;
+        }
+      });
+    };
+
+    const newFiles = deleteRec(state.workState.files, action.payload.rid);
     const newFile = (newFiles.length > 0) ? newFiles[0] : {
       rawSrc: '',
-      fileName: ''
+      fileName: '',
+      rid: ''
     }
+    let newWd = state.workState.root;
+    // if (isDir(action.payload.fileName)) {
+    //   //update wd
+    //   let tokens = newWd.split('/');
+    //   tokens = tokens.slice(0,tokens.length-2);
+    //   tokens.push('')
+    //   newWd = tokens.join('/');
+    // }
     AppToaster.clear();
     AppToaster.show({
       message: "Successfully deleted!",
@@ -166,12 +256,13 @@ export default handleActions<CodePanelState, CodePanelData>({
       rawSrc: newFile.rawSrc,
       isHome: state.isHome,
       fileName: newFile.fileName,
+      rid: newFile.rid,
       consoleSrc: state.consoleSrc,
-      otherFiles: state.otherFiles,
       extraArgs: state.extraArgs,
       workState: {
-        wd: state.workState.wd,
-        files: newFiles
+        wd: newWd,
+        files: newFiles,
+        root: state.workState.root
       },
       pairWorkState: state.pairWorkState,
       authState: state.authState
@@ -180,27 +271,50 @@ export default handleActions<CodePanelState, CodePanelData>({
   [Actions.CHANGE_SRC_FILE]: (state, action) => {
     // before returning state, update rawSrc for the org file
     // in workState
+    const isDir = (fn) => {
+      const re = new RegExp('^[A-Za-z0-9_]*$');
+      let toTest = fn.replace('/','').replace('/','');
+      return re.test(toTest) && toTest.length > 0;
+    }
 
-    const newFiles = state.workState.files.map((v,i) => {
-      if (v.fileName == state.fileName && state.isHome) {
-        return {
-          fileName: v.fileName,
-          compileId: v.compileId,
-          rawSrc: state.rawSrc
-        };
-      } else {
-        return v;
-      }
-    });
+    // need an updateFile() function that, given rid, finds it in
+    // the fs tree and updates its src to state.rawSrc
+    const updateFiles = (files: CodeFile[], rid: string) => {
+      return files.map(c => {
+        if (c.rid == rid) {
+          return {
+            fileName: c.fileName,
+            compileId: c.compileId,
+            rawSrc: state.rawSrc,
+            rid: c.rid,
+            children: c.children
+          }
+        } else if (c.children) {
+          const newChild = updateFiles(c.children, rid);
+          return {
+            fileName: c.fileName,
+            rid: c.rid,
+            rawSrc: null,
+            children: newChild
+          }
+        } else {
+          return c;
+        }
+      });
+    }
 
+    const newFiles = isDir(action.payload.fileName) ?
+      state.workState.files : updateFiles(state.workState.files, state.rid);
     const newPairFiles: CodeFile[] = state.pairWorkState.files.map((v,i) => {
         return {
+          rid: v.rid,
           fileName: v.fileName,
           rawSrc: v.rawSrc,
           isDir: v.isDir,
           children: v.children.map((f,i) => {
-            if (f.fileName == state.fileName && !state.isHome) {
+            if (f.rid == state.rid && !state.isHome) {
               return {
+                rid: f.rid,
                 fileName: f.fileName,
                 compileId: f.compileId,
                 rawSrc: state.rawSrc
@@ -212,23 +326,29 @@ export default handleActions<CodePanelState, CodePanelData>({
         };
     });
 
+    let newWd = action.payload.workState ? action.payload.workState.wd : state.workState.wd;
     let newPairWd = state.pairWorkState.wd;
     if (action.payload.pairWorkState) {
-      // alert(action.payload.pairWorkState.wd);
       newPairWd = action.payload.pairWorkState.wd;
+    }
+    let newRid = action.payload.rid;
+    if (newRid.indexOf('%%') != -1) {
+      newRid = newRid.split('%%')[0];
     }
     return {
       rawSrc: action.payload.rawSrc,
       isHome: action.payload.isHome,
       fileName: action.payload.fileName,
+      rid: newRid,
       consoleSrc: state.consoleSrc,
-      otherFiles: state.otherFiles,
       extraArgs: state.extraArgs,
       workState: {
-        wd: state.workState.wd,
+        root: state.workState.root,
+        wd: newWd,
         files: newFiles
       },
       pairWorkState: {
+        root: state.pairWorkState.root,
         wd: newPairWd,
         files: newPairFiles,
         isSlave: state.pairWorkState.isSlave
@@ -243,7 +363,7 @@ export default handleActions<CodePanelState, CodePanelData>({
         isHome: state.isHome,
         fileName: state.fileName,
         consoleSrc: state.consoleSrc,
-        otherFiles: state.otherFiles,
+        rid: state.rid,
         extraArgs: state.extraArgs,
         workState: state.workState,
         pairWorkState: {
@@ -262,8 +382,8 @@ export default handleActions<CodePanelState, CodePanelData>({
         rawSrc: top.rawSrc,
         isHome: state.isHome,
         fileName: top.fileName,
+        rid: top.rid,
         consoleSrc: state.consoleSrc,
-        otherFiles: state.otherFiles,
         extraArgs: state.extraArgs,
         workState: action.payload.workState,
         pairWorkState: action.payload.pairWorkState,
@@ -274,8 +394,8 @@ export default handleActions<CodePanelState, CodePanelData>({
         rawSrc: "",
         isHome: state.isHome,
         fileName: "Untitled.java",
+        rid: state.rid,
         consoleSrc: state.consoleSrc,
-        otherFiles: state.otherFiles,
         extraArgs: state.extraArgs,
         workState: action.payload.workState,
         pairWorkState: action.payload.pairWorkState,
@@ -289,8 +409,8 @@ export default handleActions<CodePanelState, CodePanelData>({
       rawSrc: state.rawSrc,
       isHome: state.isHome,
       fileName: state.fileName,
+      rid: state.rid,
       consoleSrc: state.consoleSrc,
-      otherFiles: state.otherFiles,
       extraArgs: state.extraArgs,
       workState: workState,
       pairWorkState: state.pairWorkState,

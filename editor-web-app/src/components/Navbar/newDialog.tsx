@@ -67,35 +67,46 @@ class NewFileDialog extends React.Component<IDialogProps, IDialogState> {
 
     private handleNewFile = () => {
       const {actions, storageService, wd, rawSrc} = this.props;
-      const path = wd + this.state.content;
-      storageService.create(path, false, rawSrc, actions);
-      this.setState({isOpen: !this.state.isOpen})
+      const { content } = this.state;
+      if (!this.validateFileName(content)) {
+        AppToaster.show({
+          message: "Invalid class name!",
+          intent: Intent.DANGER
+        });
+      } else {
+        const path = wd + this.state.content;
+        storageService.create(path, false, rawSrc, actions);
+        this.setState({isOpen: !this.state.isOpen})
+      }
     }
 
     private handleNewFolder = () => {
       const {actions, storageService, wd, rawSrc} = this.props;
-      const path = wd + this.state.content;
-      storageService.create(path, true, null, actions);
-      this.setState({isOpen: !this.state.isOpen})
+      const { content } = this.state;
+      if (!this.validateDirName(content)) {
+        AppToaster.show({
+          message: "Invalid folder name!",
+          intent: Intent.DANGER
+        });
+      } else {
+        const path = wd + this.state.content;
+        storageService.create(path, true, null, actions);
+        this.setState({isOpen: !this.state.isOpen})
+      }
     }
 
-    // private handleRename = () => {
-    //   const {content} = this.state;
-    //   const {storageService, currentFile, wd, actions} = this.props;
-    //   if (!this.validateName(content)) {
-    //       AppToaster.show({
-    //         message: "Invalid class name!",
-    //         intent: Intent.DANGER
-    //       });
-    //   } else {
-    //     const path = wd + currentFile;
-    //     storageService.renameFile(path, content, actions);
-    //     this.setState({isOpen: !this.state.isOpen})
-    //   }
-    // }
-
-    private toggleDialog = () => this.setState({ isOpen: !this.state.isOpen });
+    private toggleDialog = () => this.setState({ isOpen: !this.state.isOpen, content: this.state.content });
     private updateContents = (c) => this.setState( {isOpen: this.state.isOpen, content: c} );
+
+    private validateFileName = (fn:string) => {
+      const re = new RegExp('^[A-Z][A-Za-z0-9]*\.java$');
+      return re.test(fn) && fn.length > 0;
+    }
+
+    private validateDirName = (fn: string) => {
+      const re = new RegExp('^[A-Za-z0-9_]*$');
+      return re.test(fn) && fn.length > 0;
+    }
 }
 
 export default NewFileDialog;

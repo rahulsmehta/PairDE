@@ -36,6 +36,10 @@
         <li>{{n}}</li>
         {% endfor %}
       </ul>
+      <form action = "/" method = "post">
+        <input type=hidden name="assignmentName" value={{name}}/>
+        <input type="submit" name="Delete Assignment" value="Delete Assignment"/>
+      </form>
     </div>
   </body>
 </html>

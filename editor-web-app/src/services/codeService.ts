@@ -8,14 +8,27 @@ export const CODE_SERVICE_URL = Utils.isProd() ?
   "http://ec2-34-207-206-82.compute-1.amazonaws.com:5000/" : "http://localhost:5000/"
 
 function getUuidAndFile(files: CodeFile[], fileName: string){
-  const result = files.filter((c: CodeFile, i) => {
-    return c.fileName == fileName;
-  });
-  const path = result[0].compileId.split('/');
+  const result = visitFiles(files, fileName);
+  const path = result[0].split('/');
   return {
     uuid: path[2],
     className: path[3]
   };
+}
+function visitFiles(files: CodeFile[], rid: string) {
+  let r = files.map(c => {
+    if (c.rid == rid) {
+      return c.compileId;
+    } else if (c.children) {
+      let res = visitFiles(c.children, rid);
+      res = res.filter(v => v != null);
+      return res[0];
+    } else {
+      return null;
+    }
+  })
+  r = r.filter(v => v != null);
+  return r;
 }
 
 function getUuidAndFilePair(files: CodeFile[], fileName: string){
@@ -72,10 +85,20 @@ export async function validateTicket (ticket: string, props: CodePanelData,
 }
 
 export function run (props: CodePanelData, actions: typeof EditorActions) {
+  const validateArgs = (args) => {
+    return (args.indexOf('>') == -1) && (args.indexOf('<') == -1);
+  }
   const {workState, pairWorkState} = props;
-  const {uuid,className} = props.isHome ? getUuidAndFile(workState.files, props.fileName) :
+  const {uuid,className} = props.isHome ? getUuidAndFile(workState.files, props.rid) :
     getUuidAndFilePair(pairWorkState.files, props.fileName);
   const url = CODE_SERVICE_URL + 'run/' + uuid + '/' + className;
+  if (!validateArgs(props.extraArgs)) {
+    AppToaster.show({
+      intent: Intent.DANGER,
+      message: "Invalid command line arguments"
+    });
+    return;
+  }
   fetch(url,{
     method: 'POST',
     body: JSON.stringify ({
@@ -102,25 +125,49 @@ export function compile (props: CodePanelData, actions: typeof EditorActions) {
       })
     }).then(r => r.text()).then((resp) => {
       const {compiler_errors, class_path} = JSON.parse(resp);
-      const updatedFiles = props.workState.files.map((c: CodeFile, i) => {
-        if (c.fileName == props.fileName && props.isHome) {
+      const updateCompileId = (files: CodeFile[]): CodeFile[] => {
+        return files.map((c) => {
+          if (c.rid == props.rid) {
+            console.log('updating ' + c.fileName);
+            let result = c;
+            result['compileId'] = class_path;
+            return result;
+          } else if (c.children) {
+            let result = c;
+            result['children'] = updateCompileId(c.children);
+            return result;
+          } else {
+            return c;
+          }
+        });
+      }
+      const updatedFiles = updateCompileId(props.workState.files);
+      /* props.workState.files.map((c: CodeFile, i) => {
+        if (c.rid == props.rid && props.isHome) {
           return {
             rawSrc: c.rawSrc,
             fileName: c.fileName,
-            compileId: class_path
+            compileId: class_path,
+            rid: c.rid
           }
-        } else {
+        } else if (c.children) {
+          let result = c;
+
+        }
+        else {
           return c;
         }
-      });
+      }); */
       const updatedPairFiles: CodeFile[] = props.pairWorkState.files.map((v, i) => {
         return {
+          rid: v.rid,
           fileName: v.fileName,
           rawSrc: v.rawSrc,
           isDir: v.isDir,
           children: v.children.map((f,i) => {
             if (f.fileName == props.fileName && !props.isHome) {
               return {
+                rid: f.rid,
                 fileName: f.fileName,
                 rawSrc: f.rawSrc,
                 compileId: class_path
@@ -135,8 +182,10 @@ export function compile (props: CodePanelData, actions: typeof EditorActions) {
       actions.compileFile({
           rawSrc: props.rawSrc,
           fileName: props.fileName,
-          consoleSrc: compiler_errors ? compiler_errors : "Compilation successful",
+          consoleSrc: compiler_errors ? compiler_errors :
+            "Sucessfully compiled " + props.fileName,
           workState: {
+            root: props.workState.root,
             wd: props.workState.wd,
             files: updatedFiles
           },

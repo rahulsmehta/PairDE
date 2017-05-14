@@ -14,6 +14,7 @@ import Editor from "../../components/Editor";
 import PairEditor from "../../components/PairEditor";
 import Console from "../../components/Console";
 import Navbar from "../../components/Navbar";
+import TreeView from "../../components/TreeView";
 
 
 
@@ -26,7 +27,7 @@ import { Breadcrumb, Classes, Button, ITreeNode, Tree, Tooltip,
 
 const io = require('socket.io-client');
 const ioPath = Utils.isProd() ? "http://ec2-34-207-206-82.compute-1.amazonaws.com:9000" : "http://localhost:9000";
-let socket = io(ioPath, {transports: ['websocket']});
+let socket: SocketIOClient.Socket = io(ioPath, {transports: ['websocket']});
 
 import { encode } from 'base-64';
 
@@ -63,6 +64,7 @@ class App extends React.Component<AppProps, AppState>{
             }
             validateAction['workState'] = {
               wd: newWd + '/',
+              root: newWd + '/',
               files: myFiles
             }
             actions.initApp(validateAction);
@@ -74,43 +76,49 @@ class App extends React.Component<AppProps, AppState>{
     }
   }
 
+  componentWillReceiveProps() {
+    const { editor, actions } = this.props;
+    socket.on('change_file', (payload => {
+      const data = JSON.parse(payload);
+      if (data.path == editor.pairWorkState.wd && !editor.isHome) {
+        actions.changeSrcFile({
+          fileName: data.fn,
+          rid: data.newRid,
+          rawSrc: data.src,
+          isHome: false,
+          pairWorkState: {
+            wd: data.path,
+          }
+        });
+      }
+    }));
+  }
+
+  private isDir = (fn: string) => {
+    const re = new RegExp('^[A-Za-z0-9_]*$');
+    let toTest = fn.replace('/','').replace('/','');
+    return re.test(toTest) && toTest.length > 0;
+  }
+
   render () {
     const { editor, actions, children } = this.props;
     const { workState, pairWorkState } = editor;
 
-    const fileNodes: ITreeNode[] = workState.files.map((c: CodeFile, i) => {
-      const isDir = (c.fileName.indexOf('.java') != -1);
-      const icon = isDir ? 'code' : 'folder-close';
-      let result = {
-        hasCaret: !isDir,
-        iconName: icon,
-        label: c.fileName,
-        id: i
-      }
-      if (editor.fileName == c.fileName && editor.isHome) {
-        result['isSelected'] = true;
-      }
-      return result;
-    });
-    const treeNodes: ITreeNode[] = [
-      {
-        hasCaret: false,
-        iconName: "folder-close",
-        label: workState.wd,
-        id: 10,
-        isExpanded: true,
-        childNodes: fileNodes
-      }
-    ]
+    const rootFile: CodeFile = {
+      rid: 'root',
+      rawSrc: null,
+      fileName: workState.root,
+      children: workState.files
+    }
 
-    const mapChildNodes = (c: CodeFile, i): ITreeNode => {
+    const mapChildNodes = (c: CodeFile, parent): ITreeNode => {
       const code = (c.isDir == undefined || !c.isDir);
       let result = {
-        id: i,
+        id: c.rid + '%%' + parent,
         label: c.fileName,
         iconName: code ? 'code' : 'folder-close'
       }
-      if ((c.fileName == editor.fileName) && !editor.isHome)
+      if ((c.rid == editor.rid) && !editor.isHome)
         result['isSelected'] = true;
       return result;
     };
@@ -120,15 +128,14 @@ class App extends React.Component<AppProps, AppState>{
         label: file.fileName,
         iconName: 'folder-close',
         isExpanded: true,
-        childNodes: file.children.map((c,j) => mapChildNodes(c, 10*i + j))
+        childNodes: file.children.map(c => mapChildNodes(c, file.fileName))
       }
     });
-
-
 
     const editorComponent = (editor.isHome) ? (
       <Editor src={editor.rawSrc} actions={actions}
         isEmpty={editor.workState.files.length == 0}
+        isDir={this.isDir(editor.fileName)}
       />
     ) : (
       <PairEditor src={editor.rawSrc} actions={actions}
@@ -136,6 +143,7 @@ class App extends React.Component<AppProps, AppState>{
         isSlave={editor.pairWorkState.isSlave}
         fileName={editor.fileName}
         socket={socket}
+        pairWorkState={editor.pairWorkState}
       />
     )
 
@@ -156,24 +164,11 @@ class App extends React.Component<AppProps, AppState>{
         >
           <div style={{paddingLeft: 5}}>
             <b>My Documents</b>
-            <Tree
-              contents = {treeNodes}
-              onNodeClick = {((node, _) => {
-                const getSrc = fileName => {
-                  const f = workState.files.filter((fn) => {
-                    return fn.fileName == node.label;
-                  });
-                  return {src: f[0].rawSrc, id: node.id};
-                }
-                if (node.iconName == 'code'){
-                  const {src} = getSrc(node.label);
-                  actions.changeSrcFile({
-                    fileName: node.label,
-                    rawSrc: src,
-                    isHome: true
-                  });
-                }
-              })}
+            <TreeView
+              root={rootFile}
+              selected={editor.rid}
+              isHome={editor.isHome}
+              actions={actions}
             />
 
             <br />
@@ -189,16 +184,30 @@ class App extends React.Component<AppProps, AppState>{
                     return l.concat(cf)
                   })
                   const f = childNodes.filter((fn) => {
-                    return fn.fileName == node.label;
+                    const fnRid = fn.rid.split("%%")[0]
+                    const nodeRid = node.id.toString().split("%%")[0];
+                    return fnRid == nodeRid;
                   });
                   return {src: f[0].rawSrc, id: node.id};
                 }
                 if (node.iconName == 'code'){
                   const {src, id} = getSrc(node.label);
-                  const parentIdx = (Math.floor(parseInt(id.toString())/10));
-                  const parentDir = '/shared/' + pairWorkState.files[parentIdx].fileName + '/';
+                  const parentName = node.id.toString().split('%%')[1];
+                  const parentDir = '/shared/' + parentName + '/';
+                  const payload = {'user': editor.authState.user,
+                                   'path': parentDir}
+                  socket.emit('join_session', JSON.stringify(payload));
+                  if (!editor.isHome && !pairWorkState.isSlave) {
+                    socket.emit('pair_file_change', JSON.stringify({
+                      lockPath: parentDir,
+                      rid: node.id,
+                      fn: node.label,
+                      src: src
+                    }));
+                  }
                   actions.changeSrcFile({
                     fileName: node.label,
+                    rid: node.id,
                     rawSrc: src,
                     isHome: false,
                     pairWorkState: {

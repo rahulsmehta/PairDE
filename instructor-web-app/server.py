@@ -11,6 +11,7 @@ from flask_pymongo import PyMongo
 from uuid import uuid4
 from bson.objectid import ObjectId
 from flask_cors import CORS, cross_origin
+import requests
 
 UPLOAD_FOLDER = '/uploads'
 ALLOWED_EXTENSIONS = set(['java', 'csv'])
@@ -25,8 +26,16 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-@app.route("/")
+@app.route('/home')
+@app.route("/", methods=['GET', 'POST'])
 def landing():
+    if request.method == 'POST':
+        d = request.form
+        requestList = d.copy()
+        fileToDelete = requestList['assignmentName']
+        roast = fileToDelete[:len(fileToDelete)-1]
+        mongo.db.assignments.remove({"name": roast})   
+
     mongoList = list(mongo.db.assignments.find())
     assignment_list = []
     for assignment in mongoList:
@@ -68,14 +77,14 @@ def create():
             newPair = row[0] + "_" + row[1]
             partner_list.append(newPair)
         
-        #Handle Filename
+        #Handle Assignment Name
         name = request.form["name"]
         if name is None:
-            return "Invalid FileName"
+            return "Invalid Assignment Name"
         nameReg = "^[A-Za-z0-9_]*$"
         nameMatch = re.match(nameReg, name)
         if nameMatch is None:
-            return "Invalid FileName"
+            return "Invalid Assignment Name"
         
         #Handle Due Date
         duedate = request.form["due"]
@@ -86,12 +95,30 @@ def create():
         numFiles = len(requestList) - 2
         files = []
         for i in range(1, numFiles + 1):
+            newFile = requestList['file' + str(i)]
             files.append(requestList['file' + str(i)])
+        for filename in files:
+            fileReg = '^[A-Z][A-Za-z0-9]*\.java$'
+            nameMatch = re.match(fileReg, name)
+            if nameMatch is None:
+                return "Invalid File Name"
 
         mongo.db.assignments.insert({'name': name, 'files': files, 
             'due': duedate, 'partners': partner_list})
+
+        data = json.dumps({'isDir': True, 'contents': None })
+        filedata = json.dumps({'isDir': False, 'contents': ""})
+        #for each partnership, create shared directory for assignment and for each file
+        for partnership in partner_list:
+            url = "http://localhost:4000/create-path/shared/" + partnership + "_" + name
+            print url
+            assignment_dir = requests.post(url, data = json.dumps({'isDir': True, 'contents': None}))   
+            for filename in files:
+                print filename
+                file_dir = requests.post(url + "/" + filename, data = json.dumps({'isDir': False, 'contents': ""}))
+
     return render_template('newAssignment.html')
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True, port=6000, threaded=True)
+    app.run(host='0.0.0.0', debug=True, port=7000, threaded=True)
