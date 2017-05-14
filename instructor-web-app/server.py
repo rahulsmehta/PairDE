@@ -2,6 +2,7 @@ import json
 import bson
 import re
 import csv
+import io
 import os
 from flask import Flask, request, render_template, url_for
 from werkzeug import secure_filename
@@ -11,7 +12,7 @@ from uuid import uuid4
 from bson.objectid import ObjectId
 from flask_cors import CORS, cross_origin
 
-UPLOAD_FOLDER = '/uploads/'
+UPLOAD_FOLDER = '/uploads'
 ALLOWED_EXTENSIONS = set(['java', 'csv'])
 
 app = Flask(__name__)
@@ -45,29 +46,45 @@ def assignmentPage(name):
         files = files, due=due, partners=partners)
 
 @app.route('/assignment/newAssignment')
-@app.route("/newAssignment")
-def newAssignment():
+@app.route("/newAssignment", methods=['GET', 'POST'])
+def create():
+    if request.method == 'POST':
+
+        #Handle Partner CSV
+        if 'partners' not in request.files:
+            return('No Partner File')
+        file = request.files['partners']
+        stream = io.StringIO(file.stream.read().decode("UTF8"), newline=None)
+        csv_input = csv.reader(stream)
+        partner_list = []
+        for row in csv_input:
+            if len(row) != 2:
+                return "Invalid Partner CSV"
+            partnerReg = "^[a-z0-9]*$"
+            for netID in row:
+                partnerMatch = re.match(partnerReg, netID)
+                if partnerMatch is None:
+                    return "Invalid NetID in Partner List"
+            newPair = row[0] + "_" + row[1]
+            partner_list.append(newPair)
+        
+        #Handle Filename
+        name = request.form["name"]
+        if name is None:
+            return "Invalid FileName"
+        nameReg = "^[A-Za-z0-9_]*$"
+        nameMatch = re.match(nameReg, name)
+        if nameMatch is None:
+            return "Invalid FileName"
+        
+        #Handle Due Date
+        duedate = request.form["due"]
+
+        #Handle FileList
+        mongo.db.assignments.insert({'name': name, 'files': ["Point2D.java", "HelloWorld.java"], 
+            'due': duedate, 'partners': partner_list})
     return render_template('newAssignment.html')
 
-@app.route("/newAssignment", methods=['POST'])
-def create():
-    name = request.form["name"]
-    duedate = request.form["due"]
-    nameReg = "^[A-Za-z0-9_]*$"
-    nameMatch = re.match(nameReg, name)
-    if nameMatch is None:
-        return "Invalid FileName"
-    file = request.files['partners']
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        return redirect(url_for('create'))
-    partner_list = ["ethanrc_rahulmd", "mhw3_davidsp"]
-    mongo.db.assignments.insert({'name': name, 'files': ["Point2D.java", "HelloWorld.java"], 
-        'due': duedate, 'partners': partner_list})
-    return render_template('newAssignment.html')
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-            
