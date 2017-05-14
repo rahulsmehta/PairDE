@@ -88,21 +88,20 @@ def get_lock(payload, path):
     lock_path = lock_request['lock_path']
     sid = request.sid
     if (lock_path in locks) and (locks[lock_path] is not None):
-        emit('lock_fail', locks[lock_path], namespace='/')
+        emit('lock_fail', json.dumps({'sid': str(sid), 'path': lock_path}), namespace='/')
     else:
         locks[lock_path] = {'sid': sid, 'user': lock_request['user']}
-        emit('lock_success', str(sid), namespace='/', broadcast=True)
+        emit('lock_success', json.dumps({'sid': str(sid), 'path': lock_path}), namespace='/', broadcast=True)
 
 
 @socketio.on('disconnect', namespace='/')
 def on_disconnect():
     global locks
-    for k,v in locks.iteritems():
+    for k, v in locks.iteritems():
         if v['sid'] == request.sid:
             print "{} disconnected...releasing lock".format(request.sid)
             del locks[k]
-            emit('release_success', request.sid, namespace='/', broadcast=True)
-
+            emit('release_success', json.dumps({'sid': request.sid, 'path': k}), namespace='/', broadcast=True)
 
 
 @socketio.on('release_lock', namespace='/')
@@ -114,15 +113,17 @@ def release_lock(payload, p):
     sid = request.sid
     if (lock_path in locks) and (locks[lock_path] is not None) and (locks[lock_path]['sid'] == sid):
         del locks[lock_path]
-        emit('release_success', str(sid), namespace='/', broadcast=True)
+        emit('release_success', json.dumps({'sid': sid, 'path': lock_path}), namespace='/', broadcast=True)
     else:
-        emit('release_fail', '', namespace='/')
+        emit('release_fail', json.dumps({'sid': sid,'path': lock_path}), namespace='/')
 
 
 @socketio.on('code', namespace='/')
 def on_code(payload, path):
     print "Received payload from {}".format(request.sid)
-    emit('code-sub', json.dumps({'sid':request.sid, 'code':payload}), namespace='/', broadcast=True)
+    code_obj = json.loads(payload)
+    emit('code-sub', json.dumps({'sid': request.sid, 'code': code_obj['src'],
+                                 'path': code_obj['path']}), namespace='/', broadcast=True)
 
 
 if __name__ == '__main__':

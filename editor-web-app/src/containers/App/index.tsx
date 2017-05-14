@@ -67,7 +67,6 @@ class App extends React.Component<AppProps, AppState>{
               root: newWd + '/',
               files: myFiles
             }
-            console.log(JSON.stringify(myFiles));
             actions.initApp(validateAction);
           })
         })
@@ -86,7 +85,6 @@ class App extends React.Component<AppProps, AppState>{
   render () {
     const { editor, actions, children } = this.props;
     const { workState, pairWorkState } = editor;
-    console.log('rendering container, editor home? ' + editor.isHome + ', is slave? ' + editor.pairWorkState.isSlave);
 
     const rootFile: CodeFile = {
       rid: 'root',
@@ -127,6 +125,7 @@ class App extends React.Component<AppProps, AppState>{
         isSlave={editor.pairWorkState.isSlave}
         fileName={editor.fileName}
         socket={socket}
+        pairWorkState={editor.pairWorkState}
       />
     )
 

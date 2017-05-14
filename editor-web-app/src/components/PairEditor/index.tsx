@@ -14,6 +14,7 @@ interface IPairEditorProps {
   isSlave: boolean;
   fileName: string;
   socket: SocketIOClient.Socket;
+  pairWorkState: WorkState;
 }
 
 interface IPairEditorState {
@@ -30,7 +31,6 @@ class PairEditor extends React.Component<IPairEditorProps,IPairEditorState> {
   }
 
   componentWillReceiveProps (props?: IPairEditorProps, context?: any) {
-    console.log('got new props ' + JSON.stringify(props.isSlave));
     this.setState({
       isSlave: props.isSlave
     });
@@ -38,58 +38,69 @@ class PairEditor extends React.Component<IPairEditorProps,IPairEditorState> {
 
   componentDidMount() {
     const {socket, actions} = this.props;
-    console.log(socket);
-    socket.on('connect', () => console.log('connected'));
+    // console.log(socket);
+    // socket.on('connect', () => console.log('connected'));
     socket.on('code-sub', (payload) => {
       const response = JSON.parse(payload);
-      if (response.sid != socket.id) {
-        this.props.actions.updateSrc({
-          rawSrc: response.code
-        });
+      if (response.path == this.props.pairWorkState.wd) {
+        if (response.sid != socket.id) {
+          this.props.actions.updateSrc({
+            rawSrc: response.code
+          });
+        }
       }
     });
     socket.on('lock_success', (payload) => {
       AppToaster.clear();
-      if (payload == socket.id) {
-        AppToaster.show({
+      const resp = JSON.parse(payload);
+      if (resp.path == this.props.pairWorkState.wd) {
+        if (resp.sid == socket.id) {
+          AppToaster.show({
+              intent: Intent.PRIMARY,
+              message: "You are now editing " + resp.path
+          });
+          actions.lockGranted({
+            pairWorkState: {
+              isSlave: false
+            }
+          });
+        } else {
+          AppToaster.show({
             intent: Intent.PRIMARY,
-            message: "You are now editing"
-        });
-        actions.lockGranted({
-          pairWorkState: {
-            isSlave: false
-          }
-        });
-      } else {
-        AppToaster.show({
-          intent: Intent.PRIMARY,
-          message: "Your partner is now editing"
-        })
+            message: "Your partner is now editing"
+          })
+        }
       }
     });
     socket.on('lock_fail', (payload) => {
-      AppToaster.show({
-          intent: Intent.DANGER,
-          message: "Someone else is editing!"
-      });
+      const response = JSON.parse(payload);
+      if (response.path == this.props.pairWorkState.wd) {
+        AppToaster.show({
+            intent: Intent.DANGER,
+            message: "Someone else is editing!"
+        });
+      }
     });
     socket.on('release_success', (payload) => {
       AppToaster.clear();
-      if(payload == socket.id){
-        AppToaster.show({
-          intent: Intent.PRIMARY,
-          message: "Completed editing!"
-        });
-        actions.lockGranted({
-          pairWorkState: {
-            isSlave: true
-          }
-        });
-      } else {
-        AppToaster.show({
-          intent: Intent.PRIMARY,
-          message: "Your partner is no longer editing"
-        })
+      const response = JSON.parse(payload);
+      if (response.path == this.props.pairWorkState.wd) {
+        if(response.sid == socket.id){
+          AppToaster.show({
+            intent: Intent.PRIMARY,
+            message: "Completed editing!"
+          });
+          actions.lockGranted({
+            pairWorkState: {
+              isSlave: true
+            }
+          });
+        } else {
+          AppToaster.show({
+            intent: Intent.PRIMARY,
+            message: "Your partner is no longer editing"
+          })
+        }
       }
     });
     socket.on('release_fail', (payload) => {
@@ -101,7 +112,6 @@ class PairEditor extends React.Component<IPairEditorProps,IPairEditorState> {
   }
 
   render() {
-    console.log('rerendering paireditor - slave?:' + this.state.isSlave);
     const {src, actions, isEmpty, isSlave, fileName, socket} = this.props;
     const slaveEditor = (
       <div style = {{width: '100%', height: '100%', backgroundColor: '#333'}}>
@@ -129,7 +139,8 @@ class PairEditor extends React.Component<IPairEditorProps,IPairEditorState> {
             theme = "vs-dark"
             onChange = {(newValue, _) => {
               if (!isSlave) {
-                socket.emit('code', newValue, '/');
+                const payload = {src: newValue, path: this.props.pairWorkState.wd}
+                socket.emit('code', JSON.stringify(payload), '/');
                 actions.updateSrc({
                   rawSrc: newValue,
                 })
