@@ -127,6 +127,15 @@ def join_session(payload):
         print "{} joined {}".format(user, lock_path)
         print pair_sessions
 
+@socketio.on('pair_file_change', namespace='/')
+def on_pair_file_change(payload):
+    data = json.loads(payload)
+    print data
+    lock_path = data['lockPath']
+    new_file = data['rid']
+    sid = request.sid
+    emit('change_file', json.dumps({'sid':str(sid), 'path': lock_path, 'newRid': new_file,
+                                    'fn': data['fn']}), namespace = '/', broadcast=True)
 
 @socketio.on('get_lock', namespace='/')
 def get_lock(payload, path):

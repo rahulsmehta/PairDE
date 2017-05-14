@@ -86,6 +86,21 @@ class App extends React.Component<AppProps, AppState>{
     const { editor, actions, children } = this.props;
     const { workState, pairWorkState } = editor;
 
+    socket.on('change_file', (payload => {
+      const data = JSON.parse(payload);
+      if (data.path == editor.pairWorkState.wd && !editor.isHome) {
+        actions.changeSrcFile({
+          fileName: data.fn,
+          rid: data.newRid,
+          rawSrc: editor.rawSrc,
+          isHome: false,
+          pairWorkState: {
+            wd: data.path,
+          }
+        });
+      }
+    }));
+
     const rootFile: CodeFile = {
       rid: 'root',
       rawSrc: null,
@@ -179,13 +194,13 @@ class App extends React.Component<AppProps, AppState>{
                   const payload = {'user': editor.authState.user,
                                    'path': parentDir}
                   socket.emit('join_session', JSON.stringify(payload));
-                  {/*if (!editor.isHome && !pairWorkState.isSlave) {
-                    alert('fofoo');
+                  if (!editor.isHome && !pairWorkState.isSlave) {
                     socket.emit('pair_file_change', JSON.stringify({
                       lockPath: parentDir,
-                      rid: node.id
+                      rid: node.id,
+                      fn: node.label
                     }));
-                  }*/}
+                  }
                   actions.changeSrcFile({
                     fileName: node.label,
                     rid: node.id,
