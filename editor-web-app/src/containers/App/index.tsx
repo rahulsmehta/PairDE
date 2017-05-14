@@ -27,7 +27,7 @@ import { Breadcrumb, Classes, Button, ITreeNode, Tree, Tooltip,
 
 const io = require('socket.io-client');
 const ioPath = Utils.isProd() ? "http://ec2-34-207-206-82.compute-1.amazonaws.com:9000" : "http://localhost:9000";
-let socket = io(ioPath, {transports: ['websocket']});
+let socket: SocketIOClient.Socket = io(ioPath, {transports: ['websocket']});
 
 import { encode } from 'base-64';
 
@@ -166,7 +166,9 @@ class App extends React.Component<AppProps, AppState>{
                     return l.concat(cf)
                   })
                   const f = childNodes.filter((fn) => {
-                    return fn.fileName == node.label;
+                    const fnRid = fn.rid.split("%%")[0]
+                    const nodeRid = node.id.toString().split("%%")[0];
+                    return fnRid == nodeRid;
                   });
                   return {src: f[0].rawSrc, id: node.id};
                 }
@@ -174,6 +176,9 @@ class App extends React.Component<AppProps, AppState>{
                   const {src, id} = getSrc(node.label);
                   const parentName = node.id.toString().split('%%')[1];
                   const parentDir = '/shared/' + parentName + '/';
+                  const payload = {'user': editor.authState.user,
+                                   'path': parentDir}
+                  socket.emit('join_session', JSON.stringify(payload));
                   actions.changeSrcFile({
                     fileName: node.label,
                     rid: node.id,

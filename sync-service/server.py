@@ -20,6 +20,7 @@ mongo = PyMongo(app)
 # app.config["APPLICATION_ROOT"] = "/v1"
 
 locks = dict({})
+pair_sessions = dict({})
 
 
 @app.route('/ping', methods=['GET'])
@@ -81,22 +82,80 @@ def getshared(user):
     return json.dumps(loaded)
 
 
+def evict_session(user, lock_path):
+    global pair_sessions
+    if lock_path in pair_sessions:
+        users = pair_sessions[lock_path]
+        if user in users:
+            users.remove(user)
+            pair_sessions[lock_path] = users
+            print pair_sessions
+            return True
+    return False
+
+
+def get_current_session(user):
+    global pair_sessions
+    for k, v in pair_sessions.iteritems():
+        if user in v:
+            return k
+    return None
+
+
+@socketio.on('join_session', namespace='/')
+def join_session(payload):
+    global pair_sessions
+    data = json.loads(payload)
+    lock_path = data['path']
+    user = data['user'], request.sid
+    session = get_current_session(user)
+    if session is not None:
+        if session == lock_path:
+            pass
+        elif session != lock_path:
+            evict_session(user, session)
+    if lock_path not in pair_sessions:
+        pair_sessions[lock_path] = [user]
+        print "{} joined {}".format(user, lock_path)
+        print pair_sessions
+    elif (lock_path in pair_sessions) and (user in pair_sessions[lock_path]):
+        pass
+    elif (lock_path in pair_sessions) and (user not in pair_sessions[lock_path]):
+        users = pair_sessions[lock_path]
+        users.append(user)
+        pair_sessions[lock_path] = users
+        print "{} joined {}".format(user, lock_path)
+        print pair_sessions
+
+
 @socketio.on('get_lock', namespace='/')
 def get_lock(payload, path):
     global locks
+    global pair_sessions
     lock_request = json.loads(payload)
+    user = lock_request['user']
     lock_path = lock_request['lock_path']
     sid = request.sid
-    if (lock_path in locks) and (locks[lock_path] is not None):
-        emit('lock_fail', json.dumps({'sid': str(sid), 'path': lock_path}), namespace='/')
+    if lock_path in pair_sessions and len(pair_sessions[lock_path]) < 2:
+        emit('lock_fail', json.dumps({'sid': str(sid), 'path': lock_path, 'msg':'Your partner is not online!'}), namespace='/')
+    elif (lock_path in locks) and (locks[lock_path] is not None):
+        emit('lock_fail', json.dumps({'sid': str(sid), 'path': lock_path, 'msg': 'Someone else is editing!'}), namespace='/')
     else:
-        locks[lock_path] = {'sid': sid, 'user': lock_request['user']}
+        locks[lock_path] = {'sid': sid, 'user': user}
         emit('lock_success', json.dumps({'sid': str(sid), 'path': lock_path}), namespace='/', broadcast=True)
 
 
 @socketio.on('disconnect', namespace='/')
 def on_disconnect():
     global locks
+    global pair_sessions
+    for k, v in pair_sessions.iteritems():
+        sids = map(lambda t: t[1], v)
+        if request.sid in sids:
+            new_users = filter(lambda t: t[1] != request.sid, v)
+            pair_sessions[k] = new_users
+            print "evicted {}".format(request.sid)
+
     for k, v in locks.iteritems():
         if v['sid'] == request.sid:
             print "{} disconnected...releasing lock".format(request.sid)
@@ -115,7 +174,7 @@ def release_lock(payload, p):
         del locks[lock_path]
         emit('release_success', json.dumps({'sid': sid, 'path': lock_path}), namespace='/', broadcast=True)
     else:
-        emit('release_fail', json.dumps({'sid': sid,'path': lock_path}), namespace='/')
+        emit('release_fail', json.dumps({'sid': sid, 'path': lock_path}), namespace='/')
 
 
 @socketio.on('code', namespace='/')

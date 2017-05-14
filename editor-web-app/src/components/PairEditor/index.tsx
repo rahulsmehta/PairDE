@@ -77,7 +77,7 @@ class PairEditor extends React.Component<IPairEditorProps,IPairEditorState> {
       if (response.path == this.props.pairWorkState.wd) {
         AppToaster.show({
             intent: Intent.DANGER,
-            message: "Someone else is editing!"
+            message: response.msg
         });
       }
     });
