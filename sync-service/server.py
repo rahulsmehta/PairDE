@@ -72,9 +72,11 @@ def getshared(user):
             if len(doc) <= 0:
                 continue
             if doc['isDir']:
-                loaded_dir['children'].append({'rawSrc': None, 'fileName': doc['name'], 'isDir': True})
+                loaded_dir['children'].append({'rawSrc': None, 'fileName': doc['name'],
+                                               'isDir': True, 'rid': str(rid)})
             else:
-                loaded_dir['children'].append({'rawSrc': doc['contents'], 'fileName': doc['name'], 'isDir': False})
+                loaded_dir['children'].append({'rawSrc': doc['contents'], 'fileName': doc['name'],
+                                               'isDir': False, 'rid': str(rid)})
         loaded.append(loaded_dir)
     return json.dumps(loaded)
 

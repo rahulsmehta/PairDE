@@ -307,14 +307,14 @@ export default handleActions<CodePanelState, CodePanelData>({
       state.workState.files : updateFiles(state.workState.files, state.rid);
     const newPairFiles: CodeFile[] = state.pairWorkState.files.map((v,i) => {
         return {
-          rid: "",
+          rid: v.rid,
           fileName: v.fileName,
           rawSrc: v.rawSrc,
           isDir: v.isDir,
           children: v.children.map((f,i) => {
-            if (f.fileName == state.fileName && !state.isHome) {
+            if (f.rid == state.rid && !state.isHome) {
               return {
-                rid: "",
+                rid: f.rid,
                 fileName: f.fileName,
                 compileId: f.compileId,
                 rawSrc: state.rawSrc
@@ -326,16 +326,20 @@ export default handleActions<CodePanelState, CodePanelData>({
         };
     });
 
-    let newWd = action.payload.workState.wd;
+    let newWd = action.payload.workState ? action.payload.workState.wd : state.workState.wd;
     let newPairWd = state.pairWorkState.wd;
     if (action.payload.pairWorkState) {
       newPairWd = action.payload.pairWorkState.wd;
+    }
+    let newRid = action.payload.rid;
+    if (newRid.indexOf('%%') != -1) {
+      newRid = newRid.split('%%')[0];
     }
     return {
       rawSrc: action.payload.rawSrc,
       isHome: action.payload.isHome,
       fileName: action.payload.fileName,
-      rid: action.payload.rid,
+      rid: newRid,
       consoleSrc: state.consoleSrc,
       extraArgs: state.extraArgs,
       workState: {

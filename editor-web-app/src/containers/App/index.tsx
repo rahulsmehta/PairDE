@@ -94,14 +94,14 @@ class App extends React.Component<AppProps, AppState>{
       children: workState.files
     }
 
-    const mapChildNodes = (c: CodeFile, i): ITreeNode => {
+    const mapChildNodes = (c: CodeFile, parent): ITreeNode => {
       const code = (c.isDir == undefined || !c.isDir);
       let result = {
-        id: i,
+        id: c.rid + '%%' + parent,
         label: c.fileName,
         iconName: code ? 'code' : 'folder-close'
       }
-      if ((c.fileName == editor.fileName) && !editor.isHome)
+      if ((c.rid == editor.rid) && !editor.isHome)
         result['isSelected'] = true;
       return result;
     };
@@ -111,7 +111,7 @@ class App extends React.Component<AppProps, AppState>{
         label: file.fileName,
         iconName: 'folder-close',
         isExpanded: true,
-        childNodes: file.children.map((c,j) => mapChildNodes(c, 10*i + j))
+        childNodes: file.children.map(c => mapChildNodes(c, file.fileName))
       }
     });
 
@@ -172,10 +172,11 @@ class App extends React.Component<AppProps, AppState>{
                 }
                 if (node.iconName == 'code'){
                   const {src, id} = getSrc(node.label);
-                  const parentIdx = (Math.floor(parseInt(id.toString())/10));
-                  const parentDir = '/shared/' + pairWorkState.files[parentIdx].fileName + '/';
+                  const parentName = node.id.toString().split('%%')[1];
+                  const parentDir = '/shared/' + parentName + '/';
                   actions.changeSrcFile({
                     fileName: node.label,
+                    rid: node.id,
                     rawSrc: src,
                     isHome: false,
                     pairWorkState: {

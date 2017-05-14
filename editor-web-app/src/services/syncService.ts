@@ -17,7 +17,7 @@ export function listShared(actions: typeof EditorActions, props: CodePanelData, 
     const files: CodeFile[] = JSON.parse(responseText);
     const decodedFiles:CodeFile[] = files.map((c,i) => {
       return {
-          rid: "",
+          rid: c.rid,
           fileName: c.fileName,
           rawSrc: c.rawSrc,
           isDir: c.isDir,
