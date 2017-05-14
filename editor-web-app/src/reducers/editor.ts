@@ -103,6 +103,11 @@ export default handleActions<CodePanelState, CodePanelData>({
       intent: Intent.SUCCESS,
       iconName: "tick"
     });
+    const isDir = (fn) => {
+      const re = new RegExp('^[A-Za-z0-9_]*$');
+      let toTest = fn.replace('/','').replace('/','');
+      return re.test(toTest) && toTest.length > 0;
+    }
     //inserted new file is determined by wd +
     const toInsert: CodeFile = {
       rid: action.payload.rid,
@@ -110,49 +115,59 @@ export default handleActions<CodePanelState, CodePanelData>({
       rawSrc: ''
     };
     alert(state.workState.wd);
-    // const insertFile = (files: CodeFile[], wd: string): CodeFile[] => {
-    //   return files.map((c) => {
-    //     if (c.rid == props.rid) {
-    //       console.log('updating ' + c.fileName);
-    //       let result = c;
-    //       result['compileId'] = class_path;
-    //       return result;
-    //     } else if (c.children) {
-    //       let result = c;
-    //       result['children'] = updateCompileId(c.children);
-    //       return result;
-    //     } else {
-    //       return c;
-    //     }
-    //   });
-    // }
-    let newFiles = state.workState.files;
-    //todo:recursively traverse to insert file into correct wd
-    // actions.payload.rid
-    if (newFiles.length > 0) {
-      newFiles = newFiles.map((c) => {
-        if(c.fileName == state.fileName) {
+    // need an updateFile() function that, given rid, finds it in
+    // the fs tree and updates its src to action.payload.rawSrc
+    const updateFiles = (files: CodeFile[], rid: string): CodeFile[] => {
+      return files.map(c => {
+        if (c.rid == rid) {
           return {
-            rid: c.rid,
             fileName: c.fileName,
             compileId: c.compileId,
-            rawSrc: action.payload.rawSrc
+            rawSrc: action.payload.rawSrc,
+            rid: c.rid,
+            children: c.children
+          }
+        } else if (c.children) {
+          const newChild = updateFiles(c.children, rid);
+          return {
+            fileName: c.fileName,
+            rid: c.rid,
+            rawSrc: null,
+            children: newChild
           }
         } else {
           return c;
         }
       });
     }
-    newFiles.push({
-      rid: action.payload.rid,
-      fileName: action.payload.fileName,
-      rawSrc: ''
-    });
+    // so we want to insert toInsert in the CodeFile
+    // corresponding to state.workState.wd
+    const insertFileRec = (files: CodeFile[], cwd: string): CodeFile[] => {
+      if (cwd == state.workState.wd){
+        let newFiles = files;
+        newFiles.push(toInsert);
+        return newFiles;
+      } else {
+        return files.map(c => {
+          if (isDir(c.fileName)) {
+            const newWd = cwd + c.fileName + '/';
+            const newChild = insertFileRec(c.children, newWd);
+            let newDir = c;
+            newDir.children = newChild;
+            return newDir;
+          } else {
+            return c;
+          }
+        });
+      }
+    }
+    let newFiles = updateFiles(state.workState.files, state.rid);
+    newFiles = insertFileRec(newFiles, state.workState.root);
     return {
       rawSrc: '',
       fileName: action.payload.fileName,
       isHome: state.isHome,
-      rid: state.rid,
+      rid: action.payload.rid,
       consoleSrc: state.consoleSrc,
       extraArgs: state.extraArgs,
       workState: {

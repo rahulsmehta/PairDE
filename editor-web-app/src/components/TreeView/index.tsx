@@ -111,7 +111,7 @@ class TreeView extends React.Component<ITreeViewProps,{}> {
         id: node.rid,
         label: this.props.root.fileName,
         hasCaret: true,
-        iconName: 'foler-close',
+        iconName: 'folder-close',
         isExpanded: true
       }
     } else {
