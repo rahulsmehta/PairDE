@@ -192,7 +192,6 @@ class TreeView extends React.Component<ITreeViewProps,{}> {
               }
             });
           } else {
-            console.log(JSON.stringify(codeFile.children));
             actions.changeSrcFile({
               fileName: node.label,
               rawSrc: null,

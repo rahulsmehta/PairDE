@@ -223,15 +223,9 @@ export default handleActions<CodePanelState, CodePanelData>({
         };
     });
 
-    let newWd = state.workState.wd;
-    if (isDir(action.payload.fileName) &&
-      newWd.indexOf(action.payload.fileName) == -1) {
-      newWd += action.payload.fileName + '/';
-    }
-
+    let newWd = action.payload.workState.wd;
     let newPairWd = state.pairWorkState.wd;
     if (action.payload.pairWorkState) {
-      // alert(action.payload.pairWorkState.wd);
       newPairWd = action.payload.pairWorkState.wd;
     }
     return {

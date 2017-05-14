@@ -116,24 +116,34 @@ export function saveFile(path: string, contents: string, actions: typeof EditorA
     }
 
 
+function decodeAll (nodes: CodeFile[]): CodeFile[] {
+  const isDir = (fn) => {
+    const re = new RegExp('^[A-Za-z0-9_]*$');
+    let toTest = fn.replace('/','').replace('/','');
+    return re.test(toTest) && toTest.length > 0;
+  }
+  return nodes.map((cf) => {
+    let result = cf;
+    const encodedSrc = cf.rawSrc;
+    try {
+    result['rawSrc'] = isDir(cf.fileName) ? null : decode(encodedSrc);
+    } catch (e) {
+      console.error(cf.rawSrc);
+    }
+    if (result.children) {
+      let decodedChildren = decodeAll(result.children);
+      result['children'] = decodedChildren;
+    }
+    return result;
+  })
+}
+
 export function listPath(path: string, props: CodePanelData) {
   let url = fixPath(STORAGE_SERVICE_URL + 'list-full' + path);
   return fetch (url, {
     method: 'GET'
   }).then(response => response.text()).then(responseText => {
     const files = JSON.parse(responseText);
-    const newFiles: CodeFile[] = files.map((c) => {
-      let childFiles = null;
-      if (c.children) {
-        childFiles = c.children;
-      }
-      return {
-        fileName: c.fileName,
-        rawSrc: c.rawSrc == null ? null : decode(c.rawSrc),
-        rid: c.rid,
-        children: childFiles
-      }
-    });
-    return newFiles;
+    return decodeAll(files);
     });
 }
