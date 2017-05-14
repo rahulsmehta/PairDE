@@ -76,6 +76,24 @@ class App extends React.Component<AppProps, AppState>{
     }
   }
 
+  componentWillReceiveProps() {
+    const { editor, actions } = this.props;
+    socket.on('change_file', (payload => {
+      const data = JSON.parse(payload);
+      if (data.path == editor.pairWorkState.wd && !editor.isHome) {
+        actions.changeSrcFile({
+          fileName: data.fn,
+          rid: data.newRid,
+          rawSrc: data.src,
+          isHome: false,
+          pairWorkState: {
+            wd: data.path,
+          }
+        });
+      }
+    }));
+  }
+
   private isDir = (fn: string) => {
     const re = new RegExp('^[A-Za-z0-9_]*$');
     let toTest = fn.replace('/','').replace('/','');
@@ -85,21 +103,6 @@ class App extends React.Component<AppProps, AppState>{
   render () {
     const { editor, actions, children } = this.props;
     const { workState, pairWorkState } = editor;
-
-    socket.on('change_file', (payload => {
-      const data = JSON.parse(payload);
-      if (data.path == editor.pairWorkState.wd && !editor.isHome) {
-        actions.changeSrcFile({
-          fileName: data.fn,
-          rid: data.newRid,
-          rawSrc: editor.rawSrc,
-          isHome: false,
-          pairWorkState: {
-            wd: data.path,
-          }
-        });
-      }
-    }));
 
     const rootFile: CodeFile = {
       rid: 'root',
@@ -198,7 +201,8 @@ class App extends React.Component<AppProps, AppState>{
                     socket.emit('pair_file_change', JSON.stringify({
                       lockPath: parentDir,
                       rid: node.id,
-                      fn: node.label
+                      fn: node.label,
+                      src: src
                     }));
                   }
                   actions.changeSrcFile({

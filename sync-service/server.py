@@ -133,9 +133,10 @@ def on_pair_file_change(payload):
     print data
     lock_path = data['lockPath']
     new_file = data['rid']
+    src = data['src']
     sid = request.sid
     emit('change_file', json.dumps({'sid':str(sid), 'path': lock_path, 'newRid': new_file,
-                                    'fn': data['fn']}), namespace = '/', broadcast=True)
+                                    'fn': data['fn'], 'src': src}), namespace = '/', broadcast=True)
 
 @socketio.on('get_lock', namespace='/')
 def get_lock(payload, path):
