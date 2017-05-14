@@ -18,7 +18,7 @@
               e.preventDefault();
               if(x < max_fields){ //max input box allowed
                   x++; //text box increment
-                  $(wrapper).append('<div><input type="text" name="mytext[]"/><a href="#" class="remove_field">Remove</a></div>'); //add input box
+                  $(wrapper).append('<div><input type="text" name="file' + x + '"/><a href="#" class="remove_field">Remove</a></div>'); //add input box
               }
           });
           
@@ -51,7 +51,7 @@
         Starting Files:
         <div class="input_fields_wrap">
             <button class="add_field_button">Add More Files</button>
-            <div><input type="text" name="mytext[]"></div>
+            <div><input type="text" name="file1"></div>
         </div>
         <input type="submit" value="Create Assignment"/>
       </form>

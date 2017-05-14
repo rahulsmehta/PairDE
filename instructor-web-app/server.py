@@ -81,10 +81,17 @@ def create():
         duedate = request.form["due"]
 
         #Handle FileList
-        mongo.db.assignments.insert({'name': name, 'files': ["Point2D.java", "HelloWorld.java"], 
+        d = request.form
+        requestList = d.copy()
+        numFiles = len(requestList) - 2
+        files = []
+        for i in range(1, numFiles + 1):
+            files.append(requestList['file' + str(i)])
+
+        mongo.db.assignments.insert({'name': name, 'files': files, 
             'due': duedate, 'partners': partner_list})
     return render_template('newAssignment.html')
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', debug=True, port=6000, threaded=True)
