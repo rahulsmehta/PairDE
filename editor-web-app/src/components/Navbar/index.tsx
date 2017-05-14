@@ -43,7 +43,8 @@ class Navbar extends React.Component<NavbarProps, {}> {
     }
     const {storageService, codeService, actions, editor, isSlave, socket} = this.props;
     const tooltipStyle = {paddingRight: "10px"};
-    const isEmpty = editor.workState.files.length == 0;
+    const isEmpty = editor.workState.files.length == 0 &&
+      editor.pairWorkState.files.length == 0;
 
     let renameClass = "pt-button pt-minimal pt-icon-edit";
     let saveClass = "pt-button pt-minimal pt-icon-floppy-disk";

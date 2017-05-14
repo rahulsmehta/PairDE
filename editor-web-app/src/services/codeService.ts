@@ -85,10 +85,20 @@ export async function validateTicket (ticket: string, props: CodePanelData,
 }
 
 export function run (props: CodePanelData, actions: typeof EditorActions) {
+  const validateArgs = (args) => {
+    return (args.indexOf('>') == -1) && (args.indexOf('<') == -1);
+  }
   const {workState, pairWorkState} = props;
   const {uuid,className} = props.isHome ? getUuidAndFile(workState.files, props.rid) :
     getUuidAndFilePair(pairWorkState.files, props.fileName);
   const url = CODE_SERVICE_URL + 'run/' + uuid + '/' + className;
+  if (!validateArgs(props.extraArgs)) {
+    AppToaster.show({
+      intent: Intent.DANGER,
+      message: "Invalid command line arguments"
+    });
+    return;
+  }
   fetch(url,{
     method: 'POST',
     body: JSON.stringify ({
