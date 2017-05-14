@@ -103,12 +103,37 @@ export default handleActions<CodePanelState, CodePanelData>({
       intent: Intent.SUCCESS,
       iconName: "tick"
     });
+    //inserted new file is determined by wd +
+    const toInsert: CodeFile = {
+      rid: action.payload.rid,
+      fileName: action.payload.fileName,
+      rawSrc: ''
+    };
+    alert(state.workState.wd);
+    // const insertFile = (files: CodeFile[], wd: string): CodeFile[] => {
+    //   return files.map((c) => {
+    //     if (c.rid == props.rid) {
+    //       console.log('updating ' + c.fileName);
+    //       let result = c;
+    //       result['compileId'] = class_path;
+    //       return result;
+    //     } else if (c.children) {
+    //       let result = c;
+    //       result['children'] = updateCompileId(c.children);
+    //       return result;
+    //     } else {
+    //       return c;
+    //     }
+    //   });
+    // }
     let newFiles = state.workState.files;
+    //todo:recursively traverse to insert file into correct wd
+    // actions.payload.rid
     if (newFiles.length > 0) {
       newFiles = newFiles.map((c) => {
         if(c.fileName == state.fileName) {
           return {
-            rid: "",
+            rid: c.rid,
             fileName: c.fileName,
             compileId: c.compileId,
             rawSrc: action.payload.rawSrc
@@ -119,7 +144,7 @@ export default handleActions<CodePanelState, CodePanelData>({
       });
     }
     newFiles.push({
-      rid: "",
+      rid: action.payload.rid,
       fileName: action.payload.fileName,
       rawSrc: ''
     });
@@ -132,7 +157,8 @@ export default handleActions<CodePanelState, CodePanelData>({
       extraArgs: state.extraArgs,
       workState: {
         wd: state.workState.wd,
-        files: newFiles
+        files: newFiles,
+        root: state.workState.root
       },
       pairWorkState: state.pairWorkState,
       authState: state.authState
@@ -174,7 +200,8 @@ export default handleActions<CodePanelState, CodePanelData>({
       extraArgs: state.extraArgs,
       workState: {
         wd: state.workState.wd,
-        files: newFiles
+        files: newFiles,
+        root: state.workState.root
       },
       pairWorkState: state.pairWorkState,
       authState: state.authState
@@ -198,7 +225,8 @@ export default handleActions<CodePanelState, CodePanelData>({
             fileName: c.fileName,
             compileId: c.compileId,
             rawSrc: state.rawSrc,
-            rid: c.rid
+            rid: c.rid,
+            children: c.children
           }
         } else if (c.children) {
           const newChild = updateFiles(c.children, rid);
@@ -214,7 +242,7 @@ export default handleActions<CodePanelState, CodePanelData>({
       });
     }
 
-    const newFiles = updateFiles(state.workState.files, state.rid);
+    const newFiles = isDir(action.payload.fileName) ? state.workState.files : updateFiles(state.workState.files, state.rid);
     const newPairFiles: CodeFile[] = state.pairWorkState.files.map((v,i) => {
         return {
           rid: "",

@@ -140,11 +140,6 @@ class TreeView extends React.Component<ITreeViewProps,{}> {
 
 
   render() {
-    // in the onNodeClick handler in the treeview component,
-    // dispatch the CHANGE_FILE event after calling getWd on the
-
-    // alert(JSON.stringify(this.props.root));
-    // alert(this.props.selected);
     const nodes = this.buildTreeView(this.props.root);
     const { actions } = this.props;
     return (
@@ -167,15 +162,17 @@ class TreeView extends React.Component<ITreeViewProps,{}> {
               }
             });
           } else {
-            actions.changeSrcFile({
-              fileName: node.label,
-              rawSrc: null,
-              isHome: true,
-              rid: rid,
-              workState: {
-                wd: wd
-              }
-            });
+            if (node.id != 'root'){
+              actions.changeSrcFile({
+                fileName: node.label,
+                rawSrc: null,
+                isHome: true,
+                rid: rid,
+                workState: {
+                  wd: wd
+                }
+              });
+            }
           }
         })}
       />

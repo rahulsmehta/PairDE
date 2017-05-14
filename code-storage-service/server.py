@@ -194,13 +194,13 @@ def create_path(path):
             return parent['name'] + " is not a folder"
         else:
             parentId = parent['_id']
-    mongo.db.code.insert(
+    new_id = mongo.db.code.insert(
         {'name': filename, 'children': [], 'contents': data['contents'], 'isDir': data['isDir'], 'parent': parentId,
          'path': rawpath})
     child = mongo.db.code.find_one({'path': rawpath})
     mongo.db.code.update({'_id': parentId}, {"$addToSet": {'children': child['_id']}})
 
-    return "success"
+    return str(new_id)
 
 
 @app.route('/load-path', defaults={'path': ''})

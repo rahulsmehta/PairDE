@@ -28,10 +28,11 @@ export function create(path: string, isDir: boolean, rawSrc: string,
       contents: ''
     })
   }).then(response => response.text()).then(responseText => {
-    if(responseText == 'success'){
+    if(responseText.length == 24){
       actions.createFile({
         fileName: fn,
-        rawSrc: rawSrc
+        rawSrc: rawSrc,
+        rid: responseText
       });
     }
     else if(responseText == "file already exists") {

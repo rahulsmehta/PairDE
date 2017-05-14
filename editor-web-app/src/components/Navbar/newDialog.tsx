@@ -64,20 +64,6 @@ class NewFileDialog extends React.Component<IDialogProps, IDialogState> {
             </div>
         );
     }
-    // private handleRename = () => {
-    //   const {content} = this.state;
-    //   const {storageService, currentFile, wd, actions} = this.props;
-    //   if (!this.validateName(content)) {
-    //       AppToaster.show({
-    //         message: "Invalid class name!",
-    //         intent: Intent.DANGER
-    //       });
-    //   } else {
-    //     const path = wd + currentFile;
-    //     storageService.renameFile(path, content, actions);
-    //     this.setState({isOpen: !this.state.isOpen})
-    //   }
-    // }
 
     private handleNewFile = () => {
       const {actions, storageService, wd, rawSrc} = this.props;
