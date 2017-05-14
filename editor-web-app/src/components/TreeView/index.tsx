@@ -100,31 +100,6 @@ class TreeView extends React.Component<ITreeViewProps,{}> {
   }
 
   private buildTreeView (root: CodeFile): ITreeNode[] {
-    // const fileNodes: ITreeNode[] = root.children.map((c: CodeFile) => {
-    //   const isCode = (c.fileName.indexOf('.java') != -1);
-    //   const icon = isCode ? 'code' : 'folder-close';
-    //   let result = {
-    //     hasCaret: !isCode,
-    //     iconName: icon,
-    //     label: c.fileName,
-    //     id: c.rid
-    //   }
-    //   if (this.props.selected == c.rid && this.props.isHome) {
-    //     result['isSelected'] = true;
-    //     if (!isCode) {
-    //       result['isExpanded'] = true;
-
-    //     }
-    //   }
-    //   return result;
-    // });
-    // const rootNode: ITreeNode = {
-    //   iconName: "folder-close",
-    //   label: root.fileName,
-    //   id: 'root',
-    //   childNodes: fileNodes,
-    //   isExpanded: true
-    // };
     let rootNode = this.buildTreeViewRec(root);
     return [rootNode];
   }
