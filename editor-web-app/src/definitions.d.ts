@@ -16,6 +16,7 @@ declare interface RunFileRequest {
 }
 
 declare type CodeFile  = {
+  rid: string;
   rawSrc: string;
   fileName: string;
   compileId?: string;
@@ -24,6 +25,7 @@ declare type CodeFile  = {
 }
 
 declare type WorkState = {
+  root?: string;
   wd: string;
   files: CodeFile[];
   isSlave?: boolean;
@@ -38,9 +40,9 @@ declare type AuthState = {
 declare type CodePanelData = {
   rawSrc: string;
   isHome: boolean;
+  rid: string;
   fileName?: string;
   consoleSrc?: string;
-  otherFiles: CodeFile[];
   extraArgs: string[];
   workState: WorkState;
   pairWorkState: WorkState;

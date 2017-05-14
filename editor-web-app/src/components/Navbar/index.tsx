@@ -26,6 +26,7 @@ class Navbar extends React.Component<NavbarProps, {}> {
     super(props, context);
   }
 
+
   formatCommandName(fileName: string, extraArgs?: string[]) {
     let result = 'java ' + fileName.replace('.java','');
     if (extraArgs.length > 0) {
@@ -35,9 +36,15 @@ class Navbar extends React.Component<NavbarProps, {}> {
   }
 
   render() {
+    const isDir = (fn) => {
+      const re = new RegExp('^[A-Za-z0-9_]*$');
+      let toTest = fn.replace('/','').replace('/','');
+      return re.test(toTest) && toTest.length > 0;
+    }
     const {storageService, codeService, actions, editor, isSlave, socket} = this.props;
     const tooltipStyle = {paddingRight: "10px"};
-    const isEmpty = editor.workState.files.length == 0;
+    const isEmpty = editor.workState.files.length == 0 &&
+      editor.pairWorkState.files.length == 0;
 
     let renameClass = "pt-button pt-minimal pt-icon-edit";
     let saveClass = "pt-button pt-minimal pt-icon-floppy-disk";
@@ -141,7 +148,7 @@ class Navbar extends React.Component<NavbarProps, {}> {
         />
       )
 
-    const saveButton = isEmpty ? (<button className={saveClass}>Save</button>) :
+    const saveButton = isEmpty || (!editor.isHome && isSlave) ? (<button className={saveClass}>Save</button>) :
       (
       <button className={saveClass} onClick = {() => {
           let path = (editor.isHome) ? editor.workState.wd : editor.pairWorkState.wd;
@@ -156,7 +163,12 @@ class Navbar extends React.Component<NavbarProps, {}> {
             AppToaster.show({
               action: {
                 onClick: () => {
-                  const path = editor.workState.wd + editor.fileName;
+                  let path = editor.workState.wd;
+                  if (!isDir(editor.fileName)) {
+                    path += editor.fileName;
+                  } else {
+                    path = path.substring(0,path.length-1);
+                  }
                   storageService.deleteFile(path, actions)
                 },
                 text: 'Delete',

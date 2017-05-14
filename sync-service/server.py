@@ -13,7 +13,6 @@ CORS(app)
 socketio = SocketIO(app)
 mongo = PyMongo(app)
 
-
 """
 """
 
@@ -21,14 +20,17 @@ mongo = PyMongo(app)
 # app.config["APPLICATION_ROOT"] = "/v1"
 
 locks = dict({})
+pair_sessions = dict({})
+
 
 @app.route('/ping', methods=['GET'])
 def pong():
     return "pong"
 
+
 @app.route('/create-shared/<u1>/<u2>/<assignment>', methods=['POST'])
 def create(u1, u2, assignment):
-    #Create a new shared directory with path /shared/u1_u2_assignment
+    # Create a new shared directory with path /shared/u1_u2_assignment
     dirname = u1 + "_" + u2 + "_" + assignment
     path = "/shared/" + dirname
     if (mongo.db.code.find_one({'path': path}) != None):
@@ -41,13 +43,14 @@ def create(u1, u2, assignment):
     mongo.db.code.update({'_id': shared['_id']}, {"$addToSet": {'children': newDir['_id']}})
     return "success"
 
+
 @app.route('/list-shared/<user>', methods=['GET'])
 def getshared(user):
-    #Return list of all shared directories belonging to user
+    # Return list of all shared directories belonging to user
     reg1 = user + '_.*'
     reg2 = '.*_' + user + '_.*'
 
-    #TODO - fix this logic
+    # TODO - fix this logic
     list1 = list(mongo.db.code.find({"name": {"$regex": reg1}}))
     list2 = list(mongo.db.code.find({"name": {"$regex": reg2}}))
     merged = []
@@ -70,60 +73,127 @@ def getshared(user):
             if len(doc) <= 0:
                 continue
             if doc['isDir']:
-                loaded_dir['children'].append({'rawSrc': None, 'fileName': doc['name'], 'isDir': True})
+                loaded_dir['children'].append({'rawSrc': None, 'fileName': doc['name'],
+                                               'isDir': True, 'rid': str(rid)})
             else:
-                loaded_dir['children'].append({'rawSrc':doc['contents'], 'fileName': doc['name'], 'isDir': False})
+                loaded_dir['children'].append({'rawSrc': doc['contents'], 'fileName': doc['name'],
+                                               'isDir': False, 'rid': str(rid)})
         loaded.append(loaded_dir)
     return json.dumps(loaded)
+
+
+def evict_session(user, lock_path):
+    global pair_sessions
+    if lock_path in pair_sessions:
+        users = pair_sessions[lock_path]
+        if user in users:
+            users.remove(user)
+            pair_sessions[lock_path] = users
+            print pair_sessions
+            return True
+    return False
+
+
+def get_current_session(user):
+    global pair_sessions
+    for k, v in pair_sessions.iteritems():
+        if user in v:
+            return k
+    return None
+
+
+@socketio.on('join_session', namespace='/')
+def join_session(payload):
+    global pair_sessions
+    data = json.loads(payload)
+    lock_path = data['path']
+    user = data['user'], request.sid
+    session = get_current_session(user)
+    if session is not None:
+        if session == lock_path:
+            pass
+        elif session != lock_path:
+            evict_session(user, session)
+    if lock_path not in pair_sessions:
+        pair_sessions[lock_path] = [user]
+        print "{} joined {}".format(user, lock_path)
+        print pair_sessions
+    elif (lock_path in pair_sessions) and (user in pair_sessions[lock_path]):
+        pass
+    elif (lock_path in pair_sessions) and (user not in pair_sessions[lock_path]):
+        users = pair_sessions[lock_path]
+        users.append(user)
+        pair_sessions[lock_path] = users
+        print "{} joined {}".format(user, lock_path)
+        print pair_sessions
+
+@socketio.on('pair_file_change', namespace='/')
+def on_pair_file_change(payload):
+    data = json.loads(payload)
+    print data
+    lock_path = data['lockPath']
+    new_file = data['rid']
+    src = data['src']
+    sid = request.sid
+    emit('change_file', json.dumps({'sid':str(sid), 'path': lock_path, 'newRid': new_file,
+                                    'fn': data['fn'], 'src': src}), namespace = '/', broadcast=True)
 
 @socketio.on('get_lock', namespace='/')
 def get_lock(payload, path):
     global locks
+    global pair_sessions
     lock_request = json.loads(payload)
+    user = lock_request['user']
     lock_path = lock_request['lock_path']
     sid = request.sid
-    print (lock_path in locks)
-    if (lock_path in locks) and (locks[lock_path] is not None):
-        emit('lock_fail', locks[lock_path], namespace='/')
+    if lock_path in pair_sessions and len(pair_sessions[lock_path]) < 2:
+        emit('lock_fail', json.dumps({'sid': str(sid), 'path': lock_path, 'msg':'Your partner is not online!'}), namespace='/')
+    elif (lock_path in locks) and (locks[lock_path] is not None):
+        emit('lock_fail', json.dumps({'sid': str(sid), 'path': lock_path, 'msg': 'Someone else is editing!'}), namespace='/')
     else:
-        locks[lock_path] = {'sid':sid, 'user':lock_request['user']}
-        emit('lock_success', str(sid), namespace='/', broadcast=True)
+        locks[lock_path] = {'sid': sid, 'user': user}
+        emit('lock_success', json.dumps({'sid': str(sid), 'path': lock_path}), namespace='/', broadcast=True)
 
 
-        #TODO: see if this actually works for fixing render issue
-# @app.route('/lock/<sid>', methods=['POST'])
-# def lock(sid):
-#     global locks
-#     lock_request = json.loads(request.data)
-#     lock_path = lock_request['lock_path']
-#     print (lock_path in locks)
-#     if (lock_path in locks) and (locks[lock_path] is not None):
-#         return json.dumps(locks[lock_path])
-#     else:
-#         locks[lock_path] = json.dumps({'sid':sid, 'user':lock_request['user']})
-#         emit('lock_success', locks[lock_path], namespace='/')
+@socketio.on('disconnect', namespace='/')
+def on_disconnect():
+    global locks
+    global pair_sessions
+    for k, v in pair_sessions.iteritems():
+        sids = map(lambda t: t[1], v)
+        if request.sid in sids:
+            new_users = filter(lambda t: t[1] != request.sid, v)
+            pair_sessions[k] = new_users
+            print "evicted {}".format(request.sid)
 
-    # print "Received lock request for {} from {}...acking...".format(payload, request.sid)
+    for k, v in locks.iteritems():
+        if v['sid'] == request.sid:
+            print "{} disconnected...releasing lock".format(request.sid)
+            del locks[k]
+            emit('release_success', json.dumps({'sid': request.sid, 'path': k}), namespace='/', broadcast=True)
+
 
 @socketio.on('release_lock', namespace='/')
-def release_lock(payload,p):
+def release_lock(payload, p):
     print "Received release lock request for {} from {}...acking...".format(payload, request.sid)
     global locks
     lock_request = json.loads(payload)
     lock_path = lock_request['lock_path']
     sid = request.sid
-    print (lock_path in locks)
     if (lock_path in locks) and (locks[lock_path] is not None) and (locks[lock_path]['sid'] == sid):
         del locks[lock_path]
-        emit('release_success', str(sid), namespace='/', broadcast=True)
+        emit('release_success', json.dumps({'sid': sid, 'path': lock_path}), namespace='/', broadcast=True)
     else:
-        emit('release_fail', '', namespace='/')
+        emit('release_fail', json.dumps({'sid': sid, 'path': lock_path}), namespace='/')
 
 
 @socketio.on('code', namespace='/')
-def on_code(payload,path):
+def on_code(payload, path):
     print "Received payload from {}".format(request.sid)
-    emit('code-sub',payload,namespace='/', broadcast=True)
+    code_obj = json.loads(payload)
+    emit('code-sub', json.dumps({'sid': request.sid, 'code': code_obj['src'],
+                                 'path': code_obj['path']}), namespace='/', broadcast=True)
+
 
 if __name__ == '__main__':
     app.secret_key = 'cos333'
