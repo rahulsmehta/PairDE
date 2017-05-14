@@ -189,19 +189,32 @@ export default handleActions<CodePanelState, CodePanelData>({
       return re.test(toTest) && toTest.length > 0;
     }
 
-    const newFiles = state.workState.files.map((v,i) => {
-      if (v.rid == state.rid && state.isHome) {
-        return {
-          fileName: v.fileName,
-          compileId: v.compileId,
-          rawSrc: state.rawSrc,
-          rid: v.rid
-        };
-      } else {
-        return v;
-      }
-    });
+    // need an updateFile() function that, given rid, finds it in
+    // the fs tree and updates its src to state.rawSrc
+    const updateFiles = (files: CodeFile[], rid: string) => {
+      return files.map(c => {
+        if (c.rid == rid) {
+          return {
+            fileName: c.fileName,
+            compileId: c.compileId,
+            rawSrc: state.rawSrc,
+            rid: c.rid
+          }
+        } else if (c.children) {
+          const newChild = updateFiles(c.children, rid);
+          return {
+            fileName: c.fileName,
+            rid: c.rid,
+            rawSrc: null,
+            children: newChild
+          }
+        } else {
+          return c;
+        }
+      });
+    }
 
+    const newFiles = updateFiles(state.workState.files, state.rid);
     const newPairFiles: CodeFile[] = state.pairWorkState.files.map((v,i) => {
         return {
           rid: "",
