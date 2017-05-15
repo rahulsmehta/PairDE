@@ -34,6 +34,14 @@ def landing():
         requestList = d.copy()
         fileToDelete = requestList['assignmentName']
         roast = fileToDelete[:len(fileToDelete)-1]
+        assignment = mongo.db.assignments.find_one({'name': roast})
+        if assignment is None:
+            return "Assignment not found"
+        partners = assignment['partners']
+        for partnership in partners:
+            url = "http://localhost:4000/delete-path/shared/" + partnership + "_" + roast
+            print url
+            assignment_dir = requests.delete(url)   
         mongo.db.assignments.remove({"name": roast})   
 
     mongoList = list(mongo.db.assignments.find())
@@ -99,7 +107,7 @@ def create():
             files.append(requestList['file' + str(i)])
         for filename in files:
             fileReg = '^[A-Z][A-Za-z0-9]*\.java$'
-            nameMatch = re.match(fileReg, name)
+            nameMatch = re.match(fileReg, filename)
             if nameMatch is None:
                 return "Invalid File Name"
 
