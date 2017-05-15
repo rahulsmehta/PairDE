@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>PairDE Instructor App</title>
+    <script src="https://unpkg.com/@blueprintjs/core@^1.11.0"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://unpkg.com/normalize.css@^4.1.1" rel="stylesheet" />
+    <link href="https://unpkg.com/@blueprintjs/core@^1.11.0/dist/blueprint.css" rel="stylesheet" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <style>
+      .container {
+        width: 50%;
+        margin: 0 auto;
+        padding-top: 10px;
+      }
+      ul {
+        list-style: none;
+        padding-left: 0;
+      }
+      .assignment {
+        width: 200px;
+      }
+    </style>
+    <script>
+      $(document).ready(function() {
+          var max_fields      = 7; //maximum input boxes allowed
+          var wrapper         = $(".input_fields_wrap"); //Fields wrapper
+          var add_button      = $(".add_field_button"); //Add button ID
+          
+          var x = 1; //initlal text box count
+          $(add_button).click(function(e){ //on add input button click
+              e.preventDefault();
+              if(x < max_fields){ //max input box allowed
+                  x++; //text box increment
+                  $(wrapper).append('<div><input type="text" name="file' + x + 
+                    '"/><a href="#" class="pt-input remove_field pt-button pt-minimal pt-icon-delete"></a></div>'); //add input box
+              }
+          });
+          
+          $(wrapper).on("click",".remove_field", function(e){ //user click on remove text
+              e.preventDefault(); $(this).parent('div').remove(); x--;
+          })
+      });
+    </script>
+  </head>
+  <body>
+    <div>
+      <nav class="pt-navbar pt-dark">
+        <div class="pt-navbar-group pt-align-left">
+          <div class="pt-navbar-heading">Create New Assignment</div>
+        </div>
+        <div class="pt-navbar-group pt-align-right">
+          <a href="/" class="pt-button pt-minimal pt-icon-home">Home</a>
+          <a href="/newAssignment" class="pt-button pt-minimal pt-icon-document">Create New Assignment</a>
+          <span class="pt-navbar-divider"></span>
+          <button class="pt-button pt-minimal pt-icon-user"></button>
+          <button class="pt-button pt-minimal pt-icon-notifications"></button>
+          <button class="pt-button pt-minimal pt-icon-cog"></button>
+        </div>
+      </nav>
+      <div class="container">
+        <form action="newAssignment" method="post" enctype = "multipart/form-data">
+          <label class="pt-label">
+            <h5>Assignment Title:</h5>
+            <input class="pt-input" type="text" name="name">
+          </label>
+          <label class="pt-label">
+            <h5>Due Date: </h5>
+            <input class="pt-input" type="datetime-local" name="due">
+          </label>
+          <label class="pt-label">
+            <h5>Upload Partnerships CSV:</h5>
+            <input type="file" name="partners" accept=".csv"/><br>
+          </label>
+          <h5>Starting Files:</h5>
+          <div class="input_fields_wrap">
+              <button class="add_field_button pt-button pt-icon-add pt-minimal">Add More Files</button>
+              <div><input type="text" name="file1"></div>
+          </div>
+          <br />
+          <input type="submit" class="pt-button pt-intent-primary" value="Create Assignment"/>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>
