@@ -4,7 +4,7 @@ import re
 import csv
 import io
 import os
-from flask import Flask, request, render_template, url_for
+from flask import Flask, request, render_template, url_for, redirect
 from werkzeug import secure_filename
 # from flask_uuid import FlaskUUID
 from flask_pymongo import PyMongo
@@ -25,6 +25,10 @@ mongo = PyMongo(app)
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@app.route('/error/<message>')
+def throwError(message):
+    return render_template('error.html', message=message)
 
 @app.route('/home')
 @app.route("/", methods=['GET', 'POST'])
@@ -49,13 +53,13 @@ def landing():
     for assignment in mongoList:
         assignment_list.append(assignment['name'])
     assignment_list = map(lambda x: {'name' : x,'href': '/assignment/{}'.format(x)}, assignment_list)
-    return render_template('landing.html', instructor="rahulm!", assignment_list=assignment_list)
+    return render_template('landing.html', instructor="Instructor!", assignment_list=assignment_list)
 
 @app.route("/assignment/<name>")
 def assignmentPage(name):
     assignment = mongo.db.assignments.find_one({'name': name})
     if assignment is None:
-        return "Assignment not found"
+        return redirect('/error/Assignment_Does_Not_Exist')
     files = assignment['files']
     due = assignment['due']
     partners = assignment['partners']
@@ -68,31 +72,33 @@ def create():
     if request.method == 'POST':
 
         #Handle Partner CSV
-        if 'partners' not in request.files:
-            return('No Partner File')
         file = request.files['partners']
         stream = io.StringIO(file.stream.read().decode("UTF8"), newline=None)
         csv_input = csv.reader(stream)
         partner_list = []
+        i = 0            
         for row in csv_input:
             if len(row) != 2:
-                return "Invalid Partner CSV"
+                return redirect('/error/Invalid_Partner_CSV')
             partnerReg = "^[a-z0-9]*$"
             for netID in row:
                 partnerMatch = re.match(partnerReg, netID)
                 if partnerMatch is None:
-                    return "Invalid NetID in Partner List"
+                    return redirect('/error/Invalid_NetID')
             newPair = row[0] + "_" + row[1]
             partner_list.append(newPair)
+            i += 1
+        if i == 0:
+            return redirect('/error/No_Partner_File')
         
         #Handle Assignment Name
         name = request.form["name"]
-        if name is None:
-            return "Invalid Assignment Name"
+        if name == "":
+            return redirect('/error/Invalid_Assignment_Name')
         nameReg = "^[A-Za-z0-9_]*$"
         nameMatch = re.match(nameReg, name)
         if nameMatch is None:
-            return "Invalid Assignment Name"
+            return redirect('/error/Invalid_Assignment_Name')
         
         #Handle Due Date
         duedate = request.form["due"]
@@ -109,7 +115,7 @@ def create():
             fileReg = '^[A-Z][A-Za-z0-9]*\.java$'
             nameMatch = re.match(fileReg, filename)
             if nameMatch is None:
-                return "Invalid File Name"
+                return redirect('/error/Invalid_File_Name')
 
         mongo.db.assignments.insert({'name': name, 'files': files, 
             'due': duedate, 'partners': partner_list})
