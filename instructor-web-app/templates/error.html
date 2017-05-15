@@ -16,14 +16,18 @@
         <div class="pt-navbar-group pt-align-right">
           <a href="/" class="pt-button pt-minimal pt-icon-home">Home</a>
           <a href="newAssignment" class="pt-button pt-minimal pt-icon-document">Create New Assignment</a>
-          <span class="pt-navbar-divider"></span>
-          <button class="pt-button pt-minimal pt-icon-user"></button>
-          <button class="pt-button pt-minimal pt-icon-notifications"></button>
-          <button class="pt-button pt-minimal pt-icon-cog"></button>
         </div>
       </nav>
-      <p> Error: {{message}} </p>
-      </ul>
+      <!--<p> Error: {{message}} </p>-->
+      <div class="pt-non-ideal-state" style="padding-top: 10px;">
+        <div class="pt-non-ideal-state-visual pt-non-ideal-state-icon">
+          <span class="pt-icon pt-icon-delete"></span>
+        </div>
+        <h4 class="pt-non-ideal-state-title">Something went wrong!</h4>
+        <div class="pt-non-ideal-state-description">
+          {{message}}
+        </div>
+      </div>
     </div>
   </body>
 </html>

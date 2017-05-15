@@ -7,6 +7,20 @@
     <link href="https://unpkg.com/normalize.css@^4.1.1" rel="stylesheet" />
     <link href="https://unpkg.com/@blueprintjs/core@^1.11.0/dist/blueprint.css" rel="stylesheet" />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <style>
+      .container {
+        width: 50%;
+        margin: 0 auto;
+        padding-top: 10px;
+      }
+      ul {
+        list-style: none;
+        padding-left: 0;
+      }
+      .assignment {
+        width: 200px;
+      }
+    </style>
     <script>
       $(document).ready(function() {
           var max_fields      = 7; //maximum input boxes allowed
@@ -18,7 +32,8 @@
               e.preventDefault();
               if(x < max_fields){ //max input box allowed
                   x++; //text box increment
-                  $(wrapper).append('<div><input type="text" name="file' + x + '"/><a href="#" class="remove_field">Remove</a></div>'); //add input box
+                  $(wrapper).append('<div><input type="text" name="file' + x + 
+                    '"/><a href="#" class="pt-input remove_field pt-button pt-minimal pt-icon-delete"></a></div>'); //add input box
               }
           });
           
@@ -43,18 +58,29 @@
           <button class="pt-button pt-minimal pt-icon-cog"></button>
         </div>
       </nav>
-      <form action="newAssignment" method="post" enctype = "multipart/form-data">
-        Assignment Title: <input type="text" name="name"><br>
-        Due Date: <input type="datetime-local" name="due"><br>
-        Upload Partnerships CSV:
-          <input type="file" name="partners" accept=".csv"/><br>
-        Starting Files:
-        <div class="input_fields_wrap">
-            <button class="add_field_button">Add More Files</button>
-            <div><input type="text" name="file1"></div>
-        </div>
-        <input type="submit" value="Create Assignment"/>
-      </form>
+      <div class="container">
+        <form action="newAssignment" method="post" enctype = "multipart/form-data">
+          <label class="pt-label">
+            <h5>Assignment Title:</h5>
+            <input class="pt-input" type="text" name="name">
+          </label>
+          <label class="pt-label">
+            <h5>Due Date: </h5>
+            <input class="pt-input" type="datetime-local" name="due">
+          </label>
+          <label class="pt-label">
+            <h5>Upload Partnerships CSV:</h5>
+            <input type="file" name="partners" accept=".csv"/><br>
+          </label>
+          <h5>Starting Files:</h5>
+          <div class="input_fields_wrap">
+              <button class="add_field_button pt-button pt-icon-add pt-minimal">Add More Files</button>
+              <div><input type="text" name="file1"></div>
+          </div>
+          <br />
+          <input type="submit" class="pt-button pt-intent-primary" value="Create Assignment"/>
+        </form>
+      </div>
     </div>
   </body>
 </html>

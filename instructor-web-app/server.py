@@ -126,11 +126,14 @@ def create():
         for partnership in partner_list:
             url = "http://localhost:4000/create-path/shared/" + partnership + "_" + name
             print url
-            assignment_dir = requests.post(url, data = json.dumps({'isDir': True, 'contents': None}))   
+            assignment_dir = requests.post(url, data = json.dumps({'isDir': True, 'contents': None}))
+            if len(files) == 0:
+                return redirect('/error/No_Files_Provided')
             for filename in files:
                 print filename
                 file_dir = requests.post(url + "/" + filename, data = json.dumps({'isDir': False, 'contents': ""}))
 
+        return redirect('/assignment/{}'.format(name))
     return render_template('newAssignment.html')
 
 
