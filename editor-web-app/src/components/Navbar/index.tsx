@@ -215,9 +215,6 @@ class Navbar extends React.Component<NavbarProps, {}> {
         <Tooltip content={"Logged in as " + editor.authState.user} position = {Position.BOTTOM_RIGHT}>
           <button className="pt-button pt-minimal pt-icon-user"></button>
         </Tooltip>
-        <Tooltip content="Settings" position = {Position.BOTTOM}>
-          <button className="pt-button pt-minimal pt-icon-cog"></button>
-        </Tooltip>
       </div>
     </nav>
     );
