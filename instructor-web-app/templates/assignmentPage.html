@@ -47,7 +47,7 @@
           <li>{{n}}</li>
           {% endfor %}
         </ul>
-        <form action = "/" method = "post">
+        <form action = "/" method = "post" onsubmit="return confirm('Do you want to delete this assignment?')">
           <input type=hidden name="assignmentName" value={{name}}/>
           <input type="submit" class="pt-button pt-intent-danger" name="Delete Assignment" value="Delete Assignment"/>
         </form>
