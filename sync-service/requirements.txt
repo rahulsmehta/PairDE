@@ -10,7 +10,7 @@ Flask-SocketIO==2.8.6
 Flask-UUID==0.2
 greenlet==0.4.12
 itsdangerous==0.24
-Jinja2==2.9.5
+Jinja2==2.11.3
 MarkupSafe==1.0
 packaging==16.8
 pymongo==3.4.0
